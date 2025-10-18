@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +19,12 @@ export default function RegisterPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const router = useRouter();
+  const { signUp, uploadComprobante } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -24,24 +32,72 @@ export default function RegisterPage() {
       ...prev,
       [name]: type === 'file' ? files[0] : value
     }));
+    setError(''); // Limpiar error al escribir
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
+    // Validaciones
     if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      setError('Las contraseñas no coinciden');
+      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      alert('La contraseña debe tener al menos 6 caracteres');
+      setError('La contraseña debe tener al menos 6 caracteres');
+      setLoading(false);
       return;
     }
 
-    console.log('Register:', formData);
-    // TODO: Implementar lógica de registro
-    alert('Funcionalidad de registro pendiente de implementar');
+    if (!formData.archivo) {
+      setError('Debes subir un comprobante de residencia');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Crear usuario en Supabase
+      const result = await signUp({
+        email: formData.email,
+        password: formData.password,
+        nombres: formData.nombres,
+        apellidos: formData.apellidos,
+        rut: formData.rut,
+        direccion: formData.direccion,
+        telefono: formData.telefono,
+      });
+
+      if (!result.success) {
+        setError(result.error || 'Error al crear la cuenta');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Subir comprobante de residencia
+      if (formData.archivo && result.data?.user?.id) {
+        const uploadResult = await uploadComprobante(result.data.user.id, formData.archivo);
+        if (!uploadResult.success) {
+          console.error('Error subiendo comprobante:', uploadResult.error);
+          // No bloqueamos el registro por esto, pero lo registramos
+        }
+      }
+
+      // 3. Mostrar mensaje de éxito
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 3000);
+
+    } catch (err) {
+      setError('Error inesperado. Por favor intenta nuevamente.');
+      console.error('Error en registro:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,7 +106,20 @@ export default function RegisterPage() {
         <h2 className="auth-title">Crear Cuenta</h2>
         <p className="auth-subtitle">Regístrate en VecindApp</p>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        {success ? (
+          <div className="alert alert-success" role="alert">
+            <h4 className="alert-heading">¡Registro exitoso!</h4>
+            <p>Tu cuenta ha sido creada correctamente.</p>
+            <p className="mb-0">Tu registro está pendiente de aprobación por la Secretaría. Te notificaremos cuando sea aprobado.</p>
+            <p className="mt-2"><small>Redirigiendo al login en 3 segundos...</small></p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="auth-form">
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
           <div className="row g-3">
             <div className="col-md-6">
               <label htmlFor="nombres" className="form-label">Nombres *</label>
@@ -221,22 +290,27 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 mt-3">
-            Crear Cuenta
+          <button type="submit" className="btn btn-primary w-100 mt-3" disabled={loading}>
+            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
         </form>
+        )}
 
-        <div className="auth-divider">
-          <span>o</span>
-        </div>
+        {!success && (
+          <>
+            <div className="auth-divider">
+              <span>o</span>
+            </div>
 
-        <div className="auth-redirect">
-          <p>¿Ya tienes cuenta? <Link href="/login" className="text-decoration-none">Inicia sesión aquí</Link></p>
-        </div>
+            <div className="auth-redirect">
+              <p>¿Ya tienes cuenta? <Link href="/login" className="text-decoration-none">Inicia sesión aquí</Link></p>
+            </div>
 
-        <div className="auth-back">
-          <Link href="/" className="text-decoration-none">← Volver al inicio</Link>
-        </div>
+            <div className="auth-back">
+              <Link href="/" className="text-decoration-none">← Volver al inicio</Link>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

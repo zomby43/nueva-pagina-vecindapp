@@ -2,9 +2,6 @@
    VecindApp - Estilos Globales
    ======================================== */
 
-/* Importar Bootstrap */
-@import 'bootstrap/dist/css/bootstrap.min.css';
-
 /* Variables de color del mockup */
 :root {
   --bg: #d8e7eb;        /* mist blue */
@@ -80,6 +77,18 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-left {
+  flex-shrink: 0;
+}
+
+.header-right {
+  flex-shrink: 0;
 }
 
 .logo-container {
@@ -115,9 +124,48 @@ body {
   gap: 1rem;
 }
 
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .user-name {
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-email {
+  color: var(--sub);
+  font-size: 0.75rem;
+}
+
+/* Role Badges */
+.role-badge {
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.secretaria-badge {
+  background: linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(67, 159, 164, 0.3);
+}
+
+.vecino-badge {
+  background: linear-gradient(135deg, #154765 0%, #0f3449 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(21, 71, 101, 0.3);
 }
 
 .admin-badge-small {
@@ -210,6 +258,28 @@ body {
   flex-direction: column;
 }
 
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.layout-container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  flex: 1;
+  width: 100%;
+}
+
+.main-content {
+  min-height: 600px;
+}
+
 .container {
   max-width: 1400px;
   margin: 2rem auto;
@@ -278,16 +348,26 @@ main {
   background: var(--panel);
   border-radius: var(--radius);
   padding: 2rem;
+  box-shadow: 0 2px 8px rgba(21, 71, 101, 0.06);
 }
 
 .dashboard-header {
   margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--muted);
 }
 
 .dashboard-header h1 {
   color: var(--text);
   font-size: 2rem;
   font-weight: 700;
+  margin: 0;
+}
+
+.dashboard-subtitle {
+  color: var(--sub);
+  font-size: 1rem;
+  margin: 0.5rem 0 0 0;
 }
 
 .stats-grid {
@@ -306,6 +386,7 @@ main {
   gap: 1rem;
   box-shadow: 0 2px 8px rgba(21, 71, 101, 0.06);
   transition: transform 0.2s;
+  border-left: 4px solid var(--accent);
 }
 
 .stat-card:hover {
@@ -313,8 +394,25 @@ main {
   box-shadow: 0 4px 12px rgba(21, 71, 101, 0.12);
 }
 
+.stat-card.stat-pending {
+  border-left-color: var(--warn);
+}
+
+.stat-card.stat-completed {
+  border-left-color: var(--ok);
+}
+
+.stat-card.stat-waiting {
+  border-left-color: var(--err);
+}
+
 .stat-icon {
   font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
 }
 
 .stat-content h3 {
@@ -330,6 +428,7 @@ main {
   font-weight: 700;
   color: var(--text);
   margin: 0.25rem 0 0 0;
+  line-height: 1;
 }
 
 .stat-change {
@@ -1663,6 +1762,11 @@ input[type="file"] {
     gap: 1.5rem;
   }
 
+  .layout-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
   aside {
     position: static;
   }
@@ -1677,6 +1781,18 @@ input[type="file"] {
 
   .charts-grid {
     grid-template-columns: 1fr;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .user-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 }
 

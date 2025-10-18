@@ -1,12 +1,12 @@
-import AdminSidebar from '@/components/layout/AdminSidebar';
+import SecretariaSidebar from '@/components/layout/SecretariaSidebar';
 import Header from '@/components/layout/Header';
 
-export default function AdminLayout({ children }) {
+export default function SecretariaLayout({ children }) {
   return (
     <div className="layout">
       <Header />
       <div className="layout-container">
-        <AdminSidebar />
+        <SecretariaSidebar />
         <main className="main-content">
           {children}
         </main>

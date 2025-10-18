@@ -1,18 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 
 export default function PerfilPage() {
+  const { user, userProfile, loading: authLoading } = useAuth();
+  const supabase = createClient();
+
   const [userData, setUserData] = useState({
-    nombres: 'Juan Carlos',
-    apellidos: 'Pérez González',
-    rut: '12.345.678-9',
-    email: 'juan.perez@email.com',
-    telefono: '+56 9 1234 5678',
-    direccion: 'Av. Providencia 1234, Dpto 56, Providencia'
+    nombres: '',
+    apellidos: '',
+    rut: '',
+    email: '',
+    telefono: '',
+    direccion: ''
   });
 
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Cargar datos del usuario al montar el componente
+  useEffect(() => {
+    if (userProfile && user) {
+      setUserData({
+        nombres: userProfile.nombres || '',
+        apellidos: userProfile.apellidos || '',
+        rut: userProfile.rut || '',
+        email: user.email || '',
+        telefono: userProfile.telefono || '',
+        direccion: userProfile.direccion || ''
+      });
+      setLoading(false);
+    }
+  }, [userProfile, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,13 +44,59 @@ export default function PerfilPage() {
       ...prev,
       [name]: value
     }));
+    setError('');
+    setSuccess('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEditMode(false);
-    alert('Perfil actualizado correctamente');
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Actualizar datos en Supabase
+      const { error: updateError } = await supabase
+        .from('usuarios')
+        .update({
+          nombres: userData.nombres,
+          apellidos: userData.apellidos,
+          telefono: userData.telefono,
+          direccion: userData.direccion,
+          // No actualizamos email ni rut
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setSuccess('¡Perfil actualizado correctamente!');
+      setEditMode(false);
+
+      // Refrescar el perfil en el contexto
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error('Error actualizando perfil:', err);
+      setError('Error al actualizar el perfil. Por favor intenta nuevamente.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // Mostrar loading mientras se cargan los datos
+  if (loading || authLoading) {
+    return (
+      <div className="page-container">
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3 text-muted">Cargando información del perfil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
@@ -41,15 +111,30 @@ export default function PerfilPage() {
             <div className="card">
               <div className="card-header d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">Información Personal</h5>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className={`btn ${editMode ? 'btn-secondary' : 'btn-primary'} btn-sm`}
                   onClick={() => setEditMode(!editMode)}
+                  disabled={saving}
                 >
                   {editMode ? 'Cancelar' : 'Editar'}
                 </button>
               </div>
               <div className="card-body">
+                {/* Mensajes de éxito/error */}
+                {success && (
+                  <div className="alert alert-success alert-dismissible fade show" role="alert">
+                    {success}
+                    <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
+                  </div>
+                )}
+                {error && (
+                  <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                    {error}
+                    <button type="button" className="btn-close" onClick={() => setError('')}></button>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3">
                     <div className="col-md-6">
@@ -133,13 +218,21 @@ export default function PerfilPage() {
                   
                   {editMode && (
                     <div className="d-flex gap-2 mt-3">
-                      <button type="submit" className="btn btn-success">
-                        Guardar Cambios
+                      <button type="submit" className="btn btn-success" disabled={saving}>
+                        {saving ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Guardando...
+                          </>
+                        ) : (
+                          'Guardar Cambios'
+                        )}
                       </button>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="btn btn-secondary"
                         onClick={() => setEditMode(false)}
+                        disabled={saving}
                       >
                         Cancelar
                       </button>
@@ -158,15 +251,45 @@ export default function PerfilPage() {
               <div className="card-body">
                 <div className="status-item">
                   <span className="status-label">Estado:</span>
-                  <span className="badge bg-success">Aprobado</span>
+                  {userProfile?.estado === 'activo' && (
+                    <span className="badge bg-success">✓ Activo</span>
+                  )}
+                  {userProfile?.estado === 'pendiente_aprobacion' && (
+                    <span className="badge bg-warning">⏰ Pendiente</span>
+                  )}
+                  {userProfile?.estado === 'rechazado' && (
+                    <span className="badge bg-danger">✗ Rechazado</span>
+                  )}
+                  {userProfile?.estado === 'inactivo' && (
+                    <span className="badge bg-secondary">Inactivo</span>
+                  )}
+                </div>
+                <div className="status-item">
+                  <span className="status-label">Rol:</span>
+                  {userProfile?.rol === 'vecino' && <span className="badge bg-primary">👤 Vecino</span>}
+                  {userProfile?.rol === 'secretaria' && <span className="badge bg-info">📝 Secretaría</span>}
+                  {userProfile?.rol === 'admin' && <span className="badge bg-danger">🛡️ Admin</span>}
                 </div>
                 <div className="status-item">
                   <span className="status-label">Miembro desde:</span>
-                  <span>Enero 2024</span>
+                  <span>
+                    {userProfile?.created_at
+                      ? new Date(userProfile.created_at).toLocaleDateString('es-CL', {
+                          year: 'numeric',
+                          month: 'long'
+                        })
+                      : 'No disponible'}
+                  </span>
                 </div>
                 <div className="status-item">
-                  <span className="status-label">Solicitudes:</span>
-                  <span>3 completadas</span>
+                  <span className="status-label">Comprobante:</span>
+                  {userProfile?.comprobante_url ? (
+                    <a href={userProfile.comprobante_url} target="_blank" rel="noopener noreferrer" className="text-primary">
+                      Ver documento
+                    </a>
+                  ) : (
+                    <span className="text-muted">No disponible</span>
+                  )}
                 </div>
               </div>
             </div>
