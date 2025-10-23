@@ -2,7 +2,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import Script from 'next/script';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { StyleDiagnostic } from '@/components/StyleDiagnostic';
 // Importar forceLogout para registrarlo globalmente
 import '@/lib/forceLogout';
 
@@ -19,9 +18,8 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
       </head>
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning style={{ margin: 0, padding: 0, minHeight: '100vh' }}>
         <AuthProvider>
-          <StyleDiagnostic />
           {children}
         </AuthProvider>
         {/* Bootstrap JS */}

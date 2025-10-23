@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 /**
  * Componente de diagnóstico para verificar el estado de los estilos CSS
+ * Solo reporta en consola, NO recarga la página para evitar loops
  */
 export default function StyleDiagnostic() {
   useEffect(() => {
@@ -11,14 +12,14 @@ export default function StyleDiagnostic() {
       // Verificar si Bootstrap está cargado
       const hasBootstrap = document.querySelector('link[href*="bootstrap"]') ||
                           getComputedStyle(document.body).getPropertyValue('--bs-primary');
-      
+
       // Verificar si globals.css está cargado
       const hasGlobals = document.querySelector('link[href*="globals.css"]') ||
                         getComputedStyle(document.documentElement).getPropertyValue('--bg');
-      
+
       // Verificar si hay estilos en general
       const hasAnyStyles = document.head.querySelectorAll('style, link[rel="stylesheet"]').length > 0;
-      
+
       console.log('🎨 Diagnóstico de estilos:', {
         bootstrap: hasBootstrap ? '✅' : '❌',
         globals: hasGlobals ? '✅' : '❌',
@@ -26,37 +27,20 @@ export default function StyleDiagnostic() {
         stylesheets: document.head.querySelectorAll('link[rel="stylesheet"]').length,
         inlineStyles: document.head.querySelectorAll('style').length
       });
-      
-      // Si no hay estilos, intentar una recarga suave
+
+      // Solo advertir, NO recargar automáticamente
       if (!hasAnyStyles || (!hasBootstrap && !hasGlobals)) {
-        console.warn('⚠️ Estilos perdidos detectados, intentando recarga...');
-        // Esperar un poco antes de recargar para evitar loops
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        console.warn('⚠️ Estilos perdidos detectados. Los estilos inline deberían mantener el diseño funcional.');
       }
     };
-    
+
     // Verificar estilos cuando el componente se monta
-    checkStyles();
-    
-    // Verificar estilos después de navegación
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          // Si se agregaron o quitaron elementos del head, verificar estilos
-          if (mutation.target === document.head) {
-            setTimeout(checkStyles, 100);
-          }
-        }
-      });
-    });
-    
-    observer.observe(document.head, { childList: true, subtree: true });
-    
-    return () => observer.disconnect();
+    // Esperar a que el DOM esté completamente cargado
+    const timeoutId = setTimeout(checkStyles, 500);
+
+    return () => clearTimeout(timeoutId);
   }, []);
-  
+
   // Este componente no renderiza nada visible
   return null;
 }

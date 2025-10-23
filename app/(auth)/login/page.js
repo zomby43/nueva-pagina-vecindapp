@@ -20,7 +20,7 @@ export default function LoginPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setError(''); // Limpiar error al escribir
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -28,20 +28,17 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    try {
-      const result = await signIn(formData.email, formData.password);
+    const result = await signIn(formData.email, formData.password);
 
-      if (result.success) {
-        // Redirigir al dashboard correspondiente según el rol
-        // El AuthContext ya cargó el perfil del usuario
-        router.push('/dashboard'); // El middleware redirigirá según el rol
-      } else {
-        setError(result.error || 'Error al iniciar sesión. Verifica tus credenciales.');
-      }
-    } catch (err) {
-      setError('Error inesperado. Por favor intenta nuevamente.');
-      console.error('Error en login:', err);
-    } finally {
+    if (result.success) {
+      // Esperar un momento para que el estado se actualice
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Usar router push y luego forzar refresh
+      router.push('/dashboard');
+      router.refresh();
+    } else {
+      setError(result.error || 'Error al iniciar sesión');
       setLoading(false);
     }
   };
@@ -97,12 +94,6 @@ export default function LoginPage() {
                 {showPassword ? "👁️" : "👁️‍🗨️"}
               </button>
             </div>
-          </div>
-
-          <div className="mb-3">
-            <Link href="/recuperar-password" className="text-primary text-decoration-none">
-              ¿Olvidaste tu contraseña?
-            </Link>
           </div>
 
           <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loading}>

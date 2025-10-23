@@ -33,9 +33,30 @@ export default function SecretariaSidebar() {
   };
 
   return (
-    <nav className="sidebar secretaria-sidebar">
-      <div className="sidebar-header">
-        <span className="secretaria-badge">📝 SECRETARÍA</span>
+    <nav className="sidebar secretaria-sidebar" style={{
+      background: '#f4f8f9',
+      borderRadius: '16px',
+      padding: '1.5rem',
+      boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.5rem'
+    }}>
+      <div className="sidebar-header" style={{
+        marginBottom: '1rem',
+        paddingBottom: '1rem',
+        borderBottom: '2px solid #bfd3d9'
+      }}>
+        <span className="secretaria-badge" style={{
+          background: 'linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%)',
+          color: 'white',
+          padding: '0.5rem 1rem',
+          borderRadius: '20px',
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          display: 'inline-block',
+          boxShadow: '0 2px 8px rgba(67, 159, 164, 0.3)'
+        }}>📝 SECRETARÍA</span>
       </div>
 
       <Link

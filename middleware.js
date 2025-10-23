@@ -1,6 +1,9 @@
 import { updateSession } from '@/lib/supabase/middleware';
 import { NextResponse } from 'next/server';
 
+// Tiempo de inactividad para secretaría (10 minutos en milisegundos)
+const SECRETARIA_INACTIVITY_TIMEOUT = 10 * 60 * 1000;
+
 export async function middleware(request) {
   const { supabaseResponse, user, userProfile } = await updateSession(request);
 
@@ -13,53 +16,163 @@ export async function middleware(request) {
   // Rutas de autenticación
   const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
 
-  // Si el usuario está logueado y trata de acceder a login/register, redirigir a su dashboard
+  // ==========================================
+  // 1. VERIFICAR SESIÓN EXPIRADA (SECRETARÍA)
+  // ==========================================
+  if (user && userProfile && userProfile.rol === 'secretaria') {
+    const lastActivity = request.cookies.get('last_activity_secretaria')?.value;
+
+    if (lastActivity) {
+      const lastActivityTime = parseInt(lastActivity, 10);
+      const now = Date.now();
+      const timeSinceLastActivity = now - lastActivityTime;
+
+      // Si han pasado más de 10 minutos, cerrar sesión automáticamente
+      if (timeSinceLastActivity > SECRETARIA_INACTIVITY_TIMEOUT) {
+        console.log('Sesión de secretaría expirada por inactividad');
+
+        // Redirigir a login con mensaje
+        const response = NextResponse.redirect(new URL('/login?session_expired=true', request.url));
+
+        // Limpiar cookie de actividad
+        response.cookies.delete('last_activity_secretaria');
+
+        // Headers anti-cache
+        setAntiCacheHeaders(response);
+
+        return response;
+      }
+    }
+
+    // Actualizar timestamp de última actividad para secretaría
+    supabaseResponse.cookies.set('last_activity_secretaria', Date.now().toString(), {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60, // 1 hora
+    });
+  }
+
+  // ==========================================
+  // 2. REDIRECCIÓN SI USUARIO LOGUEADO ACCEDE A AUTH PAGES
+  // ==========================================
   if (user && userProfile && isAuthRoute) {
-    const dashboardUrl = getDashboardByRole(userProfile.rol);
-    return NextResponse.redirect(new URL(dashboardUrl, request.url));
-  }
+    // Si está pendiente de aprobación, permitir acceso a pendiente-aprobacion
+    if (userProfile.estado === 'pendiente_aprobacion') {
+      const response = NextResponse.redirect(new URL('/pendiente-aprobacion', request.url));
+      setAntiCacheHeaders(response);
+      return response;
+    }
 
-  // Si el usuario no está logueado y trata de acceder a rutas protegidas
-  if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Si el usuario está logueado pero su perfil no está aprobado
-  if (user && userProfile && userProfile.estado === 'pendiente_aprobacion' && !isAuthRoute) {
-    // Permitir acceso a una página de "pendiente de aprobación"
-    if (path !== '/pendiente-aprobacion') {
-      return NextResponse.redirect(new URL('/pendiente-aprobacion', request.url));
+    // Si está activo, redirigir a su dashboard
+    if (userProfile.estado === 'activo') {
+      const dashboardUrl = getDashboardByRole(userProfile.rol);
+      const response = NextResponse.redirect(new URL(dashboardUrl, request.url));
+      setAntiCacheHeaders(response);
+      return response;
     }
   }
 
-  // Protección de rutas según rol
-  if (user && userProfile) {
+  // ==========================================
+  // 3. PROTEGER RUTAS PRIVADAS
+  // ==========================================
+  if (!user && !isPublicRoute && path !== '/pendiente-aprobacion') {
+    // Guardar la ruta a la que intentó acceder (para redirect después del login)
+    const response = NextResponse.redirect(new URL('/login', request.url));
+
+    // Guardar ruta original en cookie para redirect inteligente
+    if (!isAuthRoute) {
+      response.cookies.set('redirect_after_login', path, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 60 * 5, // 5 minutos
+      });
+    }
+
+    setAntiCacheHeaders(response);
+    return response;
+  }
+
+  // ==========================================
+  // 4. VERIFICAR ESTADO DEL USUARIO
+  // ==========================================
+  if (user && userProfile && !isAuthRoute && !isPublicRoute) {
+    // Si está pendiente de aprobación, solo puede acceder a /pendiente-aprobacion
+    if (userProfile.estado === 'pendiente_aprobacion') {
+      if (path !== '/pendiente-aprobacion') {
+        const response = NextResponse.redirect(new URL('/pendiente-aprobacion', request.url));
+        setAntiCacheHeaders(response);
+        return response;
+      }
+    }
+
+    // Si está rechazado, redirigir a login
+    if (userProfile.estado === 'rechazado') {
+      const response = NextResponse.redirect(new URL('/login?rejected=true', request.url));
+      setAntiCacheHeaders(response);
+      return response;
+    }
+
+    // Si está inactivo, redirigir a login
+    if (userProfile.estado === 'inactivo') {
+      const response = NextResponse.redirect(new URL('/login?inactive=true', request.url));
+      setAntiCacheHeaders(response);
+      return response;
+    }
+  }
+
+  // ==========================================
+  // 5. PROTECCIÓN DE RUTAS POR ROL
+  // ==========================================
+  if (user && userProfile && userProfile.estado === 'activo') {
     const rol = userProfile.rol;
 
     // Rutas de vecino - SOLO para vecinos
     if (path.startsWith('/dashboard') || path.startsWith('/solicitudes') ||
         path.startsWith('/perfil') || path.startsWith('/mapa')) {
       if (rol !== 'vecino') {
-        return NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        const response = NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        setAntiCacheHeaders(response);
+        return response;
       }
     }
 
-    // Rutas de secretaría
+    // Rutas de secretaría - Para secretaria y admin
     if (path.startsWith('/secretaria')) {
       if (rol !== 'secretaria' && rol !== 'admin') {
-        return NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        const response = NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        setAntiCacheHeaders(response);
+        return response;
       }
     }
 
-    // Rutas de admin
+    // Rutas de admin - SOLO para admin
     if (path.startsWith('/admin')) {
       if (rol !== 'admin') {
-        return NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        const response = NextResponse.redirect(new URL(getDashboardByRole(rol), request.url));
+        setAntiCacheHeaders(response);
+        return response;
       }
     }
   }
 
+  // ==========================================
+  // 6. APLICAR HEADERS ANTI-CACHE A TODAS LAS RESPUESTAS
+  // ==========================================
+  setAntiCacheHeaders(supabaseResponse);
+
   return supabaseResponse;
+}
+
+/**
+ * Aplica headers anti-cache a una respuesta
+ */
+function setAntiCacheHeaders(response) {
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  response.headers.set('Surrogate-Control', 'no-store');
 }
 
 function getDashboardByRole(rol) {

@@ -1,8 +1,17 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  // Función para navegar con recarga completa (limpia cache)
+  const navigateTo = (path) => {
+    if (typeof window !== 'undefined') {
+      window.location.href = path;
+    }
+  };
+
   return (
     <div className="landing-page">
       {/* Hero Section */}
@@ -14,12 +23,20 @@ export default function Home() {
             Tu plataforma vecinal para gestionar certificados de residencia y más
           </p>
           <div className="hero-actions">
-            <Link href="/login" className="btn btn-primary btn-lg">
+            <button
+              onClick={() => navigateTo('/login')}
+              className="btn btn-primary btn-lg"
+              style={{ cursor: 'pointer' }}
+            >
               Iniciar Sesión
-            </Link>
-            <Link href="/register" className="btn btn-secondary btn-lg">
+            </button>
+            <button
+              onClick={() => navigateTo('/register')}
+              className="btn btn-secondary btn-lg"
+              style={{ cursor: 'pointer', marginLeft: '1rem' }}
+            >
               Registrarse
-            </Link>
+            </button>
           </div>
         </div>
       </section>
@@ -73,9 +90,13 @@ export default function Home() {
       <section className="cta-section">
         <h2>¿Listo para comenzar?</h2>
         <p>Únete a nuestra comunidad y gestiona tus trámites vecinales de forma digital</p>
-        <Link href="/register" className="btn btn-primary btn-lg">
+        <button
+          onClick={() => navigateTo('/register')}
+          className="btn btn-primary btn-lg"
+          style={{ cursor: 'pointer' }}
+        >
           Crear Cuenta Gratis
-        </Link>
+        </button>
       </section>
     </div>
   );

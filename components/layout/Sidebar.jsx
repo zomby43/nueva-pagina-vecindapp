@@ -33,7 +33,15 @@ export default function Sidebar() {
   };
 
   return (
-    <nav className="sidebar">
+    <nav className="sidebar" style={{
+      background: '#f4f8f9',
+      borderRadius: '16px',
+      padding: '1.5rem',
+      boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.5rem'
+    }}>
       <Link
         href="/dashboard"
         className={`nav-link ${isActive('/dashboard')}`}

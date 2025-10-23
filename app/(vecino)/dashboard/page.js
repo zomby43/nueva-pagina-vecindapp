@@ -120,58 +120,115 @@ export default function UserDashboard() {
       </div>
 
       {/* Actividad reciente */}
-      <div className="recent-activity">
-        <h2>Actividad Reciente</h2>
-        <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon">📝</div>
+      <div className="recent-activity" style={{
+        background: 'white',
+        padding: '1.5rem',
+        borderRadius: '16px',
+        marginBottom: '2rem'
+      }}>
+        <h2 style={{ color: '#154765', fontSize: '1.5rem', marginBottom: '1.5rem' }}>Actividad Reciente</h2>
+        <div className="activity-list" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <div className="activity-item" style={{
+            display: 'flex',
+            gap: '1rem',
+            padding: '1rem',
+            background: '#f4f8f9',
+            borderRadius: '12px'
+          }}>
+            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>📝</div>
             <div className="activity-content">
-              <h4>Solicitud #SOL-001234 actualizada</h4>
-              <p>Estado cambió a "En Proceso"</p>
-              <span className="activity-time">Hace 2 horas</span>
+              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 actualizada</h4>
+              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estado cambió a "En Proceso"</p>
+              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 2 horas</span>
             </div>
           </div>
 
-          <div className="activity-item">
-            <div className="activity-icon">✅</div>
+          <div className="activity-item" style={{
+            display: 'flex',
+            gap: '1rem',
+            padding: '1rem',
+            background: '#f4f8f9',
+            borderRadius: '12px'
+          }}>
+            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>✅</div>
             <div className="activity-content">
-              <h4>Solicitud #SOL-001220 completada</h4>
-              <p>Certificado de residencia listo para descarga</p>
-              <span className="activity-time">Hace 1 día</span>
+              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001220 completada</h4>
+              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Certificado de residencia listo para descarga</p>
+              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 1 día</span>
             </div>
           </div>
 
-          <div className="activity-item">
-            <div className="activity-icon">📋</div>
+          <div className="activity-item" style={{
+            display: 'flex',
+            gap: '1rem',
+            padding: '1rem',
+            background: '#f4f8f9',
+            borderRadius: '12px'
+          }}>
+            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>📋</div>
             <div className="activity-content">
-              <h4>Nueva solicitud creada</h4>
-              <p>Solicitud #SOL-001234 registrada</p>
-              <span className="activity-time">Hace 3 días</span>
+              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Nueva solicitud creada</h4>
+              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 registrada</p>
+              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 3 días</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Acciones rápidas */}
-      <div className="quick-actions">
-        <h2>Acciones Rápidas</h2>
-        <div className="actions-grid">
-          <a href="/solicitudes/nueva" className="action-card">
-            <div className="action-icon">➕</div>
-            <h3>Nueva Solicitud</h3>
-            <p>Crea una nueva solicitud de certificado</p>
+      <div className="quick-actions" style={{
+        background: 'white',
+        padding: '1.5rem',
+        borderRadius: '16px',
+        marginBottom: '2rem'
+      }}>
+        <h2 style={{ color: '#154765', fontSize: '1.5rem', marginBottom: '1.5rem' }}>Acciones Rápidas</h2>
+        <div className="actions-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '1.5rem'
+        }}>
+          <a href="/solicitudes/nueva" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            textAlign: 'center',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>➕</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Nueva Solicitud</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Crea una nueva solicitud de certificado</p>
           </a>
 
-          <a href="/solicitudes" className="action-card">
-            <div className="action-icon">📋</div>
-            <h3>Mis Solicitudes</h3>
-            <p>Ver todas tus solicitudes</p>
+          <a href="/solicitudes" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            textAlign: 'center',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Mis Solicitudes</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Ver todas tus solicitudes</p>
           </a>
 
-          <a href="/perfil" className="action-card">
-            <div className="action-icon">👤</div>
-            <h3>Mi Perfil</h3>
-            <p>Actualiza tu información</p>
+          <a href="/perfil" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            textAlign: 'center',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Mi Perfil</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Actualiza tu información</p>
           </a>
         </div>
       </div>
