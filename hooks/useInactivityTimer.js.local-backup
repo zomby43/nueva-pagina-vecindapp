@@ -1,0 +1,108 @@
+import { useEffect, useRef, useState } from 'react';
+
+/**
+ * Hook para detectar inactividad del usuario
+ * Muestra un modal de advertencia antes de cerrar sesión automáticamente
+ *
+ * @param {number} timeout - Tiempo de inactividad en milisegundos (ej: 10 * 60 * 1000 para 10 minutos)
+ * @param {number} warningTime - Tiempo antes del logout para mostrar advertencia en milisegundos (ej: 60 * 1000 para 1 minuto)
+ * @param {function} onTimeout - Función a ejecutar cuando se alcanza el timeout
+ */
+export function useInactivityTimer(timeout = 10 * 60 * 1000, warningTime = 60 * 1000, onTimeout) {
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const timeoutRef = useRef(null);
+  const warningTimeoutRef = useRef(null);
+  const intervalRef = useRef(null);
+
+  // Reiniciar el timer de inactividad
+  const resetTimer = () => {
+    // Limpiar timers existentes
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Ocultar warning si estaba visible
+    setShowWarning(false);
+
+    // Configurar warning timer (mostrar advertencia X tiempo antes del logout)
+    warningTimeoutRef.current = setTimeout(() => {
+      setShowWarning(true);
+      setTimeLeft(Math.floor(warningTime / 1000)); // Convertir a segundos
+
+      // Iniciar countdown
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(intervalRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, timeout - warningTime);
+
+    // Configurar timeout final (logout automático)
+    timeoutRef.current = setTimeout(() => {
+      console.log('⏰ Sesión expirada por inactividad');
+      if (onTimeout && typeof onTimeout === 'function') {
+        onTimeout();
+      }
+    }, timeout);
+  };
+
+  // Eventos que indican actividad del usuario
+  useEffect(() => {
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+    // Resetear timer en cada evento de actividad
+    const handleActivity = () => {
+      if (!showWarning) {
+        resetTimer();
+      }
+    };
+
+    // Añadir event listeners
+    events.forEach((event) => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    // Iniciar timer
+    resetTimer();
+
+    // Cleanup
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, handleActivity);
+      });
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [timeout, warningTime, onTimeout, showWarning]);
+
+  // Función para extender la sesión (cuando el usuario hace click en "Mantener sesión")
+  const extendSession = () => {
+    setShowWarning(false);
+    resetTimer();
+  };
+
+  return {
+    showWarning,
+    timeLeft,
+    extendSession,
+  };
+}

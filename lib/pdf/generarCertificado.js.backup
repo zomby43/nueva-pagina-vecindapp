@@ -1,0 +1,439 @@
+import { jsPDF } from 'jspdf';
+
+/**
+ * Genera un certificado de residencia en PDF
+ * @param {Object} solicitud - Datos de la solicitud
+ * @param {Object} vecino - Datos del vecino
+ * @returns {jsPDF} - Documento PDF generado
+ */
+export function generarCertificadoResidencia(solicitud, vecino) {
+  // Crear documento PDF en formato carta
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'letter'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const centerX = pageWidth / 2;
+
+  // --- BORDE DECORATIVO ---
+  doc.setLineWidth(2);
+  doc.setDrawColor(41, 128, 185); // Azul
+  doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(52, 152, 219); // Azul más claro
+  doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
+
+  // --- ENCABEZADO ---
+  let yPosition = 30;
+
+  // Título principal
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(41, 128, 185);
+  doc.text('JUNTA DE VECINOS', centerX, yPosition, { align: 'center' });
+
+  yPosition += 8;
+  doc.setFontSize(18);
+  doc.text('UNIDAD VECINAL N°XX', centerX, yPosition, { align: 'center' });
+
+  yPosition += 6;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Comuna de Santiago, Región Metropolitana', centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- LÍNEA SEPARADORA ---
+  doc.setDrawColor(41, 128, 185);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+  yPosition += 15;
+
+  // --- TÍTULO DEL CERTIFICADO ---
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('CERTIFICADO DE RESIDENCIA', centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- NÚMERO DE CERTIFICADO ---
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 100, 100);
+  const numeroCertificado = `N° ${solicitud.id.substring(0, 8).toUpperCase()}`;
+  doc.text(numeroCertificado, centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- CUERPO DEL CERTIFICADO ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+
+  const textoIntro = 'La Directiva de la Junta de Vecinos de la Unidad Vecinal N°XX,';
+  doc.text(textoIntro, centerX, yPosition, { align: 'center' });
+
+  yPosition += 7;
+
+  const textoIntro2 = 'por medio del presente documento,';
+  doc.text(textoIntro2, centerX, yPosition, { align: 'center' });
+
+  yPosition += 12;
+
+  // CERTIFICA QUE
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CERTIFICA QUE:', centerX, yPosition, { align: 'center' });
+
+  yPosition += 12;
+
+  // --- DATOS DEL VECINO ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+
+  const nombreCompleto = `${vecino.nombres} ${vecino.apellidos}`.toUpperCase();
+  const textoDatos = [
+    '',
+    `Don/Doña: ${nombreCompleto}`,
+    '',
+    `RUT: ${vecino.rut}`,
+    '',
+    `Es residente de la dirección: ${vecino.direccion}`,
+    '',
+    'Perteneciente a nuestra Unidad Vecinal.',
+  ];
+
+  textoDatos.forEach(linea => {
+    if (linea === '') {
+      yPosition += 4;
+    } else if (linea.includes('Don/Doña:')) {
+      doc.setFont('helvetica', 'bold');
+      doc.text(linea, centerX, yPosition, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      yPosition += 7;
+    } else {
+      doc.text(linea, centerX, yPosition, { align: 'center' });
+      yPosition += 7;
+    }
+  });
+
+  yPosition += 8;
+
+  // --- MOTIVO ---
+  if (solicitud.motivo) {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(60, 60, 60);
+
+    const textoMotivo = `Motivo de la solicitud: ${solicitud.motivo}`;
+    const lineasMotivo = doc.splitTextToSize(textoMotivo, pageWidth - (margin * 2) - 20);
+
+    lineasMotivo.forEach(linea => {
+      doc.text(linea, centerX, yPosition, { align: 'center' });
+      yPosition += 6;
+    });
+
+    yPosition += 6;
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // --- FECHA DE EMISIÓN ---
+  yPosition += 10;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+
+  const fechaEmision = solicitud.fecha_respuesta
+    ? new Date(solicitud.fecha_respuesta).toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : new Date().toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+  doc.text(`Se extiende el presente certificado en Santiago,`, centerX, yPosition, { align: 'center' });
+  yPosition += 6;
+  doc.text(`a ${fechaEmision}`, centerX, yPosition, { align: 'center' });
+
+  // --- FIRMA ---
+  yPosition = pageHeight - 60;
+
+  // Línea de firma
+  const firmaX = centerX - 30;
+  const firmaWidth = 60;
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(firmaX, yPosition, firmaX + firmaWidth, yPosition);
+
+  yPosition += 6;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PRESIDENTA/PRESIDENTE', centerX, yPosition, { align: 'center' });
+
+  yPosition += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.text('Junta de Vecinos N°XX', centerX, yPosition, { align: 'center' });
+
+  // --- PIE DE PÁGINA ---
+  yPosition = pageHeight - 25;
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(120, 120, 120);
+  doc.text('Dirección: Calle Principal #123, Santiago', centerX, yPosition, { align: 'center' });
+
+  yPosition += 4;
+  doc.text('Teléfono: +56 9 1234 5678 | Email: contacto@juntavecinos.cl', centerX, yPosition, { align: 'center' });
+
+  return doc;
+}
+
+/**
+ * Genera un certificado de antigüedad en PDF
+ * @param {Object} solicitud - Datos de la solicitud
+ * @param {Object} vecino - Datos del vecino
+ * @returns {jsPDF} - Documento PDF generado
+ */
+export function generarCertificadoAntiguedad(solicitud, vecino) {
+  // Crear documento PDF en formato carta
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'letter'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const centerX = pageWidth / 2;
+
+  // --- BORDE DECORATIVO ---
+  doc.setLineWidth(2);
+  doc.setDrawColor(41, 128, 185);
+  doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(52, 152, 219);
+  doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
+
+  // --- ENCABEZADO ---
+  let yPosition = 30;
+
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(41, 128, 185);
+  doc.text('JUNTA DE VECINOS', centerX, yPosition, { align: 'center' });
+
+  yPosition += 8;
+  doc.setFontSize(18);
+  doc.text('UNIDAD VECINAL N°XX', centerX, yPosition, { align: 'center' });
+
+  yPosition += 6;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Comuna de Santiago, Región Metropolitana', centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- LÍNEA SEPARADORA ---
+  doc.setDrawColor(41, 128, 185);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+  yPosition += 15;
+
+  // --- TÍTULO DEL CERTIFICADO ---
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('CERTIFICADO DE ANTIGÜEDAD', centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- NÚMERO DE CERTIFICADO ---
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 100, 100);
+  const numeroCertificado = `N° ${solicitud.id.substring(0, 8).toUpperCase()}`;
+  doc.text(numeroCertificado, centerX, yPosition, { align: 'center' });
+
+  yPosition += 15;
+
+  // --- CUERPO ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+
+  doc.text('La Directiva de la Junta de Vecinos de la Unidad Vecinal N°XX,', centerX, yPosition, { align: 'center' });
+  yPosition += 7;
+  doc.text('por medio del presente documento,', centerX, yPosition, { align: 'center' });
+  yPosition += 12;
+
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CERTIFICA QUE:', centerX, yPosition, { align: 'center' });
+  yPosition += 12;
+
+  // --- DATOS ---
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+
+  const nombreCompleto = `${vecino.nombres} ${vecino.apellidos}`.toUpperCase();
+
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Don/Doña: ${nombreCompleto}`, centerX, yPosition, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  yPosition += 10;
+
+  doc.text(`RUT: ${vecino.rut}`, centerX, yPosition, { align: 'center' });
+  yPosition += 10;
+
+  doc.text(`Reside en: ${vecino.direccion}`, centerX, yPosition, { align: 'center' });
+  yPosition += 12;
+
+  // Calcular antigüedad
+  const fechaRegistro = new Date(vecino.created_at);
+  const ahora = new Date();
+  const diffTiempo = Math.abs(ahora - fechaRegistro);
+  const diffAnios = Math.floor(diffTiempo / (1000 * 60 * 60 * 24 * 365));
+  const diffMeses = Math.floor((diffTiempo % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
+
+  let textoAntiguedad = 'Desde hace ';
+  if (diffAnios > 0) {
+    textoAntiguedad += `${diffAnios} año${diffAnios > 1 ? 's' : ''}`;
+    if (diffMeses > 0) {
+      textoAntiguedad += ` y ${diffMeses} mes${diffMeses > 1 ? 'es' : ''}`;
+    }
+  } else {
+    textoAntiguedad += `${diffMeses} mes${diffMeses > 1 ? 'es' : ''}`;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.text(textoAntiguedad, centerX, yPosition, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  yPosition += 10;
+
+  const fechaRegistroTexto = fechaRegistro.toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  doc.text(`(Registrado desde el ${fechaRegistroTexto})`, centerX, yPosition, { align: 'center' });
+  yPosition += 15;
+
+  // --- MOTIVO ---
+  if (solicitud.motivo) {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(60, 60, 60);
+
+    const textoMotivo = `Motivo de la solicitud: ${solicitud.motivo}`;
+    const lineasMotivo = doc.splitTextToSize(textoMotivo, pageWidth - (margin * 2) - 20);
+
+    lineasMotivo.forEach(linea => {
+      doc.text(linea, centerX, yPosition, { align: 'center' });
+      yPosition += 6;
+    });
+
+    yPosition += 6;
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // --- FECHA DE EMISIÓN ---
+  yPosition += 10;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+
+  const fechaEmision = solicitud.fecha_respuesta
+    ? new Date(solicitud.fecha_respuesta).toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : new Date().toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+  doc.text(`Se extiende el presente certificado en Santiago,`, centerX, yPosition, { align: 'center' });
+  yPosition += 6;
+  doc.text(`a ${fechaEmision}`, centerX, yPosition, { align: 'center' });
+
+  // --- FIRMA ---
+  yPosition = pageHeight - 60;
+
+  const firmaX = centerX - 30;
+  const firmaWidth = 60;
+
+  doc.setLineWidth(0.5);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(firmaX, yPosition, firmaX + firmaWidth, yPosition);
+
+  yPosition += 6;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PRESIDENTA/PRESIDENTE', centerX, yPosition, { align: 'center' });
+
+  yPosition += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.text('Junta de Vecinos N°XX', centerX, yPosition, { align: 'center' });
+
+  // --- PIE DE PÁGINA ---
+  yPosition = pageHeight - 25;
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(120, 120, 120);
+  doc.text('Dirección: Calle Principal #123, Santiago', centerX, yPosition, { align: 'center' });
+
+  yPosition += 4;
+  doc.text('Teléfono: +56 9 1234 5678 | Email: contacto@juntavecinos.cl', centerX, yPosition, { align: 'center' });
+
+  return doc;
+}
+
+/**
+ * Función principal para generar certificado según el tipo
+ * @param {Object} solicitud - Datos de la solicitud
+ * @param {Object} vecino - Datos del vecino
+ * @returns {jsPDF} - Documento PDF generado
+ */
+export function generarCertificado(solicitud, vecino) {
+  if (solicitud.tipo === 'certificado_antiguedad') {
+    return generarCertificadoAntiguedad(solicitud, vecino);
+  } else {
+    return generarCertificadoResidencia(solicitud, vecino);
+  }
+}
+
+/**
+ * Descarga el certificado generado
+ * @param {Object} solicitud - Datos de la solicitud
+ * @param {Object} vecino - Datos del vecino
+ */
+export function descargarCertificado(solicitud, vecino) {
+  const doc = generarCertificado(solicitud, vecino);
+
+  const nombreArchivo = `certificado_${solicitud.tipo}_${vecino.rut.replace(/\./g, '')}_${new Date().getTime()}.pdf`;
+
+  doc.save(nombreArchivo);
+}
