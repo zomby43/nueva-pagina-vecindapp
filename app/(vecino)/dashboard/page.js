@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function UserDashboard() {
+  const { user } = useAuth();
   const [noticias, setNoticias] = useState([]);
   const [avisos, setAvisos] = useState([]);
+  const [proyectos, setProyectos] = useState([]);
+  const [misProyectos, setMisProyectos] = useState([]);
 
   // Datos de ejemplo (posteriormente vendrán de la BD)
   const stats = {
@@ -19,7 +23,11 @@ export default function UserDashboard() {
   useEffect(() => {
     fetchNoticiasDestacadas();
     fetchAvisosDestacados();
-  }, []);
+    fetchProyectosActivos();
+    if (user) {
+      fetchMisProyectos();
+    }
+  }, [user]);
 
   const fetchNoticiasDestacadas = async () => {
     try {
@@ -60,6 +68,42 @@ export default function UserDashboard() {
     }
   };
 
+  const fetchProyectosActivos = async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('proyectos')
+        .select('id, titulo, descripcion, presupuesto, num_beneficiarios, estado')
+        .in('estado', ['aprobado', 'en_ejecucion'])
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (!error && data) {
+        setProyectos(data);
+      }
+    } catch (error) {
+      console.error('Error fetching proyectos:', error);
+    }
+  };
+
+  const fetchMisProyectos = async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('proyectos')
+        .select('id, titulo, estado')
+        .eq('creador_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (!error && data) {
+        setMisProyectos(data);
+      }
+    } catch (error) {
+      console.error('Error fetching mis proyectos:', error);
+    }
+  };
+
   const formatearFecha = (fecha) => {
     if (!fecha) return '';
     const date = new Date(fecha);
@@ -70,6 +114,25 @@ export default function UserDashboard() {
     if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
     if (diff < 604800) return `Hace ${Math.floor(diff / 86400)} días`;
     return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+  };
+
+  const formatearPresupuesto = (monto) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0
+    }).format(monto);
+  };
+
+  const getEstadoBadge = (estado) => {
+    const badges = {
+      pendiente: { bg: '#fbbf24', text: '#78350f', label: '⏳ Pendiente' },
+      aprobado: { bg: '#34d399', text: '#064e3b', label: '✅ Aprobado' },
+      rechazado: { bg: '#fb7185', text: '#881337', label: '❌ Rechazado' },
+      en_ejecucion: { bg: '#0dcaf0', text: '#055160', label: '🚧 En Ejecución' },
+      completado: { bg: '#6b7280', text: 'white', label: '🎉 Completado' }
+    };
+    return badges[estado] || badges.pendiente;
   };
 
   return (
@@ -293,6 +356,161 @@ export default function UserDashboard() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Widget de Proyectos Vecinales */}
+      {(proyectos.length > 0 || misProyectos.length > 0) && (
+        <div className="proyectos-widget" style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '16px',
+          marginBottom: '2rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              🏗️ Proyectos Vecinales
+            </h2>
+            <Link href="/proyectos" style={{
+              color: '#439fa4',
+              textDecoration: 'none',
+              fontSize: '0.875rem',
+              fontWeight: 600
+            }}>
+              Ver todos →
+            </Link>
+          </div>
+
+          {/* Mis Proyectos */}
+          {misProyectos.length > 0 && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ color: '#439fa4', fontSize: '1.125rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                📋 Mis Postulaciones
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {misProyectos.map((proyecto) => {
+                  const badge = getEstadoBadge(proyecto.estado);
+                  return (
+                    <Link
+                      key={proyecto.id}
+                      href={`/proyectos/${proyecto.id}`}
+                      style={{
+                        display: 'block',
+                        padding: '1rem',
+                        background: '#f4f8f9',
+                        borderRadius: '12px',
+                        textDecoration: 'none',
+                        borderLeft: `4px solid ${badge.bg}`,
+                        transition: 'transform 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ color: '#154765', fontSize: '1rem', margin: 0, fontWeight: 600, flex: 1 }}>
+                          {proyecto.titulo}
+                        </h4>
+                        <span style={{
+                          background: badge.bg,
+                          color: badge.text,
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          flexShrink: 0,
+                          marginLeft: '1rem'
+                        }}>
+                          {badge.label}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '1rem' }}>
+                <Link href="/proyectos/mis-postulaciones" style={{
+                  color: '#439fa4',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: 600
+                }}>
+                  Ver todas mis postulaciones →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Proyectos Activos de la Comunidad */}
+          {proyectos.length > 0 && (
+            <div>
+              <h3 style={{ color: '#439fa4', fontSize: '1.125rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                🚧 Proyectos Activos
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {proyectos.map((proyecto) => {
+                  const badge = getEstadoBadge(proyecto.estado);
+                  return (
+                    <Link
+                      key={proyecto.id}
+                      href={`/proyectos/${proyecto.id}`}
+                      style={{
+                        display: 'block',
+                        padding: '1rem',
+                        background: '#f4f8f9',
+                        borderRadius: '12px',
+                        textDecoration: 'none',
+                        borderLeft: '4px solid #439fa4',
+                        transition: 'transform 0.2s'
+                      }}
+                    >
+                      <div style={{ marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                          <h4 style={{ color: '#154765', fontSize: '1rem', margin: 0, fontWeight: 600, flex: 1 }}>
+                            {proyecto.titulo}
+                          </h4>
+                          <span style={{
+                            background: badge.bg,
+                            color: badge.text,
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            flexShrink: 0,
+                            marginLeft: '1rem'
+                          }}>
+                            {badge.label}
+                          </span>
+                        </div>
+                        <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.5rem', lineHeight: '1.4' }}>
+                          {proyecto.descripcion.length > 100 ? `${proyecto.descripcion.substring(0, 100)}...` : proyecto.descripcion}
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#bfd3d9' }}>
+                          <span>💰 {formatearPresupuesto(proyecto.presupuesto)}</span>
+                          <span>👥 {proyecto.num_beneficiarios} beneficiarios</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Botón para postular proyecto */}
+          <div style={{
+            marginTop: '1.5rem',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%)',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <Link href="/proyectos/postular" style={{
+              color: 'white',
+              textDecoration: 'none',
+              fontWeight: 600,
+              fontSize: '1rem'
+            }}>
+              ➕ Postular Nuevo Proyecto Vecinal
+            </Link>
           </div>
         </div>
       )}

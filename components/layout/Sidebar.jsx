@@ -80,6 +80,18 @@ export default function Sidebar() {
         📰 Noticias
       </Link>
       <Link
+        href="/proyectos"
+        className={`nav-link ${pathname?.startsWith('/proyectos') ? 'active' : ''}`}
+      >
+        🏗️ Proyectos Vecinales
+      </Link>
+      <Link
+        href="/reservas"
+        className={`nav-link ${pathname?.startsWith('/reservas') ? 'active' : ''}`}
+      >
+        🏟️ Reservar Espacios
+      </Link>
+      <Link
         href="/mapa"
         className={`nav-link nav-link-secondary ${isActive('/mapa')}`}
       >

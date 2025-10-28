@@ -104,6 +104,44 @@ export default function SecretariaSidebar() {
 
       <div className="nav-divider"></div>
 
+      <div className="nav-section-title">Proyectos Vecinales</div>
+      <Link
+        href="/secretaria/proyectos"
+        className={`nav-link ${pathname?.startsWith('/secretaria/proyectos') && pathname !== '/secretaria/proyectos/pendientes' ? 'active' : ''}`}
+      >
+        🏗️ Gestionar Proyectos
+      </Link>
+      <Link
+        href="/secretaria/proyectos/pendientes"
+        className={`nav-link ${isActive('/secretaria/proyectos/pendientes')}`}
+      >
+        ⏳ Proyectos Pendientes
+      </Link>
+
+      <div className="nav-divider"></div>
+
+      <div className="nav-section-title">Reservas de Espacios</div>
+      <Link
+        href="/secretaria/reservas"
+        className={`nav-link ${pathname?.startsWith('/secretaria/reservas') && pathname !== '/secretaria/reservas/pendientes' ? 'active' : ''}`}
+      >
+        🏟️ Gestionar Reservas
+      </Link>
+      <Link
+        href="/secretaria/reservas/pendientes"
+        className={`nav-link ${isActive('/secretaria/reservas/pendientes')}`}
+      >
+        ⏳ Reservas Pendientes
+      </Link>
+      <Link
+        href="/secretaria/espacios"
+        className={`nav-link ${isActive('/secretaria/espacios')}`}
+      >
+        ⚙️ Administrar Espacios
+      </Link>
+
+      <div className="nav-divider"></div>
+
       <div className="nav-section-title">Comunicación</div>
       <Link
         href="/secretaria/avisos"

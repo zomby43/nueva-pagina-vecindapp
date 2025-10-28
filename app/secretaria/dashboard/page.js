@@ -35,7 +35,9 @@ export default function SecretariaDashboard() {
     solicitudesPendientes: 15,
     solicitudesEnProceso: 12,
     certificadosEmitidos: 45,
-    totalVecinos: 247
+    totalVecinos: 247,
+    proyectosPendientes: 3,
+    reservasPendientes: 2
   };
 
   const vecinosPendientes = [
@@ -114,6 +116,24 @@ export default function SecretariaDashboard() {
           value={stats.totalVecinos}
           subtitle="Activos"
           borderColor="#439fa4"
+        />
+
+        <StatCard
+          icon="🏗️"
+          title="Proyectos Pendientes"
+          value={stats.proyectosPendientes}
+          subtitle="Por revisar"
+          borderColor="#fbbf24"
+          subtitleColor="#fbbf24"
+        />
+
+        <StatCard
+          icon="🏟️"
+          title="Reservas Pendientes"
+          value={stats.reservasPendientes}
+          subtitle="Por aprobar"
+          borderColor="#fbbf24"
+          subtitleColor="#fbbf24"
         />
       </div>
 
@@ -398,6 +418,72 @@ export default function SecretariaDashboard() {
             <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Gestionar Vecinos</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Ver y administrar vecinos activos</p>
+          </Link>
+
+          <Link href="/secretaria/proyectos/pendientes" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            transition: 'all 0.2s',
+            textAlign: 'center',
+            position: 'relative',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏗️</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Proyectos Vecinales</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Revisar proyectos postulados</p>
+            {stats.proyectosPendientes > 0 && (
+              <span className="badge bg-warning" style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                borderRadius: '50%',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                color: '#154765',
+                background: '#fbbf24'
+              }}>
+                {stats.proyectosPendientes}
+              </span>
+            )}
+          </Link>
+
+          <Link href="/secretaria/reservas/pendientes" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            transition: 'all 0.2s',
+            textAlign: 'center',
+            position: 'relative',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏟️</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Reservas de Espacios</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Aprobar solicitudes de reserva</p>
+            {stats.reservasPendientes > 0 && (
+              <span className="badge bg-warning" style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                borderRadius: '50%',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                color: '#154765',
+                background: '#fbbf24'
+              }}>
+                {stats.reservasPendientes}
+              </span>
+            )}
           </Link>
         </div>
       </div>
