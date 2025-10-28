@@ -177,7 +177,16 @@ export default function NoticiasPage() {
                       'col-md-6 col-lg-4'
                     }`}
                   >
-                    <div className="card h-100 shadow border-warning" style={{ borderWidth: '3px', transition: 'transform 0.2s' }}>
+                    <div className="card h-100 shadow border-warning" style={{ borderWidth: '3px', transition: 'transform 0.2s', padding: 0, overflow: 'hidden' }}>
+                      {/* Imagen de portada */}
+                      {noticia.imagen_url && (
+                        <img
+                          src={noticia.imagen_url}
+                          alt={noticia.titulo}
+                          style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block', margin: 0 }}
+                          loading="lazy"
+                        />
+                      )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
                           <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2`}>
@@ -225,7 +234,16 @@ export default function NoticiasPage() {
               <div className="row g-4">
                 {noticiasRegulares.map((noticia) => (
                   <div key={noticia.id} className="col-12 col-lg-6">
-                    <div className="card h-100 shadow-sm border-0" style={{ transition: 'transform 0.2s' }}>
+                    <div className="card h-100 shadow-sm border-0" style={{ transition: 'transform 0.2s', padding: 0, overflow: 'hidden' }}>
+                      {/* Imagen de portada */}
+                      {noticia.imagen_url && (
+                        <img
+                          src={noticia.imagen_url}
+                          alt={noticia.titulo}
+                          style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block', margin: 0 }}
+                          loading="lazy"
+                        />
+                      )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="mb-3">
                           <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2`}>

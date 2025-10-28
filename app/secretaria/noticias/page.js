@@ -348,6 +348,7 @@ export default function SecretariaNoticiasPage() {
                 <table className="table table-hover">
                   <thead>
                     <tr>
+                      <th style={{ width: '80px' }}>Imagen</th>
                       <th>Título</th>
                       <th>Categoría</th>
                       <th>Estado</th>
@@ -359,6 +360,21 @@ export default function SecretariaNoticiasPage() {
                   <tbody>
                     {noticiasFiltradas.map((noticia) => (
                       <tr key={noticia.id}>
+                        <td>
+                          {noticia.imagen_url ? (
+                            <div style={{ width: '60px', height: '40px', overflow: 'hidden', borderRadius: '4px', backgroundColor: '#f5f5f5' }}>
+                              <img
+                                src={noticia.imagen_url}
+                                alt={noticia.titulo}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            </div>
+                          ) : (
+                            <div style={{ width: '60px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                              <span style={{ fontSize: '1.2rem', color: '#999' }}>📰</span>
+                            </div>
+                          )}
+                        </td>
                         <td>
                           <div>
                             <div className="fw-medium">{noticia.titulo}</div>

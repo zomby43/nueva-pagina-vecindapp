@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { enviarCorreoAprobacionReserva, enviarCorreoRechazoReserva } from '@/lib/emails/sendEmail';
 
 export default function GestionReservasPage() {
   const { user } = useAuth();
@@ -66,6 +67,9 @@ export default function GestionReservasPage() {
       setProcessing(true);
       const supabase = createClient();
 
+      // Obtener datos de la reserva antes de actualizar
+      const reserva = reservas.find(r => r.id === reservaId);
+
       const { error } = await supabase
         .from('reservas')
         .update({
@@ -76,6 +80,20 @@ export default function GestionReservasPage() {
         .eq('id', reservaId);
 
       if (error) throw error;
+
+      // Enviar email de aprobación
+      try {
+        await enviarCorreoAprobacionReserva(
+          reserva.solicitante.email,
+          `${reserva.solicitante.nombres} ${reserva.solicitante.apellidos}`,
+          reserva.espacio.nombre,
+          reserva.fecha_reserva,
+          reserva.bloque_horario
+        );
+      } catch (emailError) {
+        console.error('Error enviando email:', emailError);
+        // No bloquear el flujo si falla el email
+      }
 
       alert('Reserva aprobada exitosamente');
       fetchReservas();
@@ -101,6 +119,9 @@ export default function GestionReservasPage() {
       setProcessing(true);
       const supabase = createClient();
 
+      // Obtener datos de la reserva antes de actualizar
+      const reserva = reservas.find(r => r.id === reservaId);
+
       const { error } = await supabase
         .from('reservas')
         .update({
@@ -110,6 +131,21 @@ export default function GestionReservasPage() {
         .eq('id', reservaId);
 
       if (error) throw error;
+
+      // Enviar email de rechazo
+      try {
+        await enviarCorreoRechazoReserva(
+          reserva.solicitante.email,
+          `${reserva.solicitante.nombres} ${reserva.solicitante.apellidos}`,
+          reserva.espacio.nombre,
+          reserva.fecha_reserva,
+          reserva.bloque_horario,
+          motivoRechazo.trim()
+        );
+      } catch (emailError) {
+        console.error('Error enviando email:', emailError);
+        // No bloquear el flujo si falla el email
+      }
 
       alert('Reserva rechazada');
       setMostrarFormRechazo(null);

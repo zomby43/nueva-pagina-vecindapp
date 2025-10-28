@@ -135,6 +135,17 @@ export default function NoticiaDetallePage() {
         </ol>
       </nav>
 
+      {/* Imagen Hero (si existe) */}
+      {noticia.imagen_url && (
+        <div className="mb-4" style={{ width: '100%', maxHeight: '500px', overflow: 'hidden', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+          <img
+            src={noticia.imagen_url}
+            alt={noticia.titulo}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
+      )}
+
       {/* Contenido de la noticia */}
       <article>
         <div className="card">
@@ -179,18 +190,6 @@ export default function NoticiaDetallePage() {
             </div>
 
             <hr />
-
-            {/* Imagen (si existe) */}
-            {noticia.imagen_url && (
-              <div className="mb-4">
-                <img
-                  src={noticia.imagen_url}
-                  alt={noticia.titulo}
-                  className="img-fluid rounded"
-                  style={{ maxHeight: '500px', width: '100%', objectFit: 'cover' }}
-                />
-              </div>
-            )}
 
             {/* Contenido */}
             <div className="noticia-contenido" style={{ fontSize: '1.1rem', lineHeight: '1.8' }}>

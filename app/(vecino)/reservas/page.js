@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { enviarCorreoSolicitudReserva } from '@/lib/emails/sendEmail';
 
 export default function ReservasPage() {
   const { user } = useAuth();
@@ -191,6 +192,21 @@ export default function ReservasPage() {
         .insert([dataToSave]);
 
       if (error) throw error;
+
+      // Enviar email de confirmación
+      try {
+        const espacioNombre = espacios.find(e => e.id === formData.espacio_id)?.nombre || 'Espacio';
+        await enviarCorreoSolicitudReserva(
+          user.email,
+          user.user_metadata?.nombre_completo || user.email,
+          espacioNombre,
+          formData.fecha_reserva,
+          formData.bloque_horario
+        );
+      } catch (emailError) {
+        console.error('Error enviando email:', emailError);
+        // No bloquear el flujo si falla el email
+      }
 
       alert('¡Solicitud de reserva enviada exitosamente! La directiva la revisará pronto.');
 

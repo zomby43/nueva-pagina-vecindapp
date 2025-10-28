@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import ImageUploader from '@/components/noticias/ImageUploader';
+import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
 
 export default function EditarNoticiaPage() {
   const params = useParams();
@@ -12,6 +14,9 @@ export default function EditarNoticiaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [currentImageUrl, setCurrentImageUrl] = useState(null);
+  const [newImage, setNewImage] = useState(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -59,6 +64,9 @@ export default function EditarNoticiaPage() {
         estado: data.estado || 'borrador'
       });
 
+      // Guardar URL de imagen actual si existe
+      setCurrentImageUrl(data.imagen_url || null);
+
     } catch (error) {
       console.error('Error completo:', error);
       setError('Error al cargar la noticia');
@@ -75,6 +83,12 @@ export default function EditarNoticiaPage() {
     }));
   };
 
+  const handleImageRemove = () => {
+    setImageRemoved(true);
+    setCurrentImageUrl(null);
+    setNewImage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -89,8 +103,32 @@ export default function EditarNoticiaPage() {
 
       const supabase = createClient();
 
+      let imageUrl = currentImageUrl;
+
+      // Manejar eliminación de imagen
+      if (imageRemoved && currentImageUrl) {
+        await deleteNoticiaImage(currentImageUrl);
+        imageUrl = null;
+      }
+
+      // Manejar nueva imagen
+      if (newImage) {
+        // Si había imagen anterior, eliminarla
+        if (currentImageUrl) {
+          await deleteNoticiaImage(currentImageUrl);
+        }
+        // Subir nueva imagen
+        try {
+          imageUrl = await uploadNoticiaImage(newImage, params.id);
+        } catch (imageError) {
+          console.error('Error al subir nueva imagen:', imageError);
+          // Continuar con la actualización aunque falle la imagen
+        }
+      }
+
       const dataToSave = {
         ...formData,
+        imagen_url: imageUrl,
         // Si se cambia de borrador a publicado, agregar fecha de publicación
         fecha_publicacion: formData.estado === 'publicado' ? new Date().toISOString() : null
       };
@@ -164,6 +202,18 @@ export default function EditarNoticiaPage() {
                 <h5 className="mb-0">Información de la Noticia</h5>
               </div>
               <div className="card-body">
+                {/* Imagen de Portada */}
+                <div className="mb-4">
+                  <label className="form-label">
+                    Imagen de Portada (opcional)
+                  </label>
+                  <ImageUploader
+                    onImageSelect={setNewImage}
+                    currentImage={currentImageUrl}
+                    onImageRemove={handleImageRemove}
+                  />
+                </div>
+
                 <div className="mb-3">
                   <label htmlFor="titulo" className="form-label">
                     Título <span className="text-danger">*</span>

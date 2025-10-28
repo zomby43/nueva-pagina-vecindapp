@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { enviarCorreoAprobacionProyecto, enviarCorreoRechazoProyecto } from '@/lib/emails/sendEmail';
 
 export default function GestionProyectoDetallePage() {
   const params = useParams();
@@ -80,6 +81,18 @@ export default function GestionProyectoDetallePage() {
 
       if (error) throw error;
 
+      // Enviar email de aprobación
+      try {
+        await enviarCorreoAprobacionProyecto(
+          proyecto.creador.email,
+          `${proyecto.creador.nombres} ${proyecto.creador.apellidos}`,
+          proyecto.titulo
+        );
+      } catch (emailError) {
+        console.error('Error enviando email:', emailError);
+        // No bloquear el flujo si falla el email
+      }
+
       alert('Proyecto aprobado exitosamente');
       fetchProyecto();
     } catch (error) {
@@ -113,6 +126,19 @@ export default function GestionProyectoDetallePage() {
         .eq('id', params.id);
 
       if (error) throw error;
+
+      // Enviar email de rechazo
+      try {
+        await enviarCorreoRechazoProyecto(
+          proyecto.creador.email,
+          `${proyecto.creador.nombres} ${proyecto.creador.apellidos}`,
+          proyecto.titulo,
+          motivoRechazo.trim()
+        );
+      } catch (emailError) {
+        console.error('Error enviando email:', emailError);
+        // No bloquear el flujo si falla el email
+      }
 
       alert('Proyecto rechazado');
       setMostrarFormRechazo(false);

@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import ImageUploader from '@/components/noticias/ImageUploader';
+import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
 
 export default function NuevaNoticiaPage() {
   const router = useRouter();
   const { user, userProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -42,6 +45,7 @@ export default function NuevaNoticiaPage() {
 
       const supabase = createClient();
 
+      // Preparar datos base
       const dataToSave = {
         ...formData,
         autor_id: user.id,
@@ -49,6 +53,7 @@ export default function NuevaNoticiaPage() {
         fecha_publicacion: formData.estado === 'publicado' ? new Date().toISOString() : null
       };
 
+      // Crear la noticia primero para obtener el ID
       const { data, error } = await supabase
         .from('noticias')
         .insert([dataToSave])
@@ -58,6 +63,27 @@ export default function NuevaNoticiaPage() {
       if (error) {
         console.error('Error creating noticia:', error);
         throw error;
+      }
+
+      // Si hay imagen seleccionada, subirla y actualizar la noticia
+      if (selectedImage && data) {
+        try {
+          const imageUrl = await uploadNoticiaImage(selectedImage, data.id);
+
+          // Actualizar la noticia con la URL de la imagen
+          const { error: updateError } = await supabase
+            .from('noticias')
+            .update({ imagen_url: imageUrl })
+            .eq('id', data.id);
+
+          if (updateError) {
+            console.error('Error al actualizar imagen_url:', updateError);
+            // No fallar si la imagen no se pudo guardar, la noticia ya está creada
+          }
+        } catch (imageError) {
+          console.error('Error al subir imagen:', imageError);
+          // No fallar si la imagen no se pudo subir, la noticia ya está creada
+        }
       }
 
       alert(`Noticia ${formData.estado === 'publicado' ? 'publicada' : 'guardada como borrador'} exitosamente`);
@@ -92,6 +118,17 @@ export default function NuevaNoticiaPage() {
                 <h5 className="mb-0">Información de la Noticia</h5>
               </div>
               <div className="card-body">
+                {/* Imagen de Portada */}
+                <div className="mb-4">
+                  <label className="form-label">
+                    Imagen de Portada (opcional)
+                  </label>
+                  <ImageUploader
+                    onImageSelect={setSelectedImage}
+                    currentImage={null}
+                  />
+                </div>
+
                 <div className="mb-3">
                   <label htmlFor="titulo" className="form-label">
                     Título <span className="text-danger">*</span>

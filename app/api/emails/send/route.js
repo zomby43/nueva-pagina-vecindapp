@@ -13,7 +13,7 @@ import sgMail from '@sendgrid/mail';
 
 export async function POST(request) {
   try {
-    const { tipo, destinatario, nombreCompleto, tipoSolicitud, motivo } = await request.json();
+    const { tipo, destinatario, nombreCompleto, tipoSolicitud, motivo, espacio, fechaReserva, bloqueHorario, tituloProyecto } = await request.json();
 
     // Validar datos requeridos
     if (!tipo || !destinatario || !nombreCompleto) {
@@ -34,6 +34,21 @@ export async function POST(request) {
         break;
       case 'rechazo_solicitud':
         plantilla = plantillas.rechazo_solicitud(nombreCompleto, tipoSolicitud, motivo);
+        break;
+      case 'solicitud_reserva':
+        plantilla = plantillas.solicitud_reserva(nombreCompleto, espacio, fechaReserva, bloqueHorario);
+        break;
+      case 'aprobacion_reserva':
+        plantilla = plantillas.aprobacion_reserva(nombreCompleto, espacio, fechaReserva, bloqueHorario);
+        break;
+      case 'rechazo_reserva':
+        plantilla = plantillas.rechazo_reserva(nombreCompleto, espacio, fechaReserva, bloqueHorario, motivo);
+        break;
+      case 'aprobacion_proyecto':
+        plantilla = plantillas.aprobacion_proyecto(nombreCompleto, tituloProyecto);
+        break;
+      case 'rechazo_proyecto':
+        plantilla = plantillas.rechazo_proyecto(nombreCompleto, tituloProyecto, motivo);
         break;
       default:
         return NextResponse.json(
