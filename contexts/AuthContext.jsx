@@ -9,21 +9,33 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileFetched, setProfileFetched] = useState(false); // Evitar fetch múltiples
   const supabase = createClient();
 
   useEffect(() => {
     // Obtener sesión inicial
     const getSession = async () => {
       try {
+        console.log('🚀 AuthContext: Iniciando obtención de sesión...');
         const { data: { session } } = await supabase.auth.getSession();
 
+        console.log('📋 Sesión obtenida:', session?.user ? 'Usuario autenticado' : 'Sin usuario');
+
         if (session?.user) {
+          console.log('👤 Usuario ID:', session.user.id);
           setUser(session.user);
           await fetchUserProfile(session.user.id);
+        } else {
+          console.log('❌ No hay sesión activa');
+          setUser(null);
+          setUserProfile(null);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('❌ Error getting session:', error);
+        setUser(null);
+        setUserProfile(null);
       } finally {
+        console.log('✅ AuthContext: Carga inicial completada');
         setLoading(false);
       }
     };
@@ -32,6 +44,8 @@ export function AuthProvider({ children }) {
 
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user ? 'Usuario presente' : 'Sin usuario');
+
       if (session?.user) {
         setUser(session.user);
         await fetchUserProfile(session.user.id);
@@ -45,17 +59,47 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserProfile = async (userId) => {
+  const fetchUserProfile = async (userId, forceRefresh = false) => {
+    // Evitar fetch múltiples si ya se obtuvo el perfil
+    if (profileFetched && !forceRefresh) {
+      console.log('⚡ Profile already fetched, skipping...');
+      return;
+    }
+
     try {
       console.log('🔍 Fetching profile for user:', userId);
+
+      // Intentar cargar del cache primero
+      const cachedProfile = localStorage.getItem(`profile_${userId}`);
+      if (cachedProfile && !forceRefresh) {
+        const profile = JSON.parse(cachedProfile);
+        console.log('📦 Profile loaded from cache:', profile.rol);
+        setUserProfile(profile);
+        setProfileFetched(true);
+        return;
+      }
+
+      // Agregar timeout para evitar bucles infinitos
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
 
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
         .eq('id', userId)
-        .single();
+        .single()
+        .abortSignal(controller.signal);
+
+      clearTimeout(timeoutId);
 
       if (error) {
+        // Si es error de recursión infinita, no lanzar excepción, solo logear
+        if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          console.warn('⚠️ RLS recursion detected, profile fetch skipped');
+          setUserProfile(null);
+          setProfileFetched(true);
+          return;
+        }
         console.error('❌ Error fetching profile:', error);
         throw error;
       }
@@ -63,13 +107,25 @@ export function AuthProvider({ children }) {
       if (data) {
         console.log('✅ Profile loaded:', data.rol, data.nombres);
         setUserProfile(data);
+        setProfileFetched(true);
+        // Guardar en cache
+        localStorage.setItem(`profile_${userId}`, JSON.stringify(data));
       } else {
         console.warn('⚠️ No profile data returned');
         setUserProfile(null);
+        setProfileFetched(true);
       }
     } catch (error) {
+      // Si el error es de abort (timeout), manejarlo silenciosamente
+      if (error.name === 'AbortError') {
+        console.warn('⚠️ Profile fetch timeout - possible RLS issue');
+        setUserProfile(null);
+        setProfileFetched(true);
+        return;
+      }
       console.error('❌ Error fetching profile:', error);
       setUserProfile(null);
+      setProfileFetched(true);
     }
   };
 
@@ -107,6 +163,7 @@ export function AuthProvider({ children }) {
       // 1. Limpiar estado local primero
       setUser(null);
       setUserProfile(null);
+      setProfileFetched(false);
       setLoading(true);
 
       // 2. Cerrar sesión en Supabase

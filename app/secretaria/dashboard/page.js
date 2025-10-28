@@ -339,7 +339,7 @@ export default function SecretariaDashboard() {
             )}
           </Link>
 
-          <Link href="/secretaria/solicitudes/pendientes" className="action-card" style={{
+          <Link href="/secretaria/solicitudes" className="action-card" style={{
             background: '#f4f8f9',
             padding: '2rem',
             borderRadius: '12px',

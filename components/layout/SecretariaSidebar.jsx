@@ -73,13 +73,7 @@ export default function SecretariaSidebar() {
         href="/secretaria/solicitudes"
         className={`nav-link ${isActive('/secretaria/solicitudes')}`}
       >
-        📋 Ver Solicitudes
-      </Link>
-      <Link
-        href="/secretaria/solicitudes/pendientes"
-        className={`nav-link ${isActive('/secretaria/solicitudes/pendientes')}`}
-      >
-        ⏰ Pendientes
+        📋 Gestionar Solicitudes
       </Link>
 
       <div className="nav-divider"></div>
@@ -110,6 +104,32 @@ export default function SecretariaSidebar() {
 
       <div className="nav-divider"></div>
 
+      <div className="nav-section-title">Comunicación</div>
+      <Link
+        href="/secretaria/avisos"
+        className={`nav-link ${isActive('/secretaria/avisos')}`}
+      >
+        📢 Avisos
+      </Link>
+      <Link
+        href="/secretaria/noticias"
+        className={`nav-link ${isActive('/secretaria/noticias')}`}
+      >
+        📰 Noticias
+      </Link>
+
+      <div className="nav-divider"></div>
+
+      <div className="nav-section-title">Configuración</div>
+      <Link
+        href="/secretaria/configuracion"
+        className={`nav-link ${isActive('/secretaria/configuracion')}`}
+      >
+        ⚙️ Configuración
+      </Link>
+
+      <div className="nav-divider"></div>
+
       <a href="/" className="nav-link nav-link-secondary">
         🗺️ Ver Mapa Público
       </a>
@@ -117,9 +137,9 @@ export default function SecretariaSidebar() {
         type="button"
         onClick={handleSignOut}
         className="nav-link nav-link-danger"
-        style={{ 
-          background: 'none', 
-          border: 'none', 
+        style={{
+          background: 'none',
+          border: 'none',
           textAlign: 'left',
           width: '100%',
           color: '#dc3545',

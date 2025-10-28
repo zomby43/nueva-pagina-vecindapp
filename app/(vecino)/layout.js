@@ -6,11 +6,11 @@ export default function VecinoLayout({ children }) {
     <div className="layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#d8e7eb' }}>
       <Header />
       <div className="layout-container" style={{
-        maxWidth: '1400px',
+        maxWidth: '1600px',
         margin: '2rem auto',
         padding: '0 2rem',
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)',
+        gridTemplateColumns: '280px 1fr',
         gap: '2rem',
         flex: 1,
         width: '100%'

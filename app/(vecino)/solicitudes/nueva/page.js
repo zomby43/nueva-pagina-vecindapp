@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 
 export default function NuevaSolicitudPage() {
+  const { user, userProfile } = useAuth();
   const [formData, setFormData] = useState({
     tipo: 'certificado_residencia',
     motivo: '',
@@ -11,6 +14,7 @@ export default function NuevaSolicitudPage() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,12 +24,53 @@ export default function NuevaSolicitudPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
-    // Simulamos el envío
-    setTimeout(() => {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!user || !userProfile) {
+        throw new Error('Debes estar autenticado para crear una solicitud');
+      }
+
+      // Verificar que el usuario sea un vecino activo
+      if (userProfile.rol !== 'vecino') {
+        throw new Error('Solo los vecinos pueden crear solicitudes');
+      }
+
+      if (userProfile.estado !== 'activo') {
+        throw new Error('Tu cuenta debe estar activa para crear solicitudes');
+      }
+
+      const supabase = createClient();
+
+      // Crear la solicitud en la base de datos
+      const { data, error: insertError } = await supabase
+        .from('solicitudes')
+        .insert([
+          {
+            usuario_id: user.id,
+            tipo: formData.tipo,
+            motivo: formData.motivo.trim(),
+            observaciones: formData.observaciones.trim() || null,
+            estado: 'pendiente'
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      console.log('✅ Solicitud creada exitosamente:', data);
       setSuccess(true);
+
+    } catch (error) {
+      console.error('❌ Error al crear solicitud:', error);
+      setError(error.message || 'Error al enviar la solicitud. Inténtalo nuevamente.');
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   if (success) {
@@ -54,6 +99,13 @@ export default function NuevaSolicitudPage() {
 
       <div className="card">
         <div className="card-body">
+          {/* Mostrar error si existe */}
+          {error && (
+            <div className="alert alert-danger mb-3">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="tipo" className="form-label">Tipo de Solicitud *</label>

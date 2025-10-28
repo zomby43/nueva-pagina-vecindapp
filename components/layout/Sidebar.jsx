@@ -68,6 +68,18 @@ export default function Sidebar() {
       </Link>
       <div className="nav-divider"></div>
       <Link
+        href="/avisos"
+        className={`nav-link ${isActive('/avisos')}`}
+      >
+        📢 Avisos
+      </Link>
+      <Link
+        href="/noticias"
+        className={`nav-link ${isActive('/noticias')}`}
+      >
+        📰 Noticias
+      </Link>
+      <Link
         href="/mapa"
         className={`nav-link nav-link-secondary ${isActive('/mapa')}`}
       >
