@@ -120,6 +120,16 @@ export default function SecretariaSidebar() {
 
       <div className="nav-divider"></div>
 
+      <div className="nav-section-title">Actividades Vecinales</div>
+      <Link
+        href="/secretaria/actividades"
+        className={`nav-link ${pathname?.startsWith('/secretaria/actividades') ? 'active' : ''}`}
+      >
+        🎯 Gestionar Actividades
+      </Link>
+
+      <div className="nav-divider"></div>
+
       <div className="nav-section-title">Reservas de Espacios</div>
       <Link
         href="/secretaria/reservas"

@@ -30,6 +30,16 @@ export default function ReservasPage() {
     fetchReservasDelMes();
   }, [mesActual]);
 
+  // Actualizar cuando la ventana recupera el foco (el usuario vuelve a la pestaña)
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchReservasDelMes();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [mesActual]);
+
   const fetchEspacios = async () => {
     try {
       const supabase = createClient();
@@ -424,6 +434,18 @@ export default function ReservasPage() {
               </h5>
               <div className="d-flex gap-2">
                 <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={fetchReservasDelMes}
+                  disabled={loading}
+                  title="Actualizar disponibilidad"
+                >
+                  {loading ? (
+                    <span className="spinner-border spinner-border-sm" role="status"></span>
+                  ) : (
+                    '🔄 Actualizar'
+                  )}
+                </button>
+                <button
                   className="btn btn-outline-primary"
                   onClick={() => cambiarMes(-1)}
                 >
@@ -455,20 +477,20 @@ export default function ReservasPage() {
               />
             )}
 
-            <div className="mt-4">
-              <h6 className="fw-semibold mb-3">Leyenda:</h6>
+            <div className="mt-4 p-3 bg-light rounded">
+              <h6 className="fw-semibold mb-3">📌 Leyenda:</h6>
               <div className="d-flex flex-wrap gap-3">
                 <div className="d-flex align-items-center">
-                  <div style={{ width: 20, height: 20, backgroundColor: '#d4edda', border: '1px solid #c3e6cb', marginRight: 8 }}></div>
-                  <small>Disponible</small>
+                  <div style={{ width: 24, height: 24, backgroundColor: '#dc3545', borderRadius: '4px', marginRight: 8 }}></div>
+                  <small><strong>🔒 Reservado</strong> - No disponible</small>
                 </div>
                 <div className="d-flex align-items-center">
-                  <div style={{ width: 20, height: 20, backgroundColor: '#f8d7da', border: '1px solid #f5c6cb', marginRight: 8 }}></div>
-                  <small>Reservado</small>
+                  <div style={{ width: 24, height: 24, backgroundColor: '#fff', border: '1px solid #dee2e6', borderRadius: '4px', marginRight: 8 }}></div>
+                  <small><strong>✓ Disponible</strong> - Puedes reservar</small>
                 </div>
                 <div className="d-flex align-items-center">
-                  <div style={{ width: 20, height: 20, backgroundColor: '#e2e3e5', border: '1px solid #d6d8db', marginRight: 8 }}></div>
-                  <small>Fecha pasada</small>
+                  <div style={{ width: 24, height: 24, backgroundColor: '#e2e3e5', border: '1px solid #dee2e6', borderRadius: '4px', marginRight: 8 }}></div>
+                  <small><strong>Fecha pasada</strong> - No se puede reservar</small>
                 </div>
               </div>
             </div>
@@ -516,22 +538,34 @@ function CalendarioMensual({ mes, reservas, espacioId }) {
         }}
       >
         <div className="fw-bold mb-2">{dia}</div>
-        {!esPasado && reservasDelDia.map((reserva, idx) => (
+        {!esPasado && reservasDelDia.length > 0 ? (
+          reservasDelDia.map((reserva, idx) => (
+            <div
+              key={idx}
+              className="small mb-1 p-1"
+              style={{
+                backgroundColor: '#dc3545',
+                color: 'white',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: '600'
+              }}
+              title="Reservado - No disponible"
+            >
+              {reserva.bloque_horario === 'manana' && '🔒 Mañana'}
+              {reserva.bloque_horario === 'tarde' && '🔒 Tarde'}
+              {reserva.bloque_horario === 'noche' && '🔒 Noche'}
+              {reserva.bloque_horario === 'dia_completo' && '🔒 Día Completo'}
+            </div>
+          ))
+        ) : !esPasado && (
           <div
-            key={idx}
-            className="small mb-1 p-1"
-            style={{
-              backgroundColor: '#f8d7da',
-              borderRadius: '4px',
-              fontSize: '0.75rem'
-            }}
+            className="small text-muted text-center mt-2"
+            style={{ fontSize: '0.7rem' }}
           >
-            {reserva.bloque_horario === 'manana' && '🌅 Mañana'}
-            {reserva.bloque_horario === 'tarde' && '☀️ Tarde'}
-            {reserva.bloque_horario === 'noche' && '🌙 Noche'}
-            {reserva.bloque_horario === 'dia_completo' && '📅 Día Completo'}
+            ✓ Disponible
           </div>
-        ))}
+        )}
       </div>
     );
   }

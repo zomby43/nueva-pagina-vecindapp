@@ -86,8 +86,16 @@ export default function Sidebar() {
         🏗️ Proyectos Vecinales
       </Link>
       <Link
+        href="/actividades"
+        className={`nav-link ${pathname?.startsWith('/actividades') ? 'active' : ''}`}
+        suppressHydrationWarning
+      >
+        🎯 Actividades Vecinales
+      </Link>
+      <Link
         href="/reservas"
         className={`nav-link ${pathname?.startsWith('/reservas') ? 'active' : ''}`}
+        suppressHydrationWarning
       >
         🏟️ Reservar Espacios
       </Link>
