@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import ProjectDocumentsUploader from '@/components/proyectos/ProjectDocumentsUploader';
+import ProjectImagesUploader from '@/components/proyectos/ProjectImagesUploader';
+import { uploadProjectAttachment } from '@/lib/storage/projectAttachments';
 
 export default function PostularProyectoPage() {
   const router = useRouter();
@@ -20,6 +23,8 @@ export default function PostularProyectoPage() {
     num_beneficiarios: '',
     ubicacion: ''
   });
+  const [documentFiles, setDocumentFiles] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,13 +88,76 @@ export default function PostularProyectoPage() {
         estado: 'pendiente'
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('proyectos')
-        .insert([dataToSave]);
+        .insert([dataToSave])
+        .select()
+        .single();
 
       if (error) throw error;
 
-      alert('¡Proyecto postulado exitosamente! La secretaría lo revisará pronto.');
+      let attachmentsMessage = '';
+
+      if (data) {
+        const attachmentsToInsert = [];
+
+        try {
+          for (const file of documentFiles) {
+            const uploadResult = await uploadProjectAttachment(file, data.id, 'documentos');
+            attachmentsToInsert.push({
+              proyecto_id: data.id,
+              tipo: 'documento',
+              nombre_archivo: uploadResult.originalName || file.name,
+              url: uploadResult.publicUrl,
+              storage_path: uploadResult.storagePath,
+              extension: uploadResult.extension,
+              mime_type: uploadResult.mimeType,
+              tamano_bytes: uploadResult.size,
+              uploaded_por: user.id,
+            });
+          }
+
+          for (const item of imageFiles) {
+            const uploadResult = await uploadProjectAttachment(item.file, data.id, 'imagenes');
+            attachmentsToInsert.push({
+              proyecto_id: data.id,
+              tipo: 'imagen',
+              nombre_archivo: item.originalName || item.file.name,
+              url: uploadResult.publicUrl,
+              storage_path: uploadResult.storagePath,
+              extension: uploadResult.extension,
+              mime_type: uploadResult.mimeType,
+              tamano_bytes: uploadResult.size,
+              uploaded_por: user.id,
+            });
+          }
+
+          if (attachmentsToInsert.length > 0) {
+            const { error: adjuntosError } = await supabase
+              .from('proyecto_adjuntos')
+              .insert(attachmentsToInsert);
+
+            if (adjuntosError) {
+              console.error('Error guardando adjuntos:', adjuntosError);
+              attachmentsMessage = ' Nota: Los adjuntos no pudieron guardarse.';
+            }
+          }
+        } catch (attachmentsError) {
+          console.error('Error al procesar adjuntos:', attachmentsError);
+          attachmentsMessage = ' Nota: Los adjuntos no pudieron subirse.';
+        }
+      }
+
+      imageFiles.forEach((item) => {
+        if (item?.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+
+      setDocumentFiles([]);
+      setImageFiles([]);
+
+      alert('¡Proyecto postulado exitosamente! La secretaría lo revisará pronto.' + attachmentsMessage);
       router.push('/proyectos/mis-postulaciones');
     } catch (error) {
       console.error('Error postulando proyecto:', error);
@@ -186,7 +254,7 @@ export default function PostularProyectoPage() {
                       value={formData.presupuesto}
                       onChange={handleChange}
                       placeholder="0"
-                      min="1"
+                      min="0"
                       step="1000"
                       required
                     />
@@ -267,6 +335,32 @@ export default function PostularProyectoPage() {
                   <small className="text-muted">
                     Dirección, sector o referencia donde se ejecutaría el proyecto
                   </small>
+                </div>
+
+                {/* Adjuntos */}
+                <div className="mb-5">
+                  <div className="card border-0 shadow-sm">
+                    <div className="card-body p-4">
+                      <h5 className="card-title mb-4">📎 Adjunta material de apoyo (opcional)</h5>
+                      <p className="text-muted small mb-4">
+                        Puedes subir documentos (planos, presupuestos) y una galería de imágenes para respaldar tu propuesta.
+                      </p>
+
+                      <ProjectDocumentsUploader
+                        value={documentFiles}
+                        onChange={setDocumentFiles}
+                        disabled={loading}
+                      />
+
+                      <hr className="my-4" />
+
+                      <ProjectImagesUploader
+                        value={imageFiles}
+                        onChange={setImageFiles}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Botones */}

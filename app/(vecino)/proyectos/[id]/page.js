@@ -36,9 +36,20 @@ export default function ProyectoDetallePage() {
           aprobador:aprobador_id (
             nombres,
             apellidos
+          ),
+          adjuntos:proyecto_adjuntos (
+            id,
+            tipo,
+            nombre_archivo,
+            url,
+            extension,
+            mime_type,
+            tamano_bytes,
+            created_at
           )
         `)
         .eq('id', params.id)
+        .order('created_at', { ascending: false, foreignTable: 'proyecto_adjuntos' })
         .single();
 
       if (error) throw error;
@@ -134,6 +145,9 @@ export default function ProyectoDetallePage() {
     );
   }
 
+  const imagenes = proyecto?.adjuntos?.filter(adj => adj.tipo === 'imagen') || [];
+  const documentos = proyecto?.adjuntos?.filter(adj => adj.tipo === 'documento') || [];
+
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       {/* Breadcrumb */}
@@ -190,6 +204,66 @@ export default function ProyectoDetallePage() {
               </p>
             </div>
           </div>
+
+          {/* Imágenes */}
+          {imagenes.length > 0 && (
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body p-4">
+                <h4 className="card-title mb-4">🖼️ Galería de Imágenes</h4>
+                <div className="row g-3">
+                  {imagenes.map((imagen) => (
+                    <div key={imagen.id} className="col-12 col-md-6">
+                      <a
+                        href={imagen.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="d-block"
+                        style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #e9ecef' }}
+                      >
+                        <img
+                          src={imagen.url}
+                          alt={imagen.nombre_archivo}
+                          style={{ width: '100%', height: '250px', objectFit: 'cover' }}
+                        />
+                      </a>
+                      <div className="small text-muted mt-2">
+                        {imagen.nombre_archivo}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Documentos */}
+          {documentos.length > 0 && (
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body p-4">
+                <h4 className="card-title mb-3">📄 Documentos Adjuntos</h4>
+                <ul className="list-group list-group-flush">
+                  {documentos.map((doc) => (
+                    <li key={doc.id} className="list-group-item d-flex justify-content-between align-items-start gap-3">
+                      <div>
+                        <strong>{doc.nombre_archivo}</strong>
+                        <div className="text-muted small">
+                          {doc.extension?.toUpperCase() || 'Archivo'} · {doc.tamano_bytes ? `${(doc.tamano_bytes / 1024 / 1024).toFixed(2)} MB` : 'Tamaño no disponible'} · Subido el {formatearFechaHora(doc.created_at)}
+                        </div>
+                      </div>
+                      <a
+                        href={doc.url}
+                        className="btn btn-outline-primary btn-sm"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Descargar
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* Motivo de Rechazo (si aplica) */}
           {proyecto.estado === 'rechazado' && proyecto.motivo_rechazo && (

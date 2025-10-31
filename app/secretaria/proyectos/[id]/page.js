@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { enviarCorreoAprobacionProyecto, enviarCorreoRechazoProyecto } from '@/lib/emails/sendEmail';
+import ProjectDocumentsUploader from '@/components/proyectos/ProjectDocumentsUploader';
+import ProjectImagesUploader from '@/components/proyectos/ProjectImagesUploader';
+import { uploadProjectAttachment, deleteProjectAttachment } from '@/lib/storage/projectAttachments';
 
 export default function GestionProyectoDetallePage() {
   const params = useParams();
@@ -17,6 +20,9 @@ export default function GestionProyectoDetallePage() {
   const [error, setError] = useState('');
   const [motivoRechazo, setMotivoRechazo] = useState('');
   const [mostrarFormRechazo, setMostrarFormRechazo] = useState(false);
+  const [newDocumentFiles, setNewDocumentFiles] = useState([]);
+  const [newImageFiles, setNewImageFiles] = useState([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -43,9 +49,22 @@ export default function GestionProyectoDetallePage() {
           aprobador:aprobador_id (
             nombres,
             apellidos
+          ),
+          adjuntos:proyecto_adjuntos (
+            id,
+            tipo,
+            nombre_archivo,
+            url,
+            storage_path,
+            extension,
+            mime_type,
+            tamano_bytes,
+            created_at,
+            uploaded_por
           )
         `)
         .eq('id', params.id)
+        .order('created_at', { ascending: false, foreignTable: 'proyecto_adjuntos' })
         .single();
 
       if (error) throw error;
@@ -189,6 +208,109 @@ export default function GestionProyectoDetallePage() {
     }
   };
 
+  const handleUploadAttachments = async () => {
+    if (!proyecto) return;
+    if (newDocumentFiles.length === 0 && newImageFiles.length === 0) {
+      alert('Selecciona al menos un archivo para subir');
+      return;
+    }
+
+    try {
+      setUploadingAttachments(true);
+      const supabase = createClient();
+      const attachmentsToInsert = [];
+
+      for (const file of newDocumentFiles) {
+        const uploadResult = await uploadProjectAttachment(file, proyecto.id, 'documentos');
+        attachmentsToInsert.push({
+          proyecto_id: proyecto.id,
+          tipo: 'documento',
+          nombre_archivo: uploadResult.originalName || file.name,
+          url: uploadResult.publicUrl,
+          storage_path: uploadResult.storagePath,
+          extension: uploadResult.extension,
+          mime_type: uploadResult.mimeType,
+          tamano_bytes: uploadResult.size,
+          uploaded_por: user.id,
+        });
+      }
+
+      for (const item of newImageFiles) {
+        const uploadResult = await uploadProjectAttachment(item.file, proyecto.id, 'imagenes');
+        attachmentsToInsert.push({
+          proyecto_id: proyecto.id,
+          tipo: 'imagen',
+          nombre_archivo: item.originalName || item.file.name,
+          url: uploadResult.publicUrl,
+          storage_path: uploadResult.storagePath,
+          extension: uploadResult.extension,
+          mime_type: uploadResult.mimeType,
+          tamano_bytes: uploadResult.size,
+          uploaded_por: user.id,
+        });
+      }
+
+      if (attachmentsToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('proyecto_adjuntos')
+          .insert(attachmentsToInsert);
+
+        if (insertError) throw insertError;
+      }
+
+      newImageFiles.forEach((item) => {
+        if (item?.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+
+      setNewDocumentFiles([]);
+      setNewImageFiles([]);
+      alert('Adjuntos subidos exitosamente');
+      fetchProyecto();
+    } catch (error) {
+      console.error('Error subiendo adjuntos:', error);
+      alert('Error al subir adjuntos: ' + error.message);
+    } finally {
+      setUploadingAttachments(false);
+    }
+  };
+
+  const handleDeleteAttachment = async (adjunto) => {
+    if (!adjunto) return;
+    if (!confirm('¿Eliminar este adjunto? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      try {
+        if (adjunto.storage_path) {
+          await deleteProjectAttachment(adjunto.storage_path);
+        }
+      } catch (storageError) {
+        console.error('Error al eliminar archivo de storage:', storageError);
+        // Continuar para eliminar el registro igualmente
+      }
+
+      const supabase = createClient();
+      const { error: deleteError } = await supabase
+        .from('proyecto_adjuntos')
+        .delete()
+        .eq('id', adjunto.id);
+
+      if (deleteError) throw deleteError;
+
+      alert('Adjunto eliminado');
+      fetchProyecto();
+    } catch (error) {
+      console.error('Error al eliminar adjunto:', error);
+      alert('Error al eliminar adjunto: ' + error.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const formatearPresupuesto = (monto) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -272,6 +394,9 @@ export default function GestionProyectoDetallePage() {
     );
   }
 
+  const imagenes = proyecto?.adjuntos?.filter((item) => item.tipo === 'imagen') || [];
+  const documentos = proyecto?.adjuntos?.filter((item) => item.tipo === 'documento') || [];
+
   return (
     <div className="page-container">
       {/* Breadcrumb */}
@@ -328,6 +453,91 @@ export default function GestionProyectoDetallePage() {
               </p>
             </div>
           </div>
+
+          {/* Imágenes del proyecto */}
+          {imagenes.length > 0 && (
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body p-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h4 className="card-title mb-0">🖼️ Imágenes Adjuntas</h4>
+                  <span className="badge bg-light text-dark">{imagenes.length} archivos</span>
+                </div>
+                <div className="row g-3">
+                  {imagenes.map((imagen) => (
+                    <div key={imagen.id} className="col-12 col-md-6">
+                      <div className="position-relative border rounded overflow-hidden">
+                        <a
+                          href={imagen.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="d-block"
+                        >
+                          <img
+                            src={imagen.url}
+                            alt={imagen.nombre_archivo}
+                            style={{ width: '100%', height: '220px', objectFit: 'cover' }}
+                          />
+                        </a>
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                          onClick={() => handleDeleteAttachment(imagen)}
+                          disabled={processing}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                      <div className="small text-muted mt-2">
+                        {imagen.nombre_archivo} · {imagen.tamano_bytes ? `${(imagen.tamano_bytes / 1024 / 1024).toFixed(2)} MB` : 'Tamaño no disponible'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Documentos adjuntos */}
+          {documentos.length > 0 && (
+            <div className="card shadow-sm border-0 mb-4">
+              <div className="card-body p-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h4 className="card-title mb-0">📄 Documentos Adjuntos</h4>
+                  <span className="badge bg-light text-dark">{documentos.length} archivos</span>
+                </div>
+                <ul className="list-group list-group-flush">
+                  {documentos.map((doc) => (
+                    <li key={doc.id} className="list-group-item d-flex justify-content-between align-items-center gap-3">
+                      <div className="flex-grow-1">
+                        <strong>{doc.nombre_archivo}</strong>
+                        <div className="text-muted small">
+                          {doc.extension?.toUpperCase() || 'Archivo'} · {doc.tamano_bytes ? `${(doc.tamano_bytes / 1024 / 1024).toFixed(2)} MB` : 'Tamaño no disponible'} · Subido el {formatearFechaHora(doc.created_at)}
+                        </div>
+                      </div>
+                      <div className="d-flex gap-2 flex-shrink-0">
+                        <a
+                          href={doc.url}
+                          className="btn btn-outline-primary btn-sm"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Descargar
+                        </a>
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleDeleteAttachment(doc)}
+                          disabled={processing}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* Motivo de Rechazo (si aplica) */}
           {proyecto.estado === 'rechazado' && proyecto.motivo_rechazo && (
@@ -453,6 +663,46 @@ export default function GestionProyectoDetallePage() {
 
         {/* Columna Lateral */}
         <div className="col-lg-4">
+          {/* Gestor de adjuntos */}
+          <div className="card shadow-sm border-0 mb-4">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-3">📎 Agregar Adjuntos</h5>
+              <p className="text-muted small">
+                Sube documentos de respaldo o imágenes adicionales para este proyecto. Los vecinos podrán descargarlos cuando el proyecto sea visible.
+              </p>
+
+              <ProjectDocumentsUploader
+                value={newDocumentFiles}
+                onChange={setNewDocumentFiles}
+                disabled={uploadingAttachments || processing}
+              />
+
+              <hr className="my-4" />
+
+              <ProjectImagesUploader
+                value={newImageFiles}
+                onChange={setNewImageFiles}
+                disabled={uploadingAttachments || processing}
+              />
+
+              <button
+                type="button"
+                className="btn btn-primary w-100 mt-4"
+                onClick={handleUploadAttachments}
+                disabled={uploadingAttachments || processing || (newDocumentFiles.length === 0 && newImageFiles.length === 0)}
+              >
+                {uploadingAttachments ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Subiendo adjuntos...
+                  </>
+                ) : (
+                  'Subir adjuntos seleccionados'
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Información del Proyecto */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-body p-4">
