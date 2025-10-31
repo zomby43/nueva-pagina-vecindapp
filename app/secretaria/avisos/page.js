@@ -264,7 +264,17 @@ export default function AvisosSecretariaPage() {
             <div key={aviso.id} className="col-12">
               <div className={`card ${aviso.destacado ? 'border-warning' : ''}`} style={aviso.destacado ? { borderWidth: '2px' } : {}}>
                 <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div className="d-flex justify-content-between align-items-start mb-3 gap-3">
+                    {aviso.imagen_url && (
+                      <div style={{ flexShrink: 0 }}>
+                        <img
+                          src={aviso.imagen_url}
+                          alt={aviso.titulo}
+                          className="rounded"
+                          style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-center gap-2 mb-2">
                         <span className={`badge ${getTipoBadge(aviso.tipo)}`}>
@@ -278,6 +288,9 @@ export default function AvisosSecretariaPage() {
                         </span>
                         {aviso.destacado && (
                           <span className="badge bg-warning text-dark">⭐ Destacado</span>
+                        )}
+                        {aviso.imagen_url && (
+                          <span className="badge bg-info">🖼️ Con imagen</span>
                         )}
                       </div>
                       <h5 className="card-title mb-2">{aviso.titulo}</h5>

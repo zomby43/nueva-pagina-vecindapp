@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import ImageUploader from '@/components/noticias/ImageUploader';
+import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
 
 export default function NuevoAvisoPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [formData, setFormData] = useState({
     titulo: '',
     mensaje: '',
@@ -46,16 +49,43 @@ export default function NuevoAvisoPage() {
         fecha_fin: formData.fecha_fin || null
       };
 
-      const { error } = await supabase
+      // Crear el aviso primero para obtener el ID
+      const { data, error } = await supabase
         .from('avisos')
-        .insert([dataToSave]);
+        .insert([dataToSave])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating aviso:', error);
+        throw error;
+      }
+
+      // Si hay imagen seleccionada, subirla y actualizar el aviso
+      if (selectedImage && data) {
+        try {
+          const imageUrl = await uploadNoticiaImage(selectedImage, data.id, 'avisos');
+
+          // Actualizar el aviso con la URL de la imagen
+          const { error: updateError } = await supabase
+            .from('avisos')
+            .update({ imagen_url: imageUrl })
+            .eq('id', data.id);
+
+          if (updateError) {
+            console.error('Error al actualizar imagen_url:', updateError);
+            // No fallar si la imagen no se pudo guardar, el aviso ya está creado
+          }
+        } catch (imageError) {
+          console.error('Error al subir imagen:', imageError);
+          // No fallar si la imagen no se pudo subir, el aviso ya está creado
+        }
+      }
 
       alert('Aviso creado exitosamente');
       router.push('/secretaria/avisos');
     } catch (error) {
-      console.error('Error creando aviso:', error);
+      console.error('Error al crear el aviso:', error);
       alert('Error al crear el aviso: ' + error.message);
     } finally {
       setLoading(false);
@@ -214,6 +244,20 @@ export default function NuevoAvisoPage() {
                       Los avisos destacados se muestran prominentemente en el dashboard
                     </small>
                   </div>
+                </div>
+
+                {/* Imagen del Aviso */}
+                <div className="mb-4">
+                  <label className="form-label">
+                    🖼️ Imagen del Aviso (opcional)
+                  </label>
+                  <ImageUploader
+                    onImageSelect={setSelectedImage}
+                    currentImage={null}
+                  />
+                  <small className="text-muted d-block mt-2">
+                    La imagen se mostrará en el aviso para mayor impacto visual. Se optimizará automáticamente.
+                  </small>
                 </div>
 
                 {/* Botones */}

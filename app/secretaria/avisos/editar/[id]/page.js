@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import ImageUploader from '@/components/noticias/ImageUploader';
+import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
 
 export default function EditarAvisoPage() {
   const router = useRouter();
@@ -11,6 +13,9 @@ export default function EditarAvisoPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [aviso, setAviso] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState(null);
+  const [newImage, setNewImage] = useState(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
     mensaje: '',
@@ -41,6 +46,8 @@ export default function EditarAvisoPage() {
       if (error) throw error;
 
       setAviso(data);
+      // Guardar URL de imagen actual si existe
+      setCurrentImageUrl(data.imagen_url || null);
       setFormData({
         titulo: data.titulo || '',
         mensaje: data.mensaje || '',
@@ -67,6 +74,19 @@ export default function EditarAvisoPage() {
     }));
   };
 
+  const handleImageRemove = () => {
+    setImageRemoved(true);
+    setCurrentImageUrl(null);
+    setNewImage(null);
+  };
+
+  const handleNewImageSelect = (file) => {
+    setNewImage(file);
+    if (file) {
+      setImageRemoved(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -79,8 +99,33 @@ export default function EditarAvisoPage() {
       setSaving(true);
       const supabase = createClient();
 
+      let imageUrl = currentImageUrl;
+
+      // Manejar eliminación de imagen
+      if (imageRemoved && currentImageUrl) {
+        await deleteNoticiaImage(currentImageUrl);
+        imageUrl = null;
+      }
+
+      // Manejar nueva imagen
+      if (newImage) {
+        // Si había imagen anterior, eliminarla
+        if (currentImageUrl) {
+          await deleteNoticiaImage(currentImageUrl);
+        }
+        // Subir nueva imagen
+        try {
+          imageUrl = await uploadNoticiaImage(newImage, params.id);
+          setCurrentImageUrl(imageUrl);
+        } catch (imageError) {
+          console.error('Error al subir nueva imagen:', imageError);
+          // Continuar con la actualización aunque falle la imagen
+        }
+      }
+
       const dataToSave = {
         ...formData,
+        imagen_url: imageUrl,
         fecha_fin: formData.fecha_fin || null
       };
 
@@ -89,12 +134,15 @@ export default function EditarAvisoPage() {
         .update(dataToSave)
         .eq('id', params.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating aviso:', error);
+        throw error;
+      }
 
       alert('Aviso actualizado exitosamente');
       router.push('/secretaria/avisos');
     } catch (error) {
-      console.error('Error actualizando aviso:', error);
+      console.error('Error al actualizar aviso:', error);
       alert('Error al actualizar el aviso: ' + error.message);
     } finally {
       setSaving(false);
@@ -278,6 +326,21 @@ export default function EditarAvisoPage() {
                       Los avisos destacados se muestran prominentemente en el dashboard
                     </small>
                   </div>
+                </div>
+
+                {/* Imagen del Aviso */}
+                <div className="mb-4">
+                  <label className="form-label">
+                    🖼️ Imagen del Aviso (opcional)
+                  </label>
+                  <ImageUploader
+                    onImageSelect={handleNewImageSelect}
+                    currentImage={currentImageUrl}
+                    onImageRemove={handleImageRemove}
+                  />
+                  <small className="text-muted d-block mt-2">
+                    La imagen se mostrará en el aviso para mayor impacto visual. Se optimizará automáticamente.
+                  </small>
                 </div>
 
                 {/* Botones */}

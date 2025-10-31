@@ -204,6 +204,16 @@ export default function AvisosVecinosPage() {
                               )}
                             </div>
                             <h4 className="card-title fw-bold mb-3">{aviso.titulo}</h4>
+                            {aviso.imagen_url && (
+                              <div className="mb-3">
+                                <img
+                                  src={aviso.imagen_url}
+                                  alt={aviso.titulo}
+                                  className="img-fluid rounded"
+                                  style={{ maxHeight: '400px', width: '100%', objectFit: 'cover' }}
+                                />
+                              </div>
+                            )}
                             <p className="card-text mb-3" style={{ fontSize: '1.05rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
                               {aviso.mensaje}
                             </p>
@@ -257,6 +267,16 @@ export default function AvisosVecinosPage() {
                               </span>
                             </div>
                             <h5 className="card-title fw-bold mb-2">{aviso.titulo}</h5>
+                            {aviso.imagen_url && (
+                              <div className="mb-3">
+                                <img
+                                  src={aviso.imagen_url}
+                                  alt={aviso.titulo}
+                                  className="img-fluid rounded"
+                                  style={{ maxHeight: '250px', width: '100%', objectFit: 'cover' }}
+                                />
+                              </div>
+                            )}
                             <p className="card-text mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
                               {aviso.mensaje.length > 200
                                 ? `${aviso.mensaje.substring(0, 200)}...`
