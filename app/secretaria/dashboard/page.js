@@ -1,6 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 // Componente para tarjeta de estadística con estilos inline
 const StatCard = ({ icon, title, value, subtitle, borderColor = '#439fa4', subtitleColor = '#34d399' }) => (
@@ -29,28 +32,167 @@ const StatCard = ({ icon, title, value, subtitle, borderColor = '#439fa4', subti
 );
 
 export default function SecretariaDashboard() {
-  // Datos de ejemplo (posteriormente vendrán de la BD)
-  const stats = {
-    vecinosPendientes: 8,
-    solicitudesPendientes: 15,
-    solicitudesEnProceso: 12,
-    certificadosEmitidos: 45,
-    totalVecinos: 247,
-    proyectosPendientes: 3,
-    reservasPendientes: 2
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    vecinosPendientes: 0,
+    solicitudesPendientes: 0,
+    solicitudesEnProceso: 0,
+    certificadosEmitidos: 0,
+    totalVecinos: 0,
+    proyectosPendientes: 0,
+    reservasPendientes: 0,
+    actividadesPendientes: 0
+  });
+  const [vecinosPendientes, setVecinosPendientes] = useState([]);
+  const [solicitudesRecientes, setSolicitudesRecientes] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    const supabase = createClient();
+
+    try {
+      setLoading(true);
+
+      // 1. Contar vecinos pendientes de aprobación
+      const { count: vecinosPendientesCount } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente_aprobacion');
+
+      // 2. Contar solicitudes pendientes
+      const { count: solicitudesPendientesCount } = await supabase
+        .from('solicitudes')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente');
+
+      // 3. Contar solicitudes en proceso
+      const { count: solicitudesEnProcesoCount } = await supabase
+        .from('solicitudes')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'en_proceso');
+
+      // 4. Contar certificados emitidos este mes
+      const primerDiaMes = new Date();
+      primerDiaMes.setDate(1);
+      primerDiaMes.setHours(0, 0, 0, 0);
+
+      const { count: certificadosEmitidosCount } = await supabase
+        .from('solicitudes')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'completado')
+        .gte('updated_at', primerDiaMes.toISOString());
+
+      // 5. Contar total de vecinos activos
+      const { count: totalVecinosCount } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'vecino')
+        .eq('estado', 'activo');
+
+      // 6. Contar proyectos pendientes
+      const { count: proyectosPendientesCount } = await supabase
+        .from('proyectos')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente');
+
+      // 7. Contar reservas pendientes
+      const { count: reservasPendientesCount } = await supabase
+        .from('reservas')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente');
+
+      // 8. Contar inscripciones de actividades pendientes
+      const { count: actividadesPendientesCount } = await supabase
+        .from('inscripciones_actividades')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'pendiente');
+
+      // Actualizar estadísticas
+      setStats({
+        vecinosPendientes: vecinosPendientesCount || 0,
+        solicitudesPendientes: solicitudesPendientesCount || 0,
+        solicitudesEnProceso: solicitudesEnProcesoCount || 0,
+        certificadosEmitidos: certificadosEmitidosCount || 0,
+        totalVecinos: totalVecinosCount || 0,
+        proyectosPendientes: proyectosPendientesCount || 0,
+        reservasPendientes: reservasPendientesCount || 0,
+        actividadesPendientes: actividadesPendientesCount || 0
+      });
+
+      // 9. Obtener últimos 3 vecinos pendientes
+      const { data: vecinosData } = await supabase
+        .from('usuarios')
+        .select('id, nombres, apellidos, rut, direccion, created_at')
+        .eq('estado', 'pendiente_aprobacion')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      setVecinosPendientes(vecinosData || []);
+
+      // 10. Obtener últimas 3 solicitudes
+      const { data: solicitudesData } = await supabase
+        .from('solicitudes')
+        .select(`
+          id,
+          tipo,
+          estado,
+          created_at,
+          usuario_id,
+          usuario:usuarios!usuario_id(nombres, apellidos)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      setSolicitudesRecientes(solicitudesData || []);
+
+    } catch (error) {
+      console.error('Error al cargar datos del dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const vecinosPendientes = [
-    { id: 1, nombre: 'Pedro Sánchez', rut: '12.345.678-9', fecha: '2025-01-15', direccion: 'Calle Principal 123' },
-    { id: 2, nombre: 'Ana Martínez', rut: '98.765.432-1', fecha: '2025-01-14', direccion: 'Avenida Los Rosales 456' },
-    { id: 3, nombre: 'Carlos López', rut: '15.678.234-5', fecha: '2025-01-13', direccion: 'Pasaje El Carmen 789' },
-  ];
+  const formatFecha = (fecha) => {
+    return new Date(fecha).toLocaleDateString('es-CL', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
 
-  const solicitudesRecientes = [
-    { id: 'SOL-001240', vecino: 'María González', tipo: 'Certificado Residencia', estado: 'Pendiente', fecha: '2025-01-15' },
-    { id: 'SOL-001239', vecino: 'Juan Pérez', tipo: 'Certificado Residencia', estado: 'En Proceso', fecha: '2025-01-14' },
-    { id: 'SOL-001238', vecino: 'Laura Torres', tipo: 'Certificado Antigüedad', estado: 'Pendiente', fecha: '2025-01-14' },
-  ];
+  const getTipoLabel = (tipo) => {
+    const tipos = {
+      'residencia': 'Certificado de Residencia',
+      'antiguedad': 'Certificado de Antigüedad'
+    };
+    return tipos[tipo] || tipo;
+  };
+
+  const getEstadoLabel = (estado) => {
+    const estados = {
+      'pendiente': 'Pendiente',
+      'en_proceso': 'En Proceso',
+      'completado': 'Completado',
+      'rechazado': 'Rechazado'
+    };
+    return estados[estado] || estado;
+  };
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container" style={{
@@ -135,179 +277,186 @@ export default function SecretariaDashboard() {
           borderColor="#fbbf24"
           subtitleColor="#fbbf24"
         />
+
+        <StatCard
+          icon="🎯"
+          title="Inscripciones Pendientes"
+          value={stats.actividadesPendientes}
+          subtitle="Actividades"
+          borderColor="#fbbf24"
+          subtitleColor="#fbbf24"
+        />
       </div>
 
       {/* Vecinos Pendientes de Aprobación */}
-      <div className="admin-section" style={{
-        background: 'white',
-        padding: '1.5rem',
-        borderRadius: '16px',
-        marginBottom: '2rem'
-      }}>
-        <div className="section-header" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem'
+      {vecinosPendientes.length > 0 && (
+        <div className="admin-section" style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '16px',
+          marginBottom: '2rem'
         }}>
-          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>⏰ Vecinos Pendientes de Aprobación</h2>
-          <Link href="/secretaria/vecinos/aprobaciones" className="btn btn-primary btn-sm" style={{
-            padding: '0.375rem 0.875rem',
-            fontSize: '0.875rem',
-            background: '#439fa4',
-            color: 'white',
-            borderRadius: '12px',
-            textDecoration: 'none',
-            fontWeight: 600,
-            border: 'none'
+          <div className="section-header" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem'
           }}>
-            Ver Todos
-          </Link>
-        </div>
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>⏰ Vecinos Pendientes de Aprobación</h2>
+            <Link href="/secretaria/vecinos/aprobaciones" className="btn btn-primary btn-sm" style={{
+              padding: '0.375rem 0.875rem',
+              fontSize: '0.875rem',
+              background: '#439fa4',
+              color: 'white',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              fontWeight: 600,
+              border: 'none'
+            }}>
+              Ver Todos
+            </Link>
+          </div>
 
-        <div className="table-container" style={{ overflowX: 'auto' }}>
-          <table className="admin-table" style={{
-            width: '100%',
-            background: 'white',
-            borderRadius: '16px',
-            overflow: 'hidden'
-          }}>
-            <thead style={{ background: '#bfd3d9', color: '#154765' }}>
-              <tr>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Nombre</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>RUT</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Dirección</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Fecha Registro</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vecinosPendientes.map(vecino => (
-                <tr key={vecino.id}>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <strong>{vecino.nombre}</strong>
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
-                      {vecino.rut}
-                    </code>
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{vecino.direccion}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{vecino.fecha}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-success btn-sm" style={{
-                        background: '#34d399',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '0.375rem 0.875rem',
-                        fontSize: '0.875rem',
-                        color: 'white',
-                        fontWeight: 600
-                      }}>✓ Aprobar</button>
-                      <button className="btn btn-danger btn-sm" style={{
-                        background: '#fb7185',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '0.375rem 0.875rem',
-                        fontSize: '0.875rem',
-                        color: 'white',
-                        fontWeight: 600
-                      }}>✗ Rechazar</button>
-                    </div>
-                  </td>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table className="admin-table" style={{
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              overflow: 'hidden'
+            }}>
+              <thead style={{ background: '#bfd3d9', color: '#154765' }}>
+                <tr>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Nombre</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>RUT</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Dirección</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Fecha Registro</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {vecinosPendientes.map(vecino => (
+                  <tr key={vecino.id}>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <strong>{vecino.nombres} {vecino.apellidos}</strong>
+                    </td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
+                        {vecino.rut}
+                      </code>
+                    </td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{vecino.direccion}</td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{formatFecha(vecino.created_at)}</td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <Link href="/secretaria/vecinos/aprobaciones" className="btn btn-primary btn-sm" style={{
+                        background: '#439fa4',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '0.375rem 0.875rem',
+                        fontSize: '0.875rem',
+                        color: 'white',
+                        fontWeight: 600,
+                        textDecoration: 'none'
+                      }}>Revisar</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Solicitudes Recientes */}
-      <div className="admin-section" style={{
-        background: 'white',
-        padding: '1.5rem',
-        borderRadius: '16px',
-        marginBottom: '2rem'
-      }}>
-        <div className="section-header" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem'
+      {solicitudesRecientes.length > 0 && (
+        <div className="admin-section" style={{
+          background: 'white',
+          padding: '1.5rem',
+          borderRadius: '16px',
+          marginBottom: '2rem'
         }}>
-          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>📋 Solicitudes Recientes</h2>
-          <Link href="/secretaria/solicitudes" className="btn btn-secondary btn-sm" style={{
-            padding: '0.375rem 0.875rem',
-            fontSize: '0.875rem',
-            background: '#bfd3d9',
-            color: '#154765',
-            borderRadius: '12px',
-            textDecoration: 'none',
-            fontWeight: 600
+          <div className="section-header" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem'
           }}>
-            Ver Todas
-          </Link>
-        </div>
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>📋 Solicitudes Recientes</h2>
+            <Link href="/secretaria/solicitudes" className="btn btn-secondary btn-sm" style={{
+              padding: '0.375rem 0.875rem',
+              fontSize: '0.875rem',
+              background: '#bfd3d9',
+              color: '#154765',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              fontWeight: 600
+            }}>
+              Ver Todas
+            </Link>
+          </div>
 
-        <div className="table-container" style={{ overflowX: 'auto' }}>
-          <table className="admin-table" style={{
-            width: '100%',
-            background: 'white',
-            borderRadius: '16px',
-            overflow: 'hidden'
-          }}>
-            <thead style={{ background: '#bfd3d9', color: '#154765' }}>
-              <tr>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>ID</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Vecino</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Tipo</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Estado</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Fecha</th>
-                <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {solicitudesRecientes.map(solicitud => (
-                <tr key={solicitud.id}>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
-                      {solicitud.id}
-                    </code>
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{solicitud.vecino}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{solicitud.tipo}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <span className={`status-badge badge-${solicitud.estado.toLowerCase().replace(' ', '-')}`} style={{
-                      display: 'inline-block',
-                      padding: '0.375rem 0.875rem',
-                      borderRadius: '20px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      background: solicitud.estado === 'Pendiente' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(67, 159, 164, 0.2)',
-                      color: solicitud.estado === 'Pendiente' ? '#fbbf24' : '#439fa4'
-                    }}>
-                      {solicitud.estado}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{solicitud.fecha}</td>
-                  <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                    <Link href={`/secretaria/solicitudes/${solicitud.id}`} className="btn-link" style={{
-                      color: '#439fa4',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      padding: '0.375rem 0.875rem',
-                      borderRadius: '8px'
-                    }}>
-                      Revisar
-                    </Link>
-                  </td>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table className="admin-table" style={{
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              overflow: 'hidden'
+            }}>
+              <thead style={{ background: '#bfd3d9', color: '#154765' }}>
+                <tr>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>ID</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Vecino</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Tipo</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Estado</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Fecha</th>
+                  <th style={{ fontWeight: 600, padding: '1rem', border: 'none' }}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {solicitudesRecientes.map(solicitud => (
+                  <tr key={solicitud.id}>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
+                        {solicitud.id.substring(0, 8)}
+                      </code>
+                    </td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{solicitud.usuario?.nombres} {solicitud.usuario?.apellidos}</td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{getTipoLabel(solicitud.tipo)}</td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <span className={`status-badge badge-${solicitud.estado}`} style={{
+                        display: 'inline-block',
+                        padding: '0.375rem 0.875rem',
+                        borderRadius: '20px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        background: solicitud.estado === 'pendiente' ? 'rgba(251, 191, 36, 0.2)' :
+                                    solicitud.estado === 'en_proceso' ? 'rgba(67, 159, 164, 0.2)' :
+                                    solicitud.estado === 'completado' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 113, 133, 0.2)',
+                        color: solicitud.estado === 'pendiente' ? '#fbbf24' :
+                               solicitud.estado === 'en_proceso' ? '#439fa4' :
+                               solicitud.estado === 'completado' ? '#34d399' : '#fb7185'
+                      }}>
+                        {getEstadoLabel(solicitud.estado)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{formatFecha(solicitud.created_at)}</td>
+                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                      <Link href={`/secretaria/solicitudes/${solicitud.id}`} className="btn-link" style={{
+                        color: '#439fa4',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        padding: '0.375rem 0.875rem',
+                        borderRadius: '8px'
+                      }}>
+                        Revisar
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Acciones Rápidas */}
       <div className="admin-section" style={{
@@ -485,10 +634,57 @@ export default function SecretariaDashboard() {
               </span>
             )}
           </Link>
+
+          <Link href="/secretaria/actividades/inscripciones" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            transition: 'all 0.2s',
+            textAlign: 'center',
+            position: 'relative',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Inscripciones Actividades</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Aprobar inscripciones pendientes</p>
+            {stats.actividadesPendientes > 0 && (
+              <span className="badge bg-warning" style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                borderRadius: '50%',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                color: '#154765',
+                background: '#fbbf24'
+              }}>
+                {stats.actividadesPendientes}
+              </span>
+            )}
+          </Link>
+
+          <Link href="/secretaria/noticias" className="action-card" style={{
+            background: '#f4f8f9',
+            padding: '2rem',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            transition: 'all 0.2s',
+            textAlign: 'center',
+            display: 'block'
+          }}>
+            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📰</div>
+            <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Gestionar Noticias</h3>
+            <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Publicar y editar noticias</p>
+          </Link>
         </div>
       </div>
 
-      {/* Resumen Semanal */}
+      {/* Resumen */}
       <div className="charts-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
@@ -501,7 +697,7 @@ export default function SecretariaDashboard() {
           padding: '2rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
         }}>
-          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>📊 Resumen de la Semana</h3>
+          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>📊 Resumen General</h3>
           <div className="chart-placeholder" style={{
             background: '#f4f8f9',
             borderRadius: '12px'
@@ -509,16 +705,16 @@ export default function SecretariaDashboard() {
             <div style={{ padding: '1.5rem', textAlign: 'left' }}>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  ✅ <strong>8</strong> vecinos aprobados
+                  👥 <strong>{stats.totalVecinos}</strong> vecinos activos
                 </li>
                 <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  📄 <strong>23</strong> certificados emitidos
+                  📄 <strong>{stats.certificadosEmitidos}</strong> certificados emitidos este mes
                 </li>
                 <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  📋 <strong>31</strong> solicitudes procesadas
+                  📋 <strong>{stats.solicitudesPendientes + stats.solicitudesEnProceso}</strong> solicitudes activas
                 </li>
                 <li style={{ padding: '0.75rem 0', color: '#154765' }}>
-                  📈 <strong>15</strong> nuevas solicitudes recibidas
+                  🏗️ <strong>{stats.proyectosPendientes}</strong> proyectos pendientes de revisión
                 </li>
               </ul>
             </div>
@@ -538,18 +734,36 @@ export default function SecretariaDashboard() {
           }}>
             <div style={{ padding: '1.5rem', textAlign: 'left' }}>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  ⏰ <strong>{stats.vecinosPendientes}</strong> vecinos esperando aprobación
-                </li>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  📋 <strong>{stats.solicitudesPendientes}</strong> solicitudes por revisar
-                </li>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  ⏳ <strong>{stats.solicitudesEnProceso}</strong> solicitudes en proceso
-                </li>
-                <li style={{ padding: '0.75rem 0', color: '#154765' }}>
-                  📅 Próxima reunión de directiva: 25 de Enero
-                </li>
+                {stats.vecinosPendientes > 0 && (
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
+                    ⏰ <strong>{stats.vecinosPendientes}</strong> vecinos esperando aprobación
+                  </li>
+                )}
+                {stats.solicitudesPendientes > 0 && (
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
+                    📋 <strong>{stats.solicitudesPendientes}</strong> solicitudes por revisar
+                  </li>
+                )}
+                {stats.proyectosPendientes > 0 && (
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
+                    🏗️ <strong>{stats.proyectosPendientes}</strong> proyectos por evaluar
+                  </li>
+                )}
+                {stats.reservasPendientes > 0 && (
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
+                    🏟️ <strong>{stats.reservasPendientes}</strong> reservas por aprobar
+                  </li>
+                )}
+                {stats.actividadesPendientes > 0 && (
+                  <li style={{ padding: '0.75rem 0', color: '#154765' }}>
+                    🎯 <strong>{stats.actividadesPendientes}</strong> inscripciones a actividades por revisar
+                  </li>
+                )}
+                {stats.vecinosPendientes === 0 && stats.solicitudesPendientes === 0 && stats.proyectosPendientes === 0 && stats.reservasPendientes === 0 && stats.actividadesPendientes === 0 && (
+                  <li style={{ padding: '0.75rem 0', color: '#34d399', textAlign: 'center' }}>
+                    ✅ ¡Todo al día! No hay tareas pendientes
+                  </li>
+                )}
               </ul>
             </div>
           </div>

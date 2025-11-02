@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { enviarCorreoAprobacionRegistro } from '@/lib/emails/sendEmail';
+import MapaGeneral from '@/components/maps/MapaGeneral';
+import MapaDetalle from '@/components/maps/MapaDetalle';
 
 export default function SecretariaVecinosPage() {
   const { user, userProfile } = useAuth();
@@ -15,6 +17,7 @@ export default function SecretariaVecinosPage() {
   const [busqueda, setBusqueda] = useState('');
   const [vecinoSeleccionado, setVecinoSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [vistaActual, setVistaActual] = useState('tabla'); // 'tabla' o 'mapa'
 
   useEffect(() => {
     if (user && userProfile?.rol === 'secretaria') {
@@ -48,6 +51,36 @@ export default function SecretariaVecinosPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCoordenadasActualizadas = (vecinoId, lat, lng) => {
+    console.log('🗺️ Actualizando coordenadas para vecino:', vecinoId, { lat, lng });
+
+    // Actualizar las coordenadas del vecino en la lista local
+    setVecinos(prev =>
+      prev.map(v =>
+        v.id === vecinoId
+          ? { ...v, latitude: lat, longitude: lng, geocoded_at: new Date().toISOString() }
+          : v
+      )
+    );
+
+    // También actualizar el vecino seleccionado si es el mismo
+    if (vecinoSeleccionado?.id === vecinoId) {
+      setVecinoSeleccionado(prev => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng,
+        geocoded_at: new Date().toISOString()
+      }));
+    }
+
+    console.log('✅ Coordenadas actualizadas en estado local');
+  };
+
+  const handleVerDetallesDesdeMapa = (vecino) => {
+    setVecinoSeleccionado(vecino);
+    setMostrarModal(true);
   };
 
   const getEstadoBadge = (estado) => {
@@ -298,6 +331,28 @@ export default function SecretariaVecinosPage() {
           </div>
         </div>
 
+        {/* Toggle de Vista: Tabla vs Mapa */}
+        <div className="mb-4">
+          <div className="btn-group w-100" role="group">
+            <button
+              type="button"
+              className={`btn ${vistaActual === 'tabla' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setVistaActual('tabla')}
+            >
+              <i className="bi bi-table me-2"></i>
+              Vista de Tabla
+            </button>
+            <button
+              type="button"
+              className={`btn ${vistaActual === 'mapa' ? 'btn-primary' : 'btn-outline-primary'}`}
+              onClick={() => setVistaActual('mapa')}
+            >
+              <i className="bi bi-map me-2"></i>
+              Vista de Mapa
+            </button>
+          </div>
+        </div>
+
         {/* Filtros y búsqueda */}
         <div className="card mb-4">
           <div className="card-body">
@@ -363,25 +418,26 @@ export default function SecretariaVecinosPage() {
           </div>
         </div>
 
-        {/* Lista de vecinos */}
-        <div className="card">
-          <div className="card-header">
-            <h5 className="mb-0">Lista de Vecinos</h5>
-          </div>
-          <div className="card-body">
-            {vecinosFiltrados.length === 0 ? (
-              <div className="empty-state text-center py-5">
-                <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>👥</div>
-                <h5>No hay vecinos</h5>
-                <p className="text-muted">
-                  {busqueda || filtroEstado !== 'todos' || filtroRol !== 'todos'
-                    ? 'No se encontraron vecinos con los filtros aplicados'
-                    : 'No se han encontrado vecinos registrados'
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="table-responsive">
+        {/* Vista de Tabla */}
+        {vistaActual === 'tabla' && (
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Lista de Vecinos</h5>
+            </div>
+            <div className="card-body">
+              {vecinosFiltrados.length === 0 ? (
+                <div className="empty-state text-center py-5">
+                  <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>👥</div>
+                  <h5>No hay vecinos</h5>
+                  <p className="text-muted">
+                    {busqueda || filtroEstado !== 'todos' || filtroRol !== 'todos'
+                      ? 'No se encontraron vecinos con los filtros aplicados'
+                      : 'No se han encontrado vecinos registrados'
+                    }
+                  </p>
+                </div>
+              ) : (
+                <div className="table-responsive">
                 <table className="table table-hover">
                   <thead>
                     <tr>
@@ -460,8 +516,27 @@ export default function SecretariaVecinosPage() {
                 </table>
               </div>
             )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Vista de Mapa */}
+        {vistaActual === 'mapa' && (
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">
+                <i className="bi bi-map me-2"></i>
+                Mapa de Vecinos
+              </h5>
+            </div>
+            <div className="card-body">
+              <MapaGeneral
+                vecinos={vecinosFiltrados}
+                onVerDetalles={handleVerDetallesDesdeMapa}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Detalles */}
@@ -561,12 +636,21 @@ export default function SecretariaVecinosPage() {
                 )}
 
                 {/* ID del Sistema */}
-                <div className="mb-3">
+                <div className="mb-4">
                   <h6 className="mb-3">ℹ️ Información del Sistema</h6>
                   <p className="mb-2">
                     <strong>ID de Usuario:</strong><br />
                     <code>{vecinoSeleccionado.id}</code>
                   </p>
+                  <hr />
+                </div>
+
+                {/* Mapa de Ubicación */}
+                <div className="mb-3">
+                  <MapaDetalle
+                    vecino={vecinoSeleccionado}
+                    onCoordenadasActualizadas={handleCoordenadasActualizadas}
+                  />
                 </div>
               </div>
               <div className="modal-footer">

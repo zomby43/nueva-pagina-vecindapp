@@ -17,7 +17,7 @@ export default function Sidebar() {
     e.preventDefault();
     e.stopPropagation();
     console.log('🔘 Botón de cerrar sesión presionado');
-    
+
     try {
       // Intentar logout suave primero (mantiene estilos)
       await softLogout();
@@ -46,79 +46,79 @@ export default function Sidebar() {
         href="/dashboard"
         className={`nav-link ${isActive('/dashboard')}`}
       >
-        📊 Dashboard
+        <i className="bi bi-speedometer2 me-2"></i>Dashboard
       </Link>
       <Link
         href="/solicitudes"
         className={`nav-link ${isActive('/solicitudes')}`}
       >
-        📝 Mis Solicitudes
+        <i className="bi bi-file-text me-2"></i>Mis Solicitudes
       </Link>
       <Link
         href="/solicitudes/nueva"
         className={`nav-link ${isActive('/solicitudes/nueva')}`}
       >
-        ➕ Nueva Solicitud
+        <i className="bi bi-plus-circle me-2"></i>Nueva Solicitud
       </Link>
       <Link
         href="/perfil"
         className={`nav-link ${isActive('/perfil')}`}
       >
-        👤 Mi Perfil
+        <i className="bi bi-person me-2"></i>Mi Perfil
       </Link>
       <div className="nav-divider"></div>
       <Link
         href="/avisos"
         className={`nav-link ${isActive('/avisos')}`}
       >
-        📢 Avisos
+        <i className="bi bi-megaphone me-2"></i>Avisos
       </Link>
       <Link
         href="/noticias"
         className={`nav-link ${isActive('/noticias')}`}
       >
-        📰 Noticias
+        <i className="bi bi-newspaper me-2"></i>Noticias
       </Link>
       <Link
         href="/proyectos"
         className={`nav-link ${pathname?.startsWith('/proyectos') ? 'active' : ''}`}
       >
-        🏗️ Proyectos Vecinales
+        <i className="bi bi-building me-2"></i>Proyectos Vecinales
       </Link>
       <Link
         href="/actividades"
         className={`nav-link ${pathname?.startsWith('/actividades') ? 'active' : ''}`}
         suppressHydrationWarning
       >
-        🎯 Actividades Vecinales
+        <i className="bi bi-calendar-event me-2"></i>Actividades Vecinales
       </Link>
       <Link
         href="/reservas"
         className={`nav-link ${pathname?.startsWith('/reservas') ? 'active' : ''}`}
         suppressHydrationWarning
       >
-        🏟️ Reservar Espacios
+        <i className="bi bi-house-door me-2"></i>Reservar Espacios
       </Link>
       <Link
         href="/mapa"
         className={`nav-link nav-link-secondary ${isActive('/mapa')}`}
       >
-        🗺️ Ver Mapa
+        <i className="bi bi-map me-2"></i>Ver Mapa
       </Link>
       <button
         type="button"
         onClick={handleSignOut}
         className="nav-link nav-link-danger"
-        style={{ 
-          background: 'none', 
-          border: 'none', 
+        style={{
+          background: 'none',
+          border: 'none',
           textAlign: 'left',
           width: '100%',
           color: '#dc3545',
           cursor: 'pointer'
         }}
       >
-        🚪 Cerrar Sesión
+        <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
       </button>
     </nav>
   );

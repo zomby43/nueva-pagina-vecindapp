@@ -15,7 +15,7 @@ export default function AdminSidebar() {
     e.preventDefault();
     e.stopPropagation();
     console.log('🔘 Botón de cerrar sesión presionado - Admin');
-    
+
     if (signOut && typeof signOut === 'function') {
       signOut();
     } else {
@@ -47,26 +47,28 @@ export default function AdminSidebar() {
           fontSize: '0.9rem',
           fontWeight: 600,
           display: 'inline-block'
-        }}>🛡️ ADMIN</span>
+        }}>
+          <i className="bi bi-shield-check me-2"></i>ADMIN
+        </span>
       </div>
 
       <Link
         href="/admin/dashboard"
         className={`nav-link ${isActive('/admin/dashboard')}`}
       >
-        📊 Dashboard
+        <i className="bi bi-speedometer2 me-2"></i>Dashboard
       </Link>
       <Link
         href="/admin/solicitudes"
         className={`nav-link ${isActive('/admin/solicitudes')}`}
       >
-        📋 Gestionar Solicitudes
+        <i className="bi bi-clipboard-check me-2"></i>Gestionar Solicitudes
       </Link>
       <Link
         href="/admin/usuarios"
         className={`nav-link ${isActive('/admin/usuarios')}`}
       >
-        👥 Gestionar Usuarios
+        <i className="bi bi-people me-2"></i>Gestionar Usuarios
       </Link>
 
       <div className="nav-divider"></div>
@@ -76,28 +78,28 @@ export default function AdminSidebar() {
         href="/admin/reportes"
         className={`nav-link ${isActive('/admin/reportes')}`}
       >
-        📈 Estadísticas
+        <i className="bi bi-graph-up me-2"></i>Estadísticas
       </Link>
 
       <div className="nav-divider"></div>
 
       <a href="/" className="nav-link nav-link-secondary">
-        🗺️ Ver Mapa Público
+        <i className="bi bi-map me-2"></i>Ver Mapa Público
       </a>
       <button
         type="button"
         onClick={handleSignOut}
         className="nav-link nav-link-danger"
-        style={{ 
-          background: 'none', 
-          border: 'none', 
+        style={{
+          background: 'none',
+          border: 'none',
           textAlign: 'left',
           width: '100%',
           color: '#dc3545',
           cursor: 'pointer'
         }}
       >
-        🚪 Cerrar Sesión
+        <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
       </button>
     </nav>
   );

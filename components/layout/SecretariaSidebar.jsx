@@ -17,7 +17,7 @@ export default function SecretariaSidebar() {
     e.preventDefault();
     e.stopPropagation();
     console.log('🔘 Botón de cerrar sesión presionado - Secretaria');
-    
+
     try {
       // Intentar logout suave primero (mantiene estilos)
       await softLogout();
@@ -56,14 +56,16 @@ export default function SecretariaSidebar() {
           fontWeight: 600,
           display: 'inline-block',
           boxShadow: '0 2px 8px rgba(67, 159, 164, 0.3)'
-        }}>📝 SECRETARÍA</span>
+        }}>
+          <i className="bi bi-pencil-square me-2"></i>SECRETARÍA
+        </span>
       </div>
 
       <Link
         href="/secretaria/dashboard"
         className={`nav-link ${isActive('/secretaria/dashboard')}`}
       >
-        📊 Dashboard
+        <i className="bi bi-speedometer2 me-2"></i>Dashboard
       </Link>
 
       <div className="nav-divider"></div>
@@ -73,7 +75,7 @@ export default function SecretariaSidebar() {
         href="/secretaria/solicitudes"
         className={`nav-link ${isActive('/secretaria/solicitudes')}`}
       >
-        📋 Gestionar Solicitudes
+        <i className="bi bi-clipboard-check me-2"></i>Gestionar Solicitudes
       </Link>
 
       <div className="nav-divider"></div>
@@ -83,13 +85,13 @@ export default function SecretariaSidebar() {
         href="/secretaria/vecinos"
         className={`nav-link ${isActive('/secretaria/vecinos')}`}
       >
-        👥 Ver Vecinos
+        <i className="bi bi-people me-2"></i>Ver Vecinos
       </Link>
       <Link
         href="/secretaria/vecinos/aprobaciones"
         className={`nav-link ${isActive('/secretaria/vecinos/aprobaciones')}`}
       >
-        ✅ Aprobar Registros
+        <i className="bi bi-person-check me-2"></i>Aprobar Registros
       </Link>
 
       <div className="nav-divider"></div>
@@ -99,7 +101,7 @@ export default function SecretariaSidebar() {
         href="/secretaria/certificados"
         className={`nav-link ${isActive('/secretaria/certificados')}`}
       >
-        📄 Emitir Certificado
+        <i className="bi bi-file-earmark-text me-2"></i>Emitir Certificado
       </Link>
 
       <div className="nav-divider"></div>
@@ -109,13 +111,13 @@ export default function SecretariaSidebar() {
         href="/secretaria/proyectos"
         className={`nav-link ${pathname?.startsWith('/secretaria/proyectos') && pathname !== '/secretaria/proyectos/pendientes' ? 'active' : ''}`}
       >
-        🏗️ Gestionar Proyectos
+        <i className="bi bi-building me-2"></i>Gestionar Proyectos
       </Link>
       <Link
         href="/secretaria/proyectos/pendientes"
         className={`nav-link ${isActive('/secretaria/proyectos/pendientes')}`}
       >
-        ⏳ Proyectos Pendientes
+        <i className="bi bi-hourglass-split me-2"></i>Proyectos Pendientes
       </Link>
 
       <div className="nav-divider"></div>
@@ -125,7 +127,7 @@ export default function SecretariaSidebar() {
         href="/secretaria/actividades"
         className={`nav-link ${pathname?.startsWith('/secretaria/actividades') ? 'active' : ''}`}
       >
-        🎯 Gestionar Actividades
+        <i className="bi bi-calendar-event me-2"></i>Gestionar Actividades
       </Link>
 
       <div className="nav-divider"></div>
@@ -135,19 +137,19 @@ export default function SecretariaSidebar() {
         href="/secretaria/reservas"
         className={`nav-link ${pathname?.startsWith('/secretaria/reservas') && pathname !== '/secretaria/reservas/pendientes' ? 'active' : ''}`}
       >
-        🏟️ Gestionar Reservas
+        <i className="bi bi-house-door me-2"></i>Gestionar Reservas
       </Link>
       <Link
         href="/secretaria/reservas/pendientes"
         className={`nav-link ${isActive('/secretaria/reservas/pendientes')}`}
       >
-        ⏳ Reservas Pendientes
+        <i className="bi bi-clock-history me-2"></i>Reservas Pendientes
       </Link>
       <Link
         href="/secretaria/espacios"
         className={`nav-link ${isActive('/secretaria/espacios')}`}
       >
-        ⚙️ Administrar Espacios
+        <i className="bi bi-gear me-2"></i>Administrar Espacios
       </Link>
 
       <div className="nav-divider"></div>
@@ -157,13 +159,13 @@ export default function SecretariaSidebar() {
         href="/secretaria/avisos"
         className={`nav-link ${isActive('/secretaria/avisos')}`}
       >
-        📢 Avisos
+        <i className="bi bi-megaphone me-2"></i>Avisos
       </Link>
       <Link
         href="/secretaria/noticias"
         className={`nav-link ${isActive('/secretaria/noticias')}`}
       >
-        📰 Noticias
+        <i className="bi bi-newspaper me-2"></i>Noticias
       </Link>
 
       <div className="nav-divider"></div>
@@ -173,13 +175,13 @@ export default function SecretariaSidebar() {
         href="/secretaria/configuracion"
         className={`nav-link ${isActive('/secretaria/configuracion')}`}
       >
-        ⚙️ Configuración
+        <i className="bi bi-sliders me-2"></i>Configuración
       </Link>
 
       <div className="nav-divider"></div>
 
       <a href="/" className="nav-link nav-link-secondary">
-        🗺️ Ver Mapa Público
+        <i className="bi bi-map me-2"></i>Ver Mapa Público
       </a>
       <button
         type="button"
@@ -194,7 +196,7 @@ export default function SecretariaSidebar() {
           cursor: 'pointer'
         }}
       >
-        🚪 Cerrar Sesión
+        <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
       </button>
     </nav>
   );

@@ -46,7 +46,7 @@ export default function SecretariaSolicitudesPage() {
         .from('solicitudes')
         .select(`
           *,
-          usuario:usuario_id (
+          usuario:usuarios!usuario_id (
             id,
             nombres,
             apellidos,
