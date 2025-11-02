@@ -38,10 +38,14 @@ export default function AdminDashboard() {
     totalUsuarios: 0,
     usuariosActivos: 0,
     usuariosPendientes: 0,
+    usuariosVecinos: 0,
+    usuariosSecretarias: 0,
+    usuariosAdmins: 0,
     totalSolicitudes: 0,
     solicitudesPendientes: 0,
     solicitudesEnProceso: 0,
     solicitudesCompletadas: 0,
+    solicitudesRechazadas: 0,
     totalProyectos: 0,
     totalReservas: 0,
     totalActividades: 0,
@@ -77,6 +81,21 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('estado', 'pendiente_aprobacion');
 
+      const { count: usuariosVecinos } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'vecino');
+
+      const { count: usuariosSecretarias } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'secretaria');
+
+      const { count: usuariosAdmins } = await supabase
+        .from('usuarios')
+        .select('*', { count: 'exact', head: true })
+        .eq('rol', 'admin');
+
       // Estadísticas de solicitudes
       const { count: totalSolicitudes } = await supabase
         .from('solicitudes')
@@ -96,6 +115,11 @@ export default function AdminDashboard() {
         .from('solicitudes')
         .select('*', { count: 'exact', head: true })
         .eq('estado', 'completado');
+
+      const { count: solicitudesRechazadas } = await supabase
+        .from('solicitudes')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'rechazado');
 
       // Estadísticas de proyectos
       const { count: totalProyectos } = await supabase
@@ -126,10 +150,14 @@ export default function AdminDashboard() {
         totalUsuarios: totalUsuarios || 0,
         usuariosActivos: usuariosActivos || 0,
         usuariosPendientes: usuariosPendientes || 0,
+        usuariosVecinos: usuariosVecinos || 0,
+        usuariosSecretarias: usuariosSecretarias || 0,
+        usuariosAdmins: usuariosAdmins || 0,
         totalSolicitudes: totalSolicitudes || 0,
         solicitudesPendientes: solicitudesPendientes || 0,
         solicitudesEnProceso: solicitudesEnProceso || 0,
         solicitudesCompletadas: solicitudesCompletadas || 0,
+        solicitudesRechazadas: solicitudesRechazadas || 0,
         totalProyectos: totalProyectos || 0,
         totalReservas: totalReservas || 0,
         totalActividades: totalActividades || 0,
@@ -357,6 +385,69 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Resúmenes Básicos */}
+      <div className="row g-3 mb-4">
+        <div className="col-lg-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <h5 className="card-title mb-3">
+                <i className="bi bi-person-lines-fill me-2"></i>Usuarios por Rol
+              </h5>
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-people-fill text-primary me-2"></i>Vecinos</span>
+                  <strong>{stats.usuariosVecinos}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-person-badge text-success me-2"></i>Secretaría</span>
+                  <strong>{stats.usuariosSecretarias}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><i className="bi bi-shield-lock text-danger me-2"></i>Administradores</span>
+                  <strong>{stats.usuariosAdmins}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span>Total usuarios</span>
+                  <strong>{stats.totalUsuarios}</strong>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-body">
+              <h5 className="card-title mb-3">
+                <i className="bi bi-clipboard-data me-2"></i>Estado de Solicitudes
+              </h5>
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><span className="badge bg-secondary me-2">Pendiente</span>Pendientes</span>
+                  <strong>{stats.solicitudesPendientes}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><span className="badge bg-info me-2">Proceso</span>En proceso</span>
+                  <strong>{stats.solicitudesEnProceso}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><span className="badge bg-success me-2">✔</span>Completadas</span>
+                  <strong>{stats.solicitudesCompletadas}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span><span className="badge bg-danger me-2">✖</span>Rechazadas</span>
+                  <strong>{stats.solicitudesRechazadas}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between align-items-center">
+                  <span>Total solicitudes</span>
+                  <strong>{stats.totalSolicitudes}</strong>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

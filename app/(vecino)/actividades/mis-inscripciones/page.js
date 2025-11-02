@@ -13,12 +13,21 @@ export default function MisInscripcionesPage() {
   const [filtroEstado, setFiltroEstado] = useState('todas');
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchInscripciones();
+    } else if (!user) {
+      setLoading(false);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Solo re-ejecutar cuando el ID del usuario cambie
 
   const fetchInscripciones = async () => {
+    // Evitar ejecutar si no hay user.id
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -47,11 +56,62 @@ export default function MisInscripcionesPage() {
         .eq('participante_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setInscripciones(data || []);
+      if (error) {
+        console.error('Error de Supabase:', error);
+        throw error;
+      }
+
+      const inscripcionesSinActividad = [];
+
+      const inscripcionesNormalizadas = (data || []).reduce((acumulador, inscripcion) => {
+        if (!inscripcion || !inscripcion.actividad) {
+          inscripcionesSinActividad.push(inscripcion);
+          return acumulador;
+        }
+
+        const actividad = inscripcion.actividad || {};
+
+        acumulador.push({
+          ...inscripcion,
+          actividad: {
+            id: actividad.id,
+            titulo: actividad.titulo ?? 'Actividad sin título',
+            descripcion: actividad.descripcion ?? '',
+            categoria: actividad.categoria ?? 'otro',
+            tipo: actividad.tipo ?? 'otro',
+            fecha_inicio: actividad.fecha_inicio ?? null,
+            fecha_fin: actividad.fecha_fin ?? null,
+            ubicacion: actividad.ubicacion ?? '',
+            cupo_disponible: actividad.cupo_disponible ?? null,
+            cupo_maximo: actividad.cupo_maximo ?? null,
+            es_gratuita: Boolean(actividad.es_gratuita),
+            costo: actividad.es_gratuita ? 0 : actividad.costo ?? 0,
+            estado: actividad.estado ?? 'pendiente'
+          }
+        });
+
+        return acumulador;
+      }, []);
+
+      setInscripciones(inscripcionesNormalizadas);
+
+      if (inscripcionesSinActividad.length > 0) {
+        console.warn('⚠️ Se encontraron', inscripcionesSinActividad.length, 'inscripciones sin actividad asociada (posiblemente eliminadas)');
+      }
     } catch (error) {
-      console.error('Error fetching inscripciones:', error);
-      setError('Error al cargar tus inscripciones');
+      console.error('❌ Error al cargar inscripciones:', error);
+
+      // Diferentes mensajes según el tipo de error
+      if (error.message && error.message.includes('Failed to fetch')) {
+        setError('Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.');
+      } else if (error.message && error.message.includes('NetworkError')) {
+        setError('Error de red. No se puede conectar al servidor.');
+      } else {
+        setError('Error al cargar tus inscripciones. Por favor, intenta recargar la página.');
+      }
+
+      // En caso de error, establecer array vacío para evitar errores adicionales
+      setInscripciones([]);
     } finally {
       setLoading(false);
     }
@@ -133,7 +193,11 @@ export default function MisInscripcionesPage() {
     return iconos[categoria] || '📌';
   };
 
-  const inscripcionesFiltradas = inscripciones.filter(inscripcion => {
+  const inscripcionesConActividad = inscripciones.filter((inscripcion) => {
+    return Boolean(inscripcion && inscripcion.actividad);
+  });
+
+  const inscripcionesFiltradas = inscripcionesConActividad.filter((inscripcion) => {
     if (filtroEstado !== 'todas' && inscripcion.estado !== filtroEstado) return false;
     return true;
   });
@@ -261,8 +325,11 @@ export default function MisInscripcionesPage() {
       ) : (
         <div className="row g-4">
           {inscripcionesFiltradas.map((inscripcion) => {
+            const actividad = inscripcion?.actividad || {};
+            const actividadDisponible = Boolean(actividad.id);
+
             const estadoBadge = getEstadoBadge(inscripcion.estado);
-            const categoriaColor = getCategoriaColor(inscripcion.actividad.categoria);
+            const categoriaColor = getCategoriaColor(actividad.categoria || 'otro');
 
             return (
               <div key={inscripcion.id} className="col-12">
@@ -285,43 +352,55 @@ export default function MisInscripcionesPage() {
                       <div className="col-lg-7">
                         <div className="d-flex align-items-center mb-3">
                           <span className="me-3 fs-3">
-                            {getCategoriaIcon(inscripcion.actividad.categoria)}
+                            {getCategoriaIcon(actividad.categoria || 'otro')}
                           </span>
                           <div className="flex-grow-1">
-                            <h3 className="h5 fw-bold mb-1">{inscripcion.actividad.titulo}</h3>
+                            <h3 className="h5 fw-bold mb-1">
+                              {actividadDisponible ? actividad.titulo : 'Actividad no disponible'}
+                            </h3>
                             <small className="text-muted">
                               Inscrito el {formatearFecha(inscripcion.created_at)}
                             </small>
                           </div>
                         </div>
 
-                        <div className="mb-3">
-                          <div className="row g-2">
-                            <div className="col-auto">
-                              <small className="text-muted">
-                                📅 {formatearFecha(inscripcion.actividad.fecha_inicio)}
-                              </small>
+                        {actividadDisponible ? (
+                          <div className="mb-3">
+                            <div className="row g-2">
+                              {actividad.fecha_inicio && (
+                                <div className="col-auto">
+                                  <small className="text-muted">
+                                    📅 {formatearFecha(actividad.fecha_inicio)}
+                                  </small>
+                                </div>
+                              )}
+                              {actividad.ubicacion && (
+                                <div className="col-auto">
+                                  <small className="text-muted">
+                                    📍 {actividad.ubicacion}
+                                  </small>
+                                </div>
+                              )}
+                              {actividad.es_gratuita ? (
+                                <div className="col-auto">
+                                  <small className="text-success fw-semibold">✅ Gratuita</small>
+                                </div>
+                              ) : (
+                                <div className="col-auto">
+                                  <small className="text-warning fw-semibold">
+                                    💰 ${actividad.costo ? actividad.costo.toLocaleString('es-CL') : 'N/D'}
+                                  </small>
+                                </div>
+                              )}
                             </div>
-                            {inscripcion.actividad.ubicacion && (
-                              <div className="col-auto">
-                                <small className="text-muted">
-                                  📍 {inscripcion.actividad.ubicacion}
-                                </small>
-                              </div>
-                            )}
-                            {inscripcion.actividad.es_gratuita ? (
-                              <div className="col-auto">
-                                <small className="text-success fw-semibold">✅ Gratuita</small>
-                              </div>
-                            ) : (
-                              <div className="col-auto">
-                                <small className="text-warning fw-semibold">
-                                  💰 ${inscripcion.actividad.costo.toLocaleString('es-CL')}
-                                </small>
-                              </div>
-                            )}
                           </div>
-                        </div>
+                        ) : (
+                          <div className="alert alert-warning py-2 mb-3">
+                            <small>
+                              La actividad asociada ya no está disponible. Si necesitas ayuda, contacta a la secretaría.
+                            </small>
+                          </div>
+                        )}
 
                         {inscripcion.comentario && (
                           <div className="alert alert-light py-2 mb-0">
@@ -342,7 +421,7 @@ export default function MisInscripcionesPage() {
 
                       {/* Estado y acciones */}
                       <div className="col-lg-5">
-                        <div className="d-flex flex-column align-items-lg-end gap-3">
+                          <div className="d-flex flex-column align-items-lg-end gap-3">
                           <span
                             className="badge"
                             style={{
@@ -357,20 +436,20 @@ export default function MisInscripcionesPage() {
 
                           <div className="d-flex gap-2">
                             <Link
-                              href={`/actividades/${inscripcion.actividad.id}`}
-                              className="btn btn-sm btn-outline-primary"
+                              href={actividadDisponible ? `/actividades/${actividad.id}` : '#'}
+                              className={`btn btn-sm btn-outline-primary${actividadDisponible ? '' : ' disabled'}`}
                             >
                               Ver Actividad
                             </Link>
 
                             {inscripcion.estado === 'pendiente' && (
-                              <button
-                                onClick={() => handleCancelarInscripcion(inscripcion.id)}
-                                className="btn btn-sm btn-outline-danger"
-                              >
-                                Cancelar
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleCancelarInscripcion(inscripcion.id)}
+                              className="btn btn-sm btn-outline-danger"
+                            >
+                              Cancelar
+                            </button>
+                          )}
                           </div>
 
                           {inscripcion.estado === 'aprobada' && (

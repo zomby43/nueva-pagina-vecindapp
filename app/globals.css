@@ -341,6 +341,39 @@ main {
   border-bottom: 2px solid var(--muted);
 }
 
+.page-header-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.btn-new-request {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-new-request .icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.btn-new-request:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(21, 71, 101, 0.1);
+}
+
+.btn-new-request:active {
+  transform: translateY(0);
+}
+
 .page-header h1 {
   color: var(--text);
   font-size: 2rem;

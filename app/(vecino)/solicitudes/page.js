@@ -132,12 +132,13 @@ export default function SolicitudesPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="page-header-content">
           <div>
             <h1>Mis Solicitudes</h1>
-            <p className="text-muted">Gestiona tus certificados y solicitudes</p>
+            <p className="text-muted mb-0">Gestiona tus certificados y solicitudes</p>
           </div>
-          <Link href="/solicitudes/nueva" className="btn btn-primary">
+          <Link href="/solicitudes/nueva" className="btn btn-primary btn-new-request">
+            <span className="icon">➕</span>
             Nueva Solicitud
           </Link>
         </div>

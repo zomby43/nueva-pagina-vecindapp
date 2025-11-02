@@ -62,24 +62,43 @@ export default function NuevoAvisoPage() {
       }
 
       // Si hay imagen seleccionada, subirla y actualizar el aviso
+      console.log('🖼️ Verificando imagen seleccionada:', {
+        hasImage: !!selectedImage,
+        hasData: !!data,
+        avisoId: data?.id,
+        imageType: selectedImage?.type,
+        imageSize: selectedImage?.size
+      });
+
       if (selectedImage && data) {
+        console.log('✅ Hay imagen y aviso creado. Procediendo a subir imagen...');
         try {
-          const imageUrl = await uploadNoticiaImage(selectedImage, data.id, 'avisos');
+          // Usar 'portadas' como carpeta (bucket: noticias-imagenes)
+          console.log('📤 Llamando uploadNoticiaImage...');
+          const imageUrl = await uploadNoticiaImage(selectedImage, data.id, 'portadas');
+          console.log('✅ Imagen subida, URL recibida:', imageUrl);
 
           // Actualizar el aviso con la URL de la imagen
+          console.log('💾 Actualizando aviso con URL de imagen...');
           const { error: updateError } = await supabase
             .from('avisos')
             .update({ imagen_url: imageUrl })
             .eq('id', data.id);
 
           if (updateError) {
-            console.error('Error al actualizar imagen_url:', updateError);
+            console.error('❌ Error al actualizar imagen_url:', updateError);
             // No fallar si la imagen no se pudo guardar, el aviso ya está creado
+          } else {
+            console.log('✅ Aviso actualizado con imagen_url correctamente');
           }
         } catch (imageError) {
-          console.error('Error al subir imagen:', imageError);
+          console.error('❌ ERROR AL SUBIR IMAGEN:', imageError);
+          console.error('❌ Mensaje:', imageError.message);
+          console.error('❌ Stack:', imageError.stack);
           // No fallar si la imagen no se pudo subir, el aviso ya está creado
         }
+      } else {
+        console.log('ℹ️ No hay imagen seleccionada o no se creó el aviso');
       }
 
       alert('Aviso creado exitosamente');

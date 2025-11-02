@@ -53,8 +53,18 @@ export default function ImageUploader({ onImageSelect, currentImage = null, onIm
       });
 
       // Notificar al componente padre
+      console.log('📤 [ImageUploader] Notificando archivo comprimido al padre:', {
+        name: compressedFile.name,
+        type: compressedFile.type,
+        size: compressedFile.size,
+        hasOnImageSelect: !!onImageSelect
+      });
+
       if (onImageSelect) {
         onImageSelect(compressedFile);
+        console.log('✅ [ImageUploader] Callback onImageSelect ejecutado');
+      } else {
+        console.warn('⚠️ [ImageUploader] No hay callback onImageSelect definido');
       }
 
       setIsCompressing(false);

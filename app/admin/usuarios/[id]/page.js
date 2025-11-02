@@ -1,49 +1,249 @@
 'use client';
 
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+
+const ESTADO_LABEL = {
+  pendiente_aprobacion: 'Pendiente de aprobación',
+  activo: 'Activo',
+  rechazado: 'Rechazado',
+  inactivo: 'Inactivo'
+};
+
+const ESTADO_BADGE = {
+  pendiente_aprobacion: 'warning',
+  activo: 'success',
+  rechazado: 'danger',
+  inactivo: 'secondary'
+};
+
+const TIPO_SOLICITUD_LABEL = {
+  certificado_residencia: 'Certificado de residencia',
+  certificado_antiguedad: 'Certificado de antigüedad',
+  otro: 'Otro'
+};
+
+const ESTADO_SOLICITUD_LABEL = {
+  pendiente: 'Pendiente',
+  en_proceso: 'En proceso',
+  completado: 'Completado',
+  rechazado: 'Rechazado'
+};
+
+const ESTADO_SOLICITUD_BADGE = {
+  pendiente: 'warning',
+  en_proceso: 'info',
+  completado: 'success',
+  rechazado: 'danger'
+};
 
 export default function AdminUsuarioDetallePage() {
   const params = useParams();
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+
+  const [usuario, setUsuario] = useState(null);
+  const [formData, setFormData] = useState(null);
+  const [solicitudes, setSolicitudes] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  // Datos de ejemplo
-  const [usuario, setUsuario] = useState({
-    rut: params.id,
-    nombres: 'Juan Carlos',
-    apellidos: 'González Martínez',
-    email: 'juan.gonzalez@email.com',
-    telefono: '+56 9 8765 4321',
-    direccion: 'Av. Las Condes 1234, Departamento 501',
-    estado: 'Activo',
-    fechaRegistro: '15 de Enero, 2025',
-    verificado: true
-  });
+  useEffect(() => {
+    if (params?.id) {
+      fetchUsuario(params.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params?.id]);
 
-  const solicitudes = [
-    { id: 'SOL-001234', tipo: 'Certificado', estado: 'En Proceso', fecha: '2025-09-20' },
-    { id: 'SOL-001220', tipo: 'Certificado', estado: 'Completada', fecha: '2025-09-10' },
-    { id: 'SOL-001205', tipo: 'Certificado', estado: 'Completada', fecha: '2025-09-01' },
-  ];
+  const fetchUsuario = async (usuarioId) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', usuarioId)
+        .single();
+
+      if (error) throw error;
+      if (!data) {
+        setError('No se encontró al usuario solicitado.');
+        return;
+      }
+
+      setUsuario(data);
+      setFormData({
+        nombres: data.nombres || '',
+        apellidos: data.apellidos || '',
+        email: data.email || '',
+        telefono: data.telefono || '',
+        direccion: data.direccion || ''
+      });
+
+      await fetchSolicitudes(usuarioId);
+    } catch (fetchError) {
+      console.error('Error obteniendo usuario:', fetchError);
+      setError(fetchError.message || 'No se pudo cargar la información del usuario');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSolicitudes = async (usuarioId) => {
+    try {
+      const { data, error } = await supabase
+        .from('solicitudes')
+        .select('id, tipo, estado, fecha_solicitud, fecha_respuesta')
+        .eq('usuario_id', usuarioId)
+        .order('fecha_solicitud', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setSolicitudes(data || []);
+    } catch (fetchError) {
+      console.error('Error obteniendo solicitudes del usuario:', fetchError);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUsuario(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    console.log('Guardar usuario:', usuario);
-    // TODO: Implementar actualización
-    alert('Usuario actualizado exitosamente');
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!usuario || !formData) return;
+
+    try {
+      setSaving(true);
+      setError('');
+
+      const { error } = await supabase
+        .from('usuarios')
+        .update({
+          nombres: formData.nombres.trim(),
+          apellidos: formData.apellidos.trim(),
+          email: formData.email.trim(),
+          telefono: formData.telefono.trim(),
+          direccion: formData.direccion.trim()
+        })
+        .eq('id', usuario.id);
+
+      if (error) throw error;
+
+      const usuarioActualizado = {
+        ...usuario,
+        nombres: formData.nombres.trim(),
+        apellidos: formData.apellidos.trim(),
+        email: formData.email.trim(),
+        telefono: formData.telefono.trim(),
+        direccion: formData.direccion.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      setUsuario(usuarioActualizado);
+      setIsEditing(false);
+      alert('Usuario actualizado exitosamente');
+    } catch (saveError) {
+      console.error('Error al guardar cambios:', saveError);
+      setError(saveError.message || 'No se pudo actualizar el usuario');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleToggleEstado = () => {
-    const nuevoEstado = usuario.estado === 'Activo' ? 'Inactivo' : 'Activo';
-    setUsuario(prev => ({ ...prev, estado: nuevoEstado }));
-    alert(`Usuario marcado como ${nuevoEstado}`);
+  const handleToggleEstado = async () => {
+    if (!usuario) return;
+
+    const nuevoEstado = usuario.estado === 'activo' ? 'inactivo' : 'activo';
+
+    if (!confirm(`¿Confirmas cambiar el estado del usuario a "${ESTADO_LABEL[nuevoEstado] || nuevoEstado}"?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ estado: nuevoEstado })
+        .eq('id', usuario.id);
+
+      if (error) throw error;
+
+      setUsuario((prev) => ({ ...prev, estado: nuevoEstado }));
+      alert(`Usuario marcado como ${ESTADO_LABEL[nuevoEstado] || nuevoEstado}`);
+    } catch (estadoError) {
+      console.error('Error actualizando estado:', estadoError);
+      alert(estadoError.message || 'No se pudo actualizar el estado');
+    }
   };
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return 'No registrado';
+    try {
+      return new Date(fecha).toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return fecha;
+    }
+  };
+
+  const formatFechaCorta = (fecha) => {
+    if (!fecha) return '—';
+    try {
+      return new Date(fecha).toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch {
+      return fecha;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="text-center py-5">
+          <div className="spinner-border mb-3" role="status"></div>
+          <p>Cargando información del usuario...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="alert alert-danger d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Error:</strong> {error}
+          </div>
+          <button onClick={() => router.back()} className="btn btn-secondary btn-sm">
+            ← Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return (
+      <div className="page-container">
+        <div className="alert alert-warning">
+          No se encontró información para el usuario solicitado.
+        </div>
+        <button onClick={() => router.back()} className="btn btn-secondary">
+          ← Volver
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
@@ -79,7 +279,7 @@ export default function AdminUsuarioDetallePage() {
                   <input
                     type="text"
                     name="nombres"
-                    value={usuario.nombres}
+                    value={formData.nombres}
                     onChange={handleChange}
                   />
                 </div>
@@ -88,7 +288,7 @@ export default function AdminUsuarioDetallePage() {
                   <input
                     type="text"
                     name="apellidos"
-                    value={usuario.apellidos}
+                    value={formData.apellidos}
                     onChange={handleChange}
                   />
                 </div>
@@ -99,7 +299,7 @@ export default function AdminUsuarioDetallePage() {
                 <input
                   type="email"
                   name="email"
-                  value={usuario.email}
+                  value={formData.email}
                   onChange={handleChange}
                 />
               </div>
@@ -109,7 +309,7 @@ export default function AdminUsuarioDetallePage() {
                 <input
                   type="tel"
                   name="telefono"
-                  value={usuario.telefono}
+                  value={formData.telefono}
                   onChange={handleChange}
                 />
               </div>
@@ -119,14 +319,14 @@ export default function AdminUsuarioDetallePage() {
                 <input
                   type="text"
                   name="direccion"
-                  value={usuario.direccion}
+                  value={formData.direccion}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="form-actions">
-                <button onClick={handleSave} className="btn btn-primary">
-                  Guardar Cambios
+                <button onClick={handleSave} className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
                 <button onClick={() => setIsEditing(false)} className="btn btn-secondary">
                   Cancelar
@@ -165,23 +365,29 @@ export default function AdminUsuarioDetallePage() {
           <div className="detail-grid">
             <div className="detail-item">
               <label>Estado:</label>
-              <span className={`status-badge badge-${usuario.estado.toLowerCase()}`}>
-                {usuario.estado}
+              <span className={`status-badge badge-${ESTADO_BADGE[usuario.estado] || 'secondary'}`}>
+                {ESTADO_LABEL[usuario.estado] || usuario.estado}
+              </span>
+            </div>
+            <div className="detail-item">
+              <label>Rol:</label>
+              <span className="badge bg-light text-dark text-capitalize">
+                {usuario.rol}
               </span>
             </div>
             <div className="detail-item">
               <label>Verificado:</label>
-              <span>{usuario.verificado ? '✅ Sí' : '❌ No'}</span>
+              <span>{usuario.estado === 'activo' ? '✅ Sí' : '❌ No'}</span>
             </div>
             <div className="detail-item full-width">
               <label>Fecha de Registro:</label>
-              <span>{usuario.fechaRegistro}</span>
+              <span>{formatFecha(usuario.created_at)}</span>
             </div>
           </div>
 
           <div className="card-actions">
             <button onClick={handleToggleEstado} className="btn btn-secondary">
-              {usuario.estado === 'Activo' ? 'Desactivar Usuario' : 'Activar Usuario'}
+              {usuario.estado === 'activo' ? 'Desactivar Usuario' : 'Activar Usuario'}
             </button>
           </div>
         </div>
@@ -202,16 +408,16 @@ export default function AdminUsuarioDetallePage() {
               </tr>
             </thead>
             <tbody>
-              {solicitudes.map(solicitud => (
+              {solicitudes.map((solicitud) => (
                 <tr key={solicitud.id}>
-                  <td><code>{solicitud.id}</code></td>
-                  <td>{solicitud.tipo}</td>
+                  <td><code>{solicitud.id.slice(0, 8).toUpperCase()}</code></td>
+                  <td>{(TIPO_SOLICITUD_LABEL[solicitud.tipo] || solicitud.tipo)}</td>
                   <td>
-                    <span className={`status-badge badge-${solicitud.estado.toLowerCase().replace(' ', '-')}`}>
-                      {solicitud.estado}
+                    <span className={`status-badge badge-${ESTADO_SOLICITUD_BADGE[solicitud.estado] || 'secondary'}`}>
+                      {ESTADO_SOLICITUD_LABEL[solicitud.estado] || solicitud.estado}
                     </span>
                   </td>
-                  <td>{solicitud.fecha}</td>
+                  <td>{formatFechaCorta(solicitud.fecha_solicitud)}</td>
                   <td>
                     <a href={`/admin/solicitudes/${solicitud.id}`} className="btn-link">
                       Ver

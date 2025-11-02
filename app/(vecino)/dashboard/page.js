@@ -11,6 +11,9 @@ export default function UserDashboard() {
   const [avisos, setAvisos] = useState([]);
   const [proyectos, setProyectos] = useState([]);
   const [misProyectos, setMisProyectos] = useState([]);
+  const [configuracion, setConfiguracion] = useState(null);
+  const [contactosDirectiva, setContactosDirectiva] = useState([]);
+  const [infoLoading, setInfoLoading] = useState(true);
 
   // Datos de ejemplo (posteriormente vendrán de la BD)
   const stats = {
@@ -24,6 +27,7 @@ export default function UserDashboard() {
     fetchNoticiasDestacadas();
     fetchAvisosDestacados();
     fetchProyectosActivos();
+    fetchInformacionJunta();
     if (user) {
       fetchMisProyectos();
     }
@@ -65,6 +69,38 @@ export default function UserDashboard() {
       }
     } catch (error) {
       console.error('Error fetching avisos:', error);
+    }
+  };
+
+  const fetchInformacionJunta = async () => {
+    try {
+      setInfoLoading(true);
+      const supabase = createClient();
+
+      const { data: configData, error: configError } = await supabase
+        .from('configuracion_organizacion')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (!configError && configData) {
+        setConfiguracion(configData);
+      }
+
+      const { data: contactosData, error: contactosError } = await supabase
+        .from('usuarios')
+        .select('id, nombres, apellidos, email, telefono, rol')
+        .in('rol', ['secretaria', 'admin'])
+        .eq('estado', 'activo')
+        .order('rol', { ascending: true });
+
+      if (!contactosError && contactosData) {
+        setContactosDirectiva(contactosData);
+      }
+    } catch (error) {
+      console.error('Error cargando información institucional:', error);
+    } finally {
+      setInfoLoading(false);
     }
   };
 
@@ -124,6 +160,19 @@ export default function UserDashboard() {
     }).format(monto);
   };
 
+  const formatearFechaLarga = (fecha) => {
+    if (!fecha) return 'No especificado';
+    try {
+      return new Date(fecha).toLocaleDateString('es-CL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return fecha;
+    }
+  };
+
   const getEstadoBadge = (estado) => {
     const badges = {
       pendiente: { bg: '#fbbf24', text: '#78350f', label: '⏳ Pendiente' },
@@ -148,9 +197,86 @@ export default function UserDashboard() {
         borderBottom: '2px solid #bfd3d9'
       }}>
         <h1 style={{ color: '#154765', fontSize: '2rem', fontWeight: 700, margin: 0 }}>Dashboard</h1>
-        <p className="dashboard-subtitle" style={{ color: '#439fa4', fontSize: '1rem', margin: '0.5rem 0 0 0' }}>
+      <p className="dashboard-subtitle" style={{ color: '#439fa4', fontSize: '1rem', margin: '0.5rem 0 0 0' }}>
           Bienvenido a tu panel de control
         </p>
+      </div>
+
+      {/* Información de la Junta */}
+      <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '16px' }}>
+        <div className="card-body p-4">
+          <div className="d-flex flex-column flex-lg-row justify-content-between gap-4">
+            <div className="flex-grow-1">
+              <h2 className="h4 fw-bold mb-3" style={{ color: '#154765' }}>🏛️ Información de tu Junta</h2>
+              {infoLoading ? (
+                <p className="text-muted mb-0">Cargando información institucional...</p>
+              ) : configuracion ? (
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <div className="bg-light rounded-3 p-3 h-100">
+                      <h3 className="h6 text-uppercase text-muted fw-bold mb-2">Datos institucionales</h3>
+                      <ul className="list-unstyled mb-0" style={{ lineHeight: 1.7 }}>
+                        <li><strong>Nombre:</strong> {configuracion.nombre_organizacion}</li>
+                        <li><strong>Unidad Vecinal:</strong> {configuracion.numero_unidad_vecinal || 'No registrado'}</li>
+                        <li><strong>RUT:</strong> {configuracion.rut_organizacion || 'No registrado'}</li>
+                        <li><strong>Personalidad Jurídica:</strong> {configuracion.numero_personalidad_juridica || 'No registrada'}</li>
+                        <li><strong>Fecha constitución:</strong> {formatearFechaLarga(configuracion.fecha_constitucion)}</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="bg-light rounded-3 p-3 h-100">
+                      <h3 className="h6 text-uppercase text-muted fw-bold mb-2">Contacto</h3>
+                      <ul className="list-unstyled mb-0" style={{ lineHeight: 1.7 }}>
+                        <li><strong>Dirección:</strong> {configuracion.direccion || 'No registrada'}</li>
+                        <li><strong>Comuna:</strong> {configuracion.comuna || 'No registrada'}, {configuracion.region || ''}</li>
+                        <li><strong>Teléfono:</strong> {configuracion.telefono || 'No registrado'}</li>
+                        <li><strong>Email:</strong> {configuracion.email || 'No registrado'}</li>
+                        {configuracion.sitio_web && (
+                          <li><strong>Sitio web:</strong> <a href={configuracion.sitio_web} target="_blank" rel="noreferrer">{configuracion.sitio_web}</a></li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted mb-0">Aún no se ha configurado la información institucional.</p>
+              )}
+            </div>
+
+            <div className="flex-grow-1" style={{ maxWidth: '380px' }}>
+              <div className="bg-white border rounded-3 p-3 h-100" style={{ borderColor: '#bfd3d9' }}>
+                <h3 className="h6 text-uppercase text-muted fw-bold mb-2">Directiva y contacto</h3>
+                {contactosDirectiva.length === 0 ? (
+                  <p className="text-muted mb-0">No hay integrantes de la directiva registrados.</p>
+                ) : (
+                  <ul className="list-unstyled mb-0" style={{ lineHeight: 1.7 }}>
+                    {contactosDirectiva.map((contacto) => (
+                      <li key={contacto.id} className="mb-2">
+                        <strong>{contacto.nombres} {contacto.apellidos}</strong>
+                        <br />
+                        <span className="badge bg-light text-dark me-2" style={{ textTransform: 'capitalize' }}>{contacto.rol}</span>
+                        <span className="d-block text-muted small">📧 {contacto.email || 'Sin email'}</span>
+                        {contacto.telefono && (
+                          <span className="d-block text-muted small">📞 {contacto.telefono}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {configuracion?.nombre_presidente && (
+                  <div className="mt-3 p-3 bg-light rounded">
+                    <strong>Presidencia:</strong>
+                    <div className="small text-muted">
+                      {configuracion.nombre_presidente} ({configuracion.cargo_presidente || 'Presidencia'})
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tarjetas de estadísticas */}
