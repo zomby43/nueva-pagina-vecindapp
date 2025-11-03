@@ -5,6 +5,85 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { enviarCorreoAprobacionRegistro } from '@/lib/emails/sendEmail';
 
+const DEFAULT_BUCKET = 'documentos'; // tu bucket privado
+
+function isAbsoluteUrl(u) {
+  try { new URL(u); return true; } catch { return false; }
+}
+
+// --- Normalizador más robusto ---
+// - Quita backslashes, espacios demás y slashes iniciales
+// - Si la cadena trae una ruta interna (ej: "/secretaria/vecinos/comprobantes/…")
+//   la recorta a partir de "documentos/" o "comprobantes/"
+function normalizePath(p) {
+  let s = (p || '').trim().replace(/\\+/g, '/').replace(/\s+/g, ' ');
+  // quita "/" iniciales
+  s = s.replace(/^\/+/, '');
+
+  // si trae una ruta de app, busca ancla conocida
+  const idxDoc = s.indexOf('documentos/');
+  const idxComp = s.indexOf('comprobantes/');
+  if (idxDoc >= 0) s = s.slice(idxDoc);         // queda "documentos/…"
+  else if (idxComp >= 0) s = s.slice(idxComp);  // queda "comprobantes/…"
+
+  return s;
+}
+
+/** Abre el comprobante en nueva pestaña (PDF/imagen) */
+async function verComprobante(comprobante_url) {
+  if (!comprobante_url) {
+    alert('Este vecino no subió comprobante');
+    return;
+  }
+
+  const supabase = createClient();
+  const clean = normalizePath(comprobante_url);
+
+  console.log('🔎 comprobante_url recibido:', comprobante_url);
+  console.log('🧼 path normalizado:', clean);
+
+  // Si ya es URL http/https, abrir directo
+  if (isAbsoluteUrl(clean)) {
+    window.open(clean, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  // Si viene como "comprobantes/archivo.pdf" y el bucket real es "documentos"
+  let bucket = DEFAULT_BUCKET;
+  let objectPath = clean;
+  const parts = clean.split('/');
+
+  // Si la cadena ya incluye "documentos/…", separar bucket y key
+  if (parts.length > 1 && parts[0] === DEFAULT_BUCKET) {
+    bucket = parts[0];
+    objectPath = parts.slice(1).join('/');
+  }
+
+  // 1) Intentar Signed URL (bucket privado)
+  const { data: signed, error: signErr } = await supabase
+    .storage
+    .from(bucket)
+    .createSignedUrl(objectPath, 300); // 5 min
+
+  if (signErr) {
+    console.error('❌ Error createSignedUrl:', signErr);
+  }
+
+  if (signed?.signedUrl) {
+    window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  // 2) Fallback por si fuera público
+  const pub = supabase.storage.from(bucket).getPublicUrl(objectPath);
+  if (pub?.data?.publicUrl) {
+    window.open(pub.data.publicUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  alert('No se pudo abrir el comprobante. Revisa la ruta o las policies del bucket.');
+}
+
 export default function AprobacionesPage() {
   const { user, userProfile } = useAuth();
   const [vecinosPendientes, setVecinosPendientes] = useState([]);
@@ -64,16 +143,13 @@ export default function AprobacionesPage() {
 
     try {
       const supabase = createClient();
-      
-      // Obtener datos del vecino antes de aprobar
       const vecinoAprobar = vecinosPendientes.find(v => v.id === vecinoId);
-      
+
       if (!vecinoAprobar) {
         alert('No se encontró el vecino');
         return;
       }
 
-      // Aprobar vecino en la base de datos
       const { error } = await supabase
         .from('usuarios')
         .update({ estado: 'activo' })
@@ -81,7 +157,6 @@ export default function AprobacionesPage() {
 
       if (error) throw error;
 
-      // Enviar correo de aprobación
       try {
         await enviarCorreoAprobacionRegistro(
           vecinoAprobar.email,
@@ -90,12 +165,9 @@ export default function AprobacionesPage() {
         console.log('✅ Correo de aprobación enviado a:', vecinoAprobar.email);
       } catch (emailError) {
         console.error('⚠️ Error al enviar correo (el vecino fue aprobado):', emailError);
-        // No interrumpimos el flujo si falla el email
       }
 
-      // Actualizar la lista local
       setVecinosPendientes(prev => prev.filter(v => v.id !== vecinoId));
-
       alert('Vecino aprobado exitosamente. Se ha enviado un correo de confirmación.');
     } catch (error) {
       console.error('Error aprobando vecino:', error);
@@ -115,9 +187,7 @@ export default function AprobacionesPage() {
 
       if (error) throw error;
 
-      // Actualizar la lista local
       setVecinosPendientes(prev => prev.filter(v => v.id !== vecinoId));
-
       alert('Vecino rechazado');
     } catch (error) {
       console.error('Error rechazando vecino:', error);
@@ -410,9 +480,13 @@ export default function AprobacionesPage() {
                   <div className="mb-3">
                     <h6 className="mb-3">📄 Comprobante de Residencia</h6>
                     <p className="mb-2">
-                      <a href={vecinoSeleccionado.comprobante_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm">
-                        📥 Ver Comprobante
-                      </a>
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={() => verComprobante(vecinoSeleccionado.comprobante_url)}
+                      >
+                        👁️ Ver Comprobante
+                      </button>
                     </p>
                   </div>
                 )}
@@ -460,61 +534,16 @@ export default function AprobacionesPage() {
           max-width: 1400px;
           margin: 0 auto;
         }
-
-        .page-header {
-          margin-bottom: 2rem;
-        }
-
+        .page-header { margin-bottom: 2rem; }
         .page-header h1 {
-          color: #154765;
-          font-size: 2rem;
-          font-weight: bold;
-          margin-bottom: 0.5rem;
+          color: #154765; font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem;
         }
-
-        .stat-card {
-          padding: 1.5rem;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .stat-number {
-          font-size: 2rem;
-          font-weight: bold;
-          color: #154765;
-        }
-
-        .stat-label {
-          color: #439fa4;
-          font-weight: 600;
-          margin-top: 0.5rem;
-        }
-
-        .empty-state {
-          color: #6c757d;
-        }
-
-        .empty-icon {
-          opacity: 0.5;
-        }
-
-        .table {
-          margin-bottom: 0;
-        }
-
-        .table thead {
-          background: #f8f9fa;
-        }
-
-        .btn-group-sm .btn {
-          font-size: 0.875rem;
-          padding: 0.25rem 0.5rem;
-        }
-
-        .modal.show {
-          display: block;
-        }
+        .empty-state { color: #6c757d; }
+        .empty-icon { opacity: 0.5; }
+        .table { margin-bottom: 0; }
+        .table thead { background: #f8f9fa; }
+        .btn-group-sm .btn { font-size: 0.875rem; padding: 0.25rem 0.5rem; }
+        .modal.show { display: block; }
       `}</style>
     </div>
   );

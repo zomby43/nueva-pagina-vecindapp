@@ -4,6 +4,60 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 
+// === Helpers para abrir comprobantes desde Supabase ===
+const DEFAULT_BUCKET = 'documentos';
+
+function isAbsoluteUrl(url) {
+  try { new URL(url); return true; } catch { return false; }
+}
+function normalizePath(p) {
+  return (p || '').trim().replace(/\\+/g, '/').replace(/\s+/g, ' ');
+}
+/** Abre el comprobante (PDF/imagen) en nueva pestaña, usando Signed URL si el bucket es privado */
+async function verComprobante(comprobante_url) {
+  if (!comprobante_url) {
+    alert('No hay comprobante disponible.');
+    return;
+  }
+
+  const supabase = createClient();
+  const clean = normalizePath(comprobante_url);
+
+  // Si ya es http/https, abre directo
+  if (isAbsoluteUrl(clean)) {
+    window.open(clean, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  // Si viene como "comprobantes/archivo.ext" y el bucket real es "documentos"
+  let bucket = DEFAULT_BUCKET;
+  let objectPath = clean;
+  if (clean.startsWith(`${DEFAULT_BUCKET}/`)) {
+    objectPath = clean.replace(`${DEFAULT_BUCKET}/`, '');
+  }
+
+  // 1) Intentar Signed URL (privado)
+  const { data: signed, error: signErr } = await supabase
+    .storage
+    .from(bucket)
+    .createSignedUrl(objectPath, 300); // 5 minutos
+
+  if (signed?.signedUrl) {
+    window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  // 2) Fallback público
+  const pub = supabase.storage.from(bucket).getPublicUrl(objectPath);
+  if (pub?.data?.publicUrl) {
+    window.open(pub.data.publicUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  console.error('No se pudo abrir comprobante', { signErr, clean, bucket, objectPath, pub });
+  alert('No se pudo abrir el comprobante. Revisa la ruta o las policies del bucket.');
+}
+
 export default function PerfilPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
   const supabase = createClient();
@@ -281,12 +335,17 @@ export default function PerfilPage() {
                       : 'No disponible'}
                   </span>
                 </div>
+
                 <div className="status-item">
                   <span className="status-label">Comprobante:</span>
                   {userProfile?.comprobante_url ? (
-                    <a href={userProfile.comprobante_url} target="_blank" rel="noopener noreferrer" className="text-primary">
-                      Ver documento
-                    </a>
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => verComprobante(userProfile.comprobante_url)}
+                    >
+                      👁️ Ver documento
+                    </button>
                   ) : (
                     <span className="text-muted">No disponible</span>
                   )}
