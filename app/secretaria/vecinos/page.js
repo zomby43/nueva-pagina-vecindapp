@@ -25,36 +25,44 @@ const guessFilename = (fromPathOrUrl = '') => {
   }
 };
 
-// ====== Abre en pestaña + descarga (MISMO flujo que Aprobaciones) ======
-async function abrirYDescargarComprobante(comprobante_url) {
-  if (!comprobante_url) {
-    alert('Este vecino no subió comprobante');
+// ------ Resolver URL (firma si es ruta de storage) ------
+async function resolveComprobanteUrl(comprobante_url) {
+  if (!comprobante_url) return null;
+
+  if (isAbsoluteUrl(comprobante_url)) return comprobante_url;
+
+  const supabase = createClient();
+  const objectPath = cleanPath(comprobante_url); // ej: "comprobantes/archivo.pdf"
+  const { data, error } = await supabase
+    .storage
+    .from(DEFAULT_BUCKET)
+    .createSignedUrl(objectPath, 300); // 5 min
+
+  if (error || !data?.signedUrl) {
+    console.error('Error firmando URL:', error);
+    return null;
+  }
+  return data.signedUrl;
+}
+
+// ------ Ver: solo abrir en pestaña nueva, sin descargar ------
+async function verComprobante(comprobante_url) {
+  const finalUrl = await resolveComprobanteUrl(comprobante_url);
+  if (!finalUrl) {
+    alert('No se pudo abrir el comprobante');
+    return;
+  }
+  window.open(finalUrl, '_blank', 'noopener,noreferrer'); // solo ver
+}
+
+// ------ Descargar: solo descarga, no abre pestaña ------
+async function descargarComprobante(comprobante_url) {
+  const finalUrl = await resolveComprobanteUrl(comprobante_url);
+  if (!finalUrl) {
+    alert('No se pudo descargar el comprobante');
     return;
   }
 
-  const supabase = createClient();
-  let finalUrl = comprobante_url;
-
-  // Firmar si es ruta de storage
-  if (!isAbsoluteUrl(comprobante_url)) {
-    const objectPath = cleanPath(comprobante_url); // ej: "comprobantes/archivo.pdf"
-    const { data, error } = await supabase
-      .storage
-      .from(DEFAULT_BUCKET)
-      .createSignedUrl(objectPath, 300); // 5 min
-
-    if (error || !data?.signedUrl) {
-      console.error('Error firmando URL:', error);
-      alert('No se pudo abrir el comprobante');
-      return;
-    }
-    finalUrl = data.signedUrl;
-  }
-
-  // Abrir para visualizar (misma lógica que en Aprobaciones)
-  window.open(finalUrl, '_blank', 'noopener,noreferrer');
-
-  // Forzar descarga
   try {
     const resp = await fetch(finalUrl, { credentials: 'omit', cache: 'no-store' });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -67,8 +75,8 @@ async function abrirYDescargarComprobante(comprobante_url) {
     a.click();
     a.remove();
     URL.revokeObjectURL(tmpUrl);
-  } catch {
-    // Fallback
+  } catch (e) {
+    console.error('Fallo descarga directa, usando fallback:', e);
     const a = document.createElement('a');
     a.href = finalUrl;
     a.setAttribute('download', guessFilename(finalUrl));
@@ -380,15 +388,7 @@ export default function SecretariaVecinosPage() {
                                 👁️ Ver
                               </button>
 
-                              {/* MISMO BOTÓN QUE EN APROBACIONES: ver + descargar */}
-                              <button
-                                className="btn btn-outline-secondary"
-                                onClick={() => abrirYDescargarComprobante(vecino.comprobante_url)}
-                                disabled={!vecino.comprobante_url}
-                                title={vecino.comprobante_url ? 'Ver / Descargar comprobante' : 'Sin comprobante'}
-                              >
-                                📄 Ver / ⬇️ Descargar
-                              </button>
+                              {/* ⛔️ No hay botón de comprobante aquí (solo en el modal) */}
 
                               {vecino.estado === 'pendiente_aprobacion' && (
                                 <>
@@ -469,19 +469,26 @@ export default function SecretariaVecinosPage() {
                   <hr />
                 </div>
 
-                {/* Comprobante: MISMO botón (ver + descargar) */}
+                {/* Comprobante: ahora dos botones (ver / descargar) */}
                 {vecinoSeleccionado.comprobante_url && (
                   <div className="mb-3">
                     <h6 className="mb-3">📄 Comprobante de Residencia</h6>
-                    <p className="mb-2">
+                    <div className="d-flex gap-2">
                       <button
                         type="button"
                         className="btn btn-outline-primary btn-sm"
-                        onClick={() => abrirYDescargarComprobante(vecinoSeleccionado.comprobante_url)}
+                        onClick={() => verComprobante(vecinoSeleccionado.comprobante_url)}
                       >
-                        👁️ Ver / ⬇️ Descargar
+                        👁️ Ver
                       </button>
-                    </p>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => descargarComprobante(vecinoSeleccionado.comprobante_url)}
+                      >
+                        ⬇️ Descargar
+                      </button>
+                    </div>
                   </div>
                 )}
 
