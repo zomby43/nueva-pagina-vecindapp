@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function AvisosSecretariaPage() {
   const [avisos, setAvisos] = useState([]);
@@ -43,6 +44,8 @@ export default function AvisosSecretariaPage() {
   };
 
   const cambiarEstado = async (avisoId, nuevoEstado) => {
+    const avisoActual = avisos.find(a => a.id === avisoId);
+
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -53,6 +56,30 @@ export default function AvisosSecretariaPage() {
       if (error) throw error;
 
       alert(`Aviso ${nuevoEstado === 'activo' ? 'activado' : nuevoEstado === 'inactivo' ? 'desactivado' : 'archivado'} exitosamente`);
+
+      if (nuevoEstado === 'activo' && avisoActual?.estado !== 'activo') {
+        try {
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevoAvisoFn =
+            emailHelpers.enviarCorreoNuevoAviso ||
+            emailHelpers.default?.enviarCorreoNuevoAviso;
+
+          if (typeof enviarCorreoNuevoAvisoFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevoAviso no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          await enviarCorreoNuevoAvisoFn(
+            avisoActual?.titulo || 'Aviso',
+            avisoActual?.mensaje || '',
+            avisoActual?.tipo || 'informativo',
+            avisoActual?.prioridad || 'media',
+            avisoId
+          );
+        } catch (emailError) {
+          console.error('⚠️ Error al enviar correos de aviso activado:', emailError);
+          alert(`No se pudieron enviar los correos del aviso: ${emailError.message}`);
+        }
+      }
+
       fetchAvisos();
     } catch (error) {
       console.error('Error cambiando estado:', error);

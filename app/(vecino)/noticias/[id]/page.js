@@ -148,8 +148,8 @@ export default function NoticiaDetallePage() {
 
       {/* Contenido de la noticia */}
       <article>
-        <div className="card">
-          <div className="card-body">
+        <div className="card noticia-detalle-card">
+          <div className="card-body noticia-detalle-body">
             {/* Header */}
             <div className="mb-4">
               <div className="d-flex justify-content-between align-items-start mb-3">

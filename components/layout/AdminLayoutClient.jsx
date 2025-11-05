@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
+import AdminSidebar from './AdminSidebar';
+import Header from './Header';
 import { useIsSmallMobile, useIsExtraSmall } from '@/hooks/useMediaQuery';
 
-export default function VecinoLayout({ children }) {
+export default function AdminLayoutClient({ children, initialUser, initialProfile }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isSmallMobile = useIsSmallMobile();
   const isExtraSmall = useIsExtraSmall();
@@ -19,22 +19,27 @@ export default function VecinoLayout({ children }) {
   const containerGap = isSmallMobile ? '1rem' : '2rem';
 
   return (
-    <div className="layout vecino-layout">
-      <Header onToggleSidebar={toggleSidebar} />
+    <div className="layout admin-layout">
+      <Header
+        className="admin-header"
+        initialUser={initialUser}
+        initialProfile={initialProfile}
+        onToggleSidebar={toggleSidebar}
+      />
       <div
-        className="layout-container vecino-layout-container"
+        className="layout-container admin-layout-container"
         style={{
-          maxWidth: '1600px',
+          maxWidth: '1400px',
           margin: containerMargin,
           padding: containerPadding,
           display: 'grid',
-          gridTemplateColumns: '280px 1fr',
+          gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)',
           gap: containerGap,
           flex: 1,
           width: '100%'
         }}
       >
-        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+        <AdminSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
         <main className="main-content">
           {children}
         </main>

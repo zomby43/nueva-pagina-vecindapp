@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function EditarAvisoPage() {
   const router = useRouter();
@@ -25,6 +26,8 @@ export default function EditarAvisoPage() {
     destacado: false,
     fecha_fin: ''
   });
+
+  const [estadoOriginal, setEstadoOriginal] = useState('inactivo'); // Para detectar cambios de estado
 
   useEffect(() => {
     if (params.id) {
@@ -48,6 +51,10 @@ export default function EditarAvisoPage() {
       setAviso(data);
       // Guardar URL de imagen actual si existe
       setCurrentImageUrl(data.imagen_url || null);
+
+      // Guardar estado original para detectar cambios
+      setEstadoOriginal(data.estado || 'inactivo');
+
       setFormData({
         titulo: data.titulo || '',
         mensaje: data.mensaje || '',
@@ -137,6 +144,32 @@ export default function EditarAvisoPage() {
       if (error) {
         console.error('Error updating aviso:', error);
         throw error;
+      }
+
+      // Si cambió de inactivo a activo, enviar correos
+      if (estadoOriginal !== 'activo' && formData.estado === 'activo') {
+        try {
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevoAvisoFn =
+            emailHelpers.enviarCorreoNuevoAviso ||
+            emailHelpers.default?.enviarCorreoNuevoAviso;
+
+          if (typeof enviarCorreoNuevoAvisoFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevoAviso no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          console.log('📧 Enviando notificaciones por correo...');
+          await enviarCorreoNuevoAvisoFn(
+            formData.titulo,
+            formData.mensaje,
+            formData.tipo,
+            formData.prioridad,
+            params.id
+          );
+          console.log('✅ Correos enviados exitosamente');
+        } catch (emailError) {
+          console.error('⚠️ Error enviando correos:', emailError);
+          // No fallar la operación principal si los correos fallan
+        }
       }
 
       alert('Aviso actualizado exitosamente');

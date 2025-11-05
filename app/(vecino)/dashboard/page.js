@@ -14,24 +14,23 @@ export default function UserDashboard() {
   const [configuracion, setConfiguracion] = useState(null);
   const [contactosDirectiva, setContactosDirectiva] = useState([]);
   const [infoLoading, setInfoLoading] = useState(true);
-
-  // Datos de ejemplo (posteriormente vendrán de la BD)
-  const stats = {
-    totalSolicitudes: 5,
-    enProceso: 2,
-    completadas: 3,
+  const [stats, setStats] = useState({
+    totalSolicitudes: 0,
+    enProceso: 0,
+    completadas: 0,
     pendientes: 0
-  };
+  });
 
   useEffect(() => {
     fetchNoticiasDestacadas();
     fetchAvisosDestacados();
     fetchProyectosActivos();
     fetchInformacionJunta();
-    if (user) {
+    if (user?.id) {
       fetchMisProyectos();
+      fetchEstadisticasSolicitudes();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const fetchNoticiasDestacadas = async () => {
     try {
@@ -140,6 +139,45 @@ export default function UserDashboard() {
     }
   };
 
+  const fetchEstadisticasSolicitudes = async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('solicitudes')
+        .select('id, estado')
+        .eq('usuario_id', user.id);
+
+      if (error) {
+        console.error('Error al obtener estadísticas de solicitudes:', error);
+        return;
+      }
+
+      if (data) {
+        const total = data.length;
+        const pendientes = data.filter(s => s.estado === 'pendiente').length;
+        const enProceso = data.filter(s => s.estado === 'en_revision' || s.estado === 'aprobada').length;
+        const completadas = data.filter(s => s.estado === 'completado').length; // Corregido: 'completado' en vez de 'completada'
+
+        console.log('Estadísticas de solicitudes:', {
+          total,
+          pendientes,
+          enProceso,
+          completadas,
+          estados: data.map(s => s.estado)
+        });
+
+        setStats({
+          totalSolicitudes: total,
+          enProceso: enProceso,
+          completadas: completadas,
+          pendientes: pendientes
+        });
+      }
+    } catch (error) {
+      console.error('Error al calcular estadísticas:', error);
+    }
+  };
+
   const formatearFecha = (fecha) => {
     if (!fecha) return '';
     const date = new Date(fecha);
@@ -175,17 +213,35 @@ export default function UserDashboard() {
 
   const getEstadoBadge = (estado) => {
     const badges = {
-      pendiente: { bg: '#fbbf24', text: '#78350f', label: '⏳ Pendiente' },
-      aprobado: { bg: '#34d399', text: '#064e3b', label: '✅ Aprobado' },
-      rechazado: { bg: '#fb7185', text: '#881337', label: '❌ Rechazado' },
-      en_ejecucion: { bg: '#0dcaf0', text: '#055160', label: '🚧 En Ejecución' },
-      completado: { bg: '#6b7280', text: 'white', label: '🎉 Completado' }
+      pendiente: { bg: '#fbbf24', text: '#78350f', label: 'Pendiente' },
+      aprobado: { bg: '#34d399', text: '#064e3b', label: 'Aprobado' },
+      rechazado: { bg: '#fb7185', text: '#881337', label: 'Rechazado' },
+      en_ejecucion: { bg: '#0dcaf0', text: '#055160', label: 'En Ejecución' },
+      completado: { bg: '#6b7280', text: 'white', label: 'Completado' }
     };
     return badges[estado] || badges.pendiente;
   };
 
+  const prioridadLabels = {
+    critica: 'Crítico',
+    alta: 'Alta',
+    media: 'Media',
+    baja: 'Baja'
+  };
+
+  const prioridadIcons = {
+    critica: 'bi-exclamation-octagon-fill',
+    alta: 'bi-exclamation-triangle-fill',
+    media: 'bi-exclamation-circle-fill',
+    baja: 'bi-dot'
+  };
+
+  const getPrioridadLabel = (prioridad) => prioridadLabels[prioridad] || prioridadLabels.baja;
+
+  const getPrioridadIcon = (prioridad) => prioridadIcons[prioridad] || prioridadIcons.baja;
+
   return (
-    <div className="dashboard-container" style={{
+    <div className="dashboard-container vecino-dashboard-container" style={{
       background: '#f4f8f9',
       borderRadius: '16px',
       padding: '2rem',
@@ -207,7 +263,7 @@ export default function UserDashboard() {
         <div className="card-body p-4">
           <div className="d-flex flex-column flex-lg-row justify-content-between gap-4">
             <div className="flex-grow-1">
-              <h2 className="h4 fw-bold mb-3" style={{ color: '#154765' }}>🏛️ Información de tu Junta</h2>
+              <h2 className="h4 fw-bold mb-3" style={{ color: '#154765' }}><i className="bi bi-houses"></i> Información de tu Junta</h2>
               {infoLoading ? (
                 <p className="text-muted mb-0">Cargando información institucional...</p>
               ) : configuracion ? (
@@ -256,9 +312,15 @@ export default function UserDashboard() {
                         <strong>{contacto.nombres} {contacto.apellidos}</strong>
                         <br />
                         <span className="badge bg-light text-dark me-2" style={{ textTransform: 'capitalize' }}>{contacto.rol}</span>
-                        <span className="d-block text-muted small">📧 {contacto.email || 'Sin email'}</span>
+                        <span className="text-muted small d-flex align-items-center gap-2">
+                          <i className="bi bi-envelope-fill"></i>
+                          {contacto.email || 'Sin email'}
+                        </span>
                         {contacto.telefono && (
-                          <span className="d-block text-muted small">📞 {contacto.telefono}</span>
+                          <span className="text-muted small d-flex align-items-center gap-2">
+                            <i className="bi bi-telephone-fill"></i>
+                            {contacto.telefono}
+                          </span>
                         )}
                       </li>
                     ))}
@@ -296,7 +358,20 @@ export default function UserDashboard() {
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #439fa4'
         }}>
-          <div className="stat-icon" style={{ fontSize: '2.5rem', flexShrink: 0 }}>📋</div>
+          <div className="stat-icon" style={{
+            fontSize: '1.5rem',
+            flexShrink: 0,
+            width: '3.25rem',
+            height: '3.25rem',
+            borderRadius: '50%',
+            background: 'rgba(67, 159, 164, 0.12)',
+            color: '#2d7a7f',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <i className="bi bi-clipboard-data"></i>
+          </div>
           <div className="stat-content" style={{ flex: 1 }}>
             <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Total Solicitudes
@@ -317,7 +392,20 @@ export default function UserDashboard() {
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #fbbf24'
         }}>
-          <div className="stat-icon" style={{ fontSize: '2.5rem', flexShrink: 0 }}>⏳</div>
+          <div className="stat-icon" style={{
+            fontSize: '1.5rem',
+            flexShrink: 0,
+            width: '3.25rem',
+            height: '3.25rem',
+            borderRadius: '50%',
+            background: 'rgba(251, 191, 36, 0.15)',
+            color: '#c27803',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <i className="bi bi-hourglass-split"></i>
+          </div>
           <div className="stat-content" style={{ flex: 1 }}>
             <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               En Proceso
@@ -338,7 +426,20 @@ export default function UserDashboard() {
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #34d399'
         }}>
-          <div className="stat-icon" style={{ fontSize: '2.5rem', flexShrink: 0 }}>✅</div>
+          <div className="stat-icon" style={{
+            fontSize: '1.5rem',
+            flexShrink: 0,
+            width: '3.25rem',
+            height: '3.25rem',
+            borderRadius: '50%',
+            background: 'rgba(52, 211, 153, 0.15)',
+            color: '#0b8a66',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <i className="bi bi-check2-circle"></i>
+          </div>
           <div className="stat-content" style={{ flex: 1 }}>
             <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Completadas
@@ -359,7 +460,20 @@ export default function UserDashboard() {
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #fb7185'
         }}>
-          <div className="stat-icon" style={{ fontSize: '2.5rem', flexShrink: 0 }}>⏰</div>
+          <div className="stat-icon" style={{
+            fontSize: '1.5rem',
+            flexShrink: 0,
+            width: '3.25rem',
+            height: '3.25rem',
+            borderRadius: '50%',
+            background: 'rgba(251, 113, 133, 0.15)',
+            color: '#cc2f52',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <i className="bi bi-clock-history"></i>
+          </div>
           <div className="stat-content" style={{ flex: 1 }}>
             <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Pendientes
@@ -382,7 +496,7 @@ export default function UserDashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              📢 Avisos Importantes
+              <i className="bi bi-megaphone"></i> Avisos Importantes
             </h2>
             <Link href="/avisos" style={{
               color: '#439fa4',
@@ -411,15 +525,32 @@ export default function UserDashboard() {
 
               const getTipoIcon = (tipo) => {
                 const iconos = {
-                  informativo: 'ℹ️',
-                  urgente: '🚨',
-                  mantenimiento: '🔧',
-                  evento: '📅',
-                  corte_servicio: '⚠️',
-                  seguridad: '🔒',
-                  otro: '📌'
+                  informativo: 'bi-info-circle',
+                  urgente: 'bi-exclamation-triangle',
+                  mantenimiento: 'bi-tools',
+                  evento: 'bi-calendar-event',
+                  corte_servicio: 'bi-cone-striped',
+                  seguridad: 'bi-shield-lock',
+                  otro: 'bi-pin-angle'
                 };
-                return iconos[tipo] || '📌';
+                const iconClass = iconos[tipo] || 'bi-pin-angle';
+                return (
+                  <div
+                    style={{
+                      fontSize: '1.5rem',
+                      background: '#fff',
+                      color: getPrioridadColor(aviso.prioridad),
+                      width: '3rem',
+                      height: '3rem',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <i className={`bi ${iconClass}`}></i>
+                  </div>
+                );
               };
 
               return (
@@ -450,9 +581,13 @@ export default function UserDashboard() {
                             padding: '0.125rem 0.5rem',
                             borderRadius: '12px',
                             fontSize: '0.7rem',
-                            fontWeight: 600
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem'
                           }}>
-                            ⭐ Destacado
+                            <i className="bi bi-star-fill"></i>
+                            Destacado
                           </span>
                         )}
                       </div>
@@ -464,11 +599,13 @@ export default function UserDashboard() {
                           color: getPrioridadColor(aviso.prioridad),
                           fontSize: '0.75rem',
                           fontWeight: 600,
-                          textTransform: 'uppercase'
+                          textTransform: 'uppercase',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
                         }}>
-                          {aviso.prioridad === 'critica' ? '🔴 Crítico' :
-                           aviso.prioridad === 'alta' ? '🟠 Alta' :
-                           aviso.prioridad === 'media' ? '🟡 Media' : '⚪ Baja'}
+                          <i className={`bi ${getPrioridadIcon(aviso.prioridad)}`}></i>
+                          {getPrioridadLabel(aviso.prioridad)}
                         </span>
                         <span style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>
                           •
@@ -496,7 +633,7 @@ export default function UserDashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🏗️ Proyectos Vecinales
+              <i className="bi bi-building-gear"></i> Proyectos Vecinales
             </h2>
             <Link href="/proyectos" style={{
               color: '#439fa4',
@@ -512,7 +649,7 @@ export default function UserDashboard() {
           {misProyectos.length > 0 && (
             <div style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ color: '#439fa4', fontSize: '1.125rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📋 Mis Postulaciones
+                <i className="bi bi-clipboard-check"></i> Mis Postulaciones
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {misProyectos.map((proyecto) => {
@@ -569,7 +706,7 @@ export default function UserDashboard() {
           {proyectos.length > 0 && (
             <div>
               <h3 style={{ color: '#439fa4', fontSize: '1.125rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🚧 Proyectos Activos
+                <i className="bi bi-diagram-3"></i> Proyectos Activos
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {proyectos.map((proyecto) => {
@@ -610,8 +747,14 @@ export default function UserDashboard() {
                           {proyecto.descripcion.length > 100 ? `${proyecto.descripcion.substring(0, 100)}...` : proyecto.descripcion}
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#bfd3d9' }}>
-                          <span>💰 {formatearPresupuesto(proyecto.presupuesto)}</span>
-                          <span>👥 {proyecto.num_beneficiarios} beneficiarios</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <i className="bi bi-cash-stack"></i>
+                            {formatearPresupuesto(proyecto.presupuesto)}
+                          </span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <i className="bi bi-people-fill"></i>
+                            {proyecto.num_beneficiarios} beneficiarios
+                          </span>
                         </div>
                       </div>
                     </Link>
@@ -635,7 +778,10 @@ export default function UserDashboard() {
               fontWeight: 600,
               fontSize: '1rem'
             }}>
-              ➕ Postular Nuevo Proyecto Vecinal
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <i className="bi bi-plus-circle"></i>
+                Postular Nuevo Proyecto Vecinal
+              </span>
             </Link>
           </div>
         </div>
@@ -661,7 +807,16 @@ export default function UserDashboard() {
             background: '#f4f8f9',
             borderRadius: '12px'
           }}>
-            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>📝</div>
+            <div className="activity-icon" style={{
+              fontSize: '2rem',
+              flexShrink: 0,
+              color: '#439fa4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-journal-text"></i>
+            </div>
             <div className="activity-content">
               <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 actualizada</h4>
               <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estado cambió a "En Proceso"</p>
@@ -676,7 +831,16 @@ export default function UserDashboard() {
             background: '#f4f8f9',
             borderRadius: '12px'
           }}>
-            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>✅</div>
+            <div className="activity-icon" style={{
+              fontSize: '2rem',
+              flexShrink: 0,
+              color: '#34d399',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-check-circle-fill"></i>
+            </div>
             <div className="activity-content">
               <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001220 completada</h4>
               <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Certificado de residencia listo para descarga</p>
@@ -691,7 +855,16 @@ export default function UserDashboard() {
             background: '#f4f8f9',
             borderRadius: '12px'
           }}>
-            <div className="activity-icon" style={{ fontSize: '2rem', flexShrink: 0 }}>📋</div>
+            <div className="activity-icon" style={{
+              fontSize: '2rem',
+              flexShrink: 0,
+              color: '#439fa4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-clipboard2-check"></i>
+            </div>
             <div className="activity-content">
               <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Nueva solicitud creada</h4>
               <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 registrada</p>
@@ -722,7 +895,16 @@ export default function UserDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>➕</div>
+            <div className="action-icon" style={{
+              fontSize: '3rem',
+              marginBottom: '1rem',
+              color: '#439fa4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-plus-circle"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Nueva Solicitud</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Crea una nueva solicitud de certificado</p>
           </a>
@@ -735,7 +917,16 @@ export default function UserDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+            <div className="action-icon" style={{
+              fontSize: '3rem',
+              marginBottom: '1rem',
+              color: '#439fa4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-clipboard-data"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Mis Solicitudes</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Ver todas tus solicitudes</p>
           </a>
@@ -748,7 +939,16 @@ export default function UserDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
+            <div className="action-icon" style={{
+              fontSize: '3rem',
+              marginBottom: '1rem',
+              color: '#439fa4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <i className="bi bi-person-badge"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Mi Perfil</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Actualiza tu información</p>
           </a>
@@ -764,8 +964,8 @@ export default function UserDashboard() {
           marginBottom: '2rem'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
-              ⭐ Noticias Destacadas
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <i className="bi bi-star-fill"></i> Noticias Destacadas
             </h2>
             <Link href="/noticias" style={{
               color: '#439fa4',
@@ -796,7 +996,16 @@ export default function UserDashboard() {
                 }}
               >
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ fontSize: '2rem', flexShrink: 0 }}>📰</div>
+                  <div style={{
+                    fontSize: '2rem',
+                    flexShrink: 0,
+                    color: '#439fa4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="bi bi-newspaper"></i>
+                  </div>
                   <div style={{ flex: 1 }}>
                     <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem', fontWeight: 600 }}>
                       {noticia.titulo}

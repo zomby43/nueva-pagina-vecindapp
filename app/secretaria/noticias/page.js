@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function SecretariaNoticiasPage() {
   const { user, userProfile } = useAuth();
@@ -53,6 +54,8 @@ export default function SecretariaNoticiasPage() {
   };
 
   const cambiarEstadoNoticia = async (noticiaId, nuevoEstado) => {
+    const noticiaActual = noticias.find(n => n.id === noticiaId);
+
     try {
       const supabase = createClient();
 
@@ -82,6 +85,28 @@ export default function SecretariaNoticiasPage() {
       );
 
       alert(`Noticia ${nuevoEstado === 'publicado' ? 'publicada' : nuevoEstado === 'archivado' ? 'archivada' : 'guardada como borrador'} exitosamente`);
+
+      if (nuevoEstado === 'publicado' && noticiaActual?.estado !== 'publicado') {
+        try {
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevaNoticiaFn =
+            emailHelpers.enviarCorreoNuevaNoticia ||
+            emailHelpers.default?.enviarCorreoNuevaNoticia;
+
+          if (typeof enviarCorreoNuevaNoticiaFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevaNoticia no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          await enviarCorreoNuevaNoticiaFn(
+            noticiaActual?.titulo || 'Noticia sin título',
+            noticiaActual?.resumen || '',
+            noticiaActual?.categoria || 'general',
+            noticiaId
+          );
+        } catch (emailError) {
+          console.error('⚠️ Error al enviar correos de noticia publicada:', emailError);
+          alert(`No se pudieron enviar los correos de la noticia: ${emailError.message}`);
+        }
+      }
 
     } catch (error) {
       console.error('Error updating noticia:', error);

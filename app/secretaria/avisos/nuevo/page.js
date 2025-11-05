@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function NuevoAvisoPage() {
   const router = useRouter();
@@ -99,6 +100,52 @@ export default function NuevoAvisoPage() {
         }
       } else {
         console.log('ℹ️ No hay imagen seleccionada o no se creó el aviso');
+      }
+
+      // Si se publicó como activo, enviar correos a los vecinos
+      console.log('🔍 DEBUG AVISOS - formData.estado:', formData.estado);
+      console.log('🔍 DEBUG AVISOS - data exists:', !!data);
+      console.log('🔍 DEBUG AVISOS - data.id:', data?.id);
+
+      if (formData.estado === 'activo' && data) {
+        try {
+          console.log('📧 Enviando notificaciones por correo (Aviso)...');
+          console.log('📧 Parámetros:', {
+            titulo: data.titulo,
+            mensaje: data.mensaje,
+            tipo: data.tipo,
+            prioridad: data.prioridad,
+            id: data.id
+          });
+
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevoAvisoFn =
+            emailHelpers.enviarCorreoNuevoAviso ||
+            emailHelpers.default?.enviarCorreoNuevoAviso;
+
+          if (typeof enviarCorreoNuevoAvisoFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevoAviso no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          const result = await enviarCorreoNuevoAvisoFn(
+            data.titulo,
+            data.mensaje,
+            data.tipo,
+            data.prioridad,
+            data.id
+          );
+
+          console.log('✅ Correos de aviso enviados exitosamente');
+          console.log('✅ Resultado:', result);
+        } catch (emailError) {
+          console.error('⚠️ Error enviando correos de aviso:', emailError);
+          console.error('⚠️ Detalles del error:', emailError.message, emailError.stack);
+          alert(`El aviso se creó, pero hubo un problema enviando los correos: ${emailError.message}`);
+        }
+      } else {
+        console.log('ℹ️ No se envían correos de aviso porque:', {
+          estado_es_activo: formData.estado === 'activo',
+          data_existe: !!data
+        });
       }
 
       alert('Aviso creado exitosamente');

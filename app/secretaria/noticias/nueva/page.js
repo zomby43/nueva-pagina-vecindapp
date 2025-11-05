@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function NuevaNoticiaPage() {
   const router = useRouter();
@@ -84,6 +85,50 @@ export default function NuevaNoticiaPage() {
           console.error('Error al subir imagen:', imageError);
           // No fallar si la imagen no se pudo subir, la noticia ya está creada
         }
+      }
+
+      // Si se publicó directamente, enviar correos a los vecinos
+      console.log('🔍 DEBUG - formData.estado:', formData.estado);
+      console.log('🔍 DEBUG - data exists:', !!data);
+      console.log('🔍 DEBUG - data.id:', data?.id);
+
+      if (formData.estado === 'publicado' && data) {
+        try {
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevaNoticiaFn =
+            emailHelpers.enviarCorreoNuevaNoticia ||
+            emailHelpers.default?.enviarCorreoNuevaNoticia;
+
+          if (typeof enviarCorreoNuevaNoticiaFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevaNoticia no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          console.log('📧 Enviando notificaciones por correo...');
+          console.log('📧 Parámetros:', {
+            titulo: data.titulo,
+            resumen: data.resumen || '',
+            categoria: data.categoria,
+            id: data.id
+          });
+
+          const result = await enviarCorreoNuevaNoticiaFn(
+            data.titulo,
+            data.resumen || '',
+            data.categoria,
+            data.id
+          );
+
+          console.log('✅ Correos enviados exitosamente');
+          console.log('✅ Resultado:', result);
+        } catch (emailError) {
+          console.error('⚠️ Error enviando correos:', emailError);
+          console.error('⚠️ Detalles del error:', emailError.message, emailError.stack);
+          alert(`La noticia se guardó, pero hubo un problema enviando los correos: ${emailError.message}`);
+        }
+      } else {
+        console.log('ℹ️ No se envían correos porque:', {
+          estado_es_publicado: formData.estado === 'publicado',
+          data_existe: !!data
+        });
       }
 
       alert(`Noticia ${formData.estado === 'publicado' ? 'publicada' : 'guardada como borrador'} exitosamente`);

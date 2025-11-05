@@ -3,7 +3,7 @@
    ======================================== */
 
 /* Variables de color del mockup */
-:root {
+:root.vecindapp {
   --bg: #d8e7eb;        /* mist blue */
   --panel: #f4f8f9;     /* soft panel */
   --muted: #bfd3d9;     /* muted slate */
@@ -18,7 +18,7 @@
 }
 
 /* Override Bootstrap colors */
-:root {
+:root.vecindapp {
   --bs-primary: #439fa4;
   --bs-primary-rgb: 67, 159, 164;
   --bs-secondary: #154765;
@@ -53,7 +53,7 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
+.vecindapp body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg);
   color: var(--text);
@@ -89,6 +89,9 @@ body {
 
 .header-right {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .logo-container {
@@ -139,6 +142,150 @@ body {
 .user-email {
   color: var(--sub);
   font-size: 0.75rem;
+}
+
+.mobile-user-action {
+  display: none;
+  align-items: center;
+}
+
+.mobile-user-menu {
+  display: none;
+  background: white;
+  border-top: 1px solid var(--muted);
+  box-shadow: 0 8px 16px rgba(21, 71, 101, 0.12);
+  padding: 1.5rem 2rem;
+}
+
+.mobile-user-menu.open {
+  display: block;
+}
+
+.mobile-user-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mobile-user-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mobile-user-email {
+  color: var(--sub);
+  font-size: 0.85rem;
+}
+
+.mobile-user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem auto;
+}
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(21, 71, 101, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1100;
+  transform: translateY(10px);
+}
+
+.scroll-to-top.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 24px rgba(21, 71, 101, 0.32);
+}
+
+.scroll-to-top:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 575px) {
+  .scroll-to-top {
+    bottom: 1.25rem;
+    right: 1.25rem;
+  }
+}
+
+.sidebar-toggle-btn {
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(21, 71, 101, 0.08);
+}
+
+@media (max-width: 991px) {
+  .header-container {
+    padding: 0 1.5rem;
+    gap: 1rem;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .user-menu {
+    display: none;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-user-action {
+    display: flex;
+  }
+}
+
+@media (min-width: 992px) {
+  .mobile-user-menu {
+    display: none !important;
+  }
 }
 
 /* Role Badges */
@@ -206,7 +353,7 @@ body {
   display: inline-block;
 }
 
-.nav-link {
+.sidebar .nav-link {
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
@@ -217,42 +364,42 @@ body {
   font-weight: 500;
 }
 
-.nav-link:hover {
+.sidebar .nav-link:hover {
   background: var(--muted);
   color: var(--accent-2);
   transform: translateX(4px);
 }
 
-.nav-link.active {
+.sidebar .nav-link.active {
   background: var(--accent);
   color: white;
 }
 
-.nav-link-secondary {
+.sidebar .nav-link.nav-link-secondary {
   color: var(--sub);
   font-size: 0.9rem;
 }
 
-.nav-link-danger {
+.sidebar .nav-link.nav-link-danger {
   color: var(--err) !important;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
 }
 
-.nav-link-danger:hover {
+.sidebar .nav-link.nav-link-danger:hover {
   background: rgba(251, 113, 133, 0.1) !important;
   color: var(--err) !important;
   transform: translateX(4px);
 }
 
-.nav-divider {
+.sidebar .nav-divider {
   height: 1px;
   background: var(--muted);
   margin: 0.75rem 0;
 }
 
-.nav-section-title {
+.sidebar .nav-section-title {
   font-size: 0.75rem;
   text-transform: uppercase;
   color: var(--sub);
@@ -291,6 +438,8 @@ body {
 
 .main-content {
   min-height: 600px;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
@@ -316,7 +465,7 @@ main {
 /* ========================================
    Cards & Panels
    ======================================== */
-.card {
+.vecino-layout .card {
   background: var(--panel);
   border: none;
   border-radius: var(--radius);
@@ -330,6 +479,8 @@ main {
   border-radius: var(--radius);
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(21, 71, 101, 0.06);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -494,7 +645,7 @@ main {
 /* ========================================
    Buttons
    ======================================== */
-.btn {
+.vecindapp .btn {
   border-radius: 12px;
   padding: 0.625rem 1.25rem;
   font-weight: 600;
@@ -502,36 +653,100 @@ main {
   border: none;
 }
 
-.btn-primary {
-  background: var(--accent);
-  color: white;
+.vecindapp .btn-primary {
+  background: linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%) !important;
+  border-color: #2d7a7f !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(67, 159, 164, 0.35);
 }
 
-.btn-primary:hover {
-  background: var(--sub);
+.vecindapp .btn-primary:hover,
+.vecindapp .btn-primary:focus {
+  background: linear-gradient(135deg, #2d7a7f 0%, #154765 100%) !important;
+  border-color: #154765 !important;
+  color: white !important;
   transform: translateY(-2px);
 }
 
-.btn-secondary {
-  background: var(--muted);
-  color: var(--text);
+.vecindapp .btn-secondary {
+  background: #e3eef0 !important;
+  border-color: #bfd3d9 !important;
+  color: var(--text) !important;
 }
 
-.btn-secondary:hover {
-  background: var(--sub);
-  color: white;
+.vecindapp .btn-secondary:hover,
+.vecindapp .btn-secondary:focus {
+  background: #bfd3d9 !important;
+  border-color: #439fa4 !important;
+  color: var(--accent-2) !important;
 }
 
-.btn-success {
-  background: var(--ok);
+.vecindapp .btn-success {
+  background: var(--ok) !important;
+  border-color: #0b8a66 !important;
+  color: white !important;
 }
 
-.btn-warning {
-  background: var(--warn);
+.vecindapp .btn-warning {
+  background: var(--warn) !important;
+  border-color: #d1860b !important;
+  color: #78350f !important;
 }
 
-.btn-danger {
-  background: var(--err);
+.vecindapp .btn-danger {
+  background: var(--err) !important;
+  border-color: #c42b47 !important;
+  color: white !important;
+}
+
+.vecindapp .btn-outline-primary {
+  color: #2d7a7f !important;
+  border-color: #2d7a7f !important;
+  background: transparent !important;
+}
+
+.vecindapp .btn-outline-primary:hover,
+.vecindapp .btn-outline-primary:focus {
+  background: linear-gradient(135deg, rgba(67, 159, 164, 0.15) 0%, rgba(67, 159, 164, 0.05) 100%) !important;
+  border-color: #2d7a7f !important;
+  color: #154765 !important;
+  transform: translateY(-1px);
+}
+
+.vecindapp .btn-outline-secondary {
+  color: var(--text) !important;
+  border-color: var(--muted) !important;
+}
+
+.vecindapp .btn-outline-secondary:hover,
+.vecindapp .btn-outline-secondary:focus {
+  background: #e3eef0 !important;
+  color: var(--accent-2) !important;
+  border-color: #439fa4 !important;
+}
+
+.vecindapp .btn-outline-success {
+  color: var(--ok) !important;
+  border-color: var(--ok) !important;
+}
+
+.vecindapp .btn-outline-success:hover,
+.vecindapp .btn-outline-success:focus {
+  background: rgba(52, 211, 153, 0.15) !important;
+  color: #0b8a66 !important;
+  border-color: #0b8a66 !important;
+}
+
+.vecindapp .btn-outline-info {
+  color: #0dcaf0 !important;
+  border-color: #0dcaf0 !important;
+}
+
+.vecindapp .btn-outline-info:hover,
+.vecindapp .btn-outline-info:focus {
+  background: rgba(13, 202, 240, 0.15) !important;
+  color: #0a9dc1 !important;
+  border-color: #0a9dc1 !important;
 }
 
 .btn-sm {
@@ -603,7 +818,7 @@ textarea.form-control {
 /* ========================================
    Badges & Status
    ======================================== */
-.badge {
+.vecindapp .badge {
   border-radius: 20px;
   padding: 0.375rem 0.875rem;
   font-weight: 600;
@@ -1802,15 +2017,65 @@ input[type="file"] {
 /* ========================================
    Responsive
    ======================================== */
+
+/* Mobile Sidebar Styles */
+@media (max-width: 991px) {
+  /* Hide sidebar by default on mobile */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -100%;
+    height: 100vh;
+    width: 280px;
+    z-index: 1050;
+    transition: left 0.3s ease-in-out;
+    overflow-y: auto;
+    border-radius: 0 !important;
+  }
+
+  /* Show sidebar when open */
+  .sidebar.sidebar-open {
+    left: 0;
+  }
+
+  /* Force single column layout on mobile */
+  .vecino-layout-container,
+  .secretaria-layout-container,
+  .admin-layout-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sidebar toggle button visible on mobile */
+  .sidebar-toggle-btn {
+    display: flex !important;
+  }
+}
+
+/* Desktop: sidebar always visible */
+@media (min-width: 992px) {
+  .sidebar {
+    position: relative !important;
+    left: 0 !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  .sidebar-toggle-btn {
+    display: none !important;
+  }
+}
+
 @media (max-width: 992px) {
   .container {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
 
+  /* Note: layout-container grid is controlled by sidebar logic and CSS below */
   .layout-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr !important;
   }
 
   aside {
@@ -1874,30 +2139,342 @@ input[type="file"] {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
+  /* Mobile padding adjustments */
   .container {
     padding: 0 1rem;
   }
 
   .page-container {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
   }
 
+  /* Note: layout-container padding/margin controlled by useMediaQuery hook */
+
+  /* Stats grid - full width on mobile */
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  /* Action buttons full width */
+  .actions-grid {
+    grid-template-columns: 1fr !important;
   }
 
   .features-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
-  .actions-grid {
-    grid-template-columns: 1fr;
+  /* Button groups stack vertically */
+  .btn-group,
+  .d-flex.gap-2 {
+    flex-direction: column;
+    width: 100%;
   }
 
+  .btn-group > .btn,
+  .d-flex.gap-2 > .btn {
+    width: 100%;
+  }
+
+  /* Touch-friendly buttons */
+  .btn {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Header adjustments */
+  .header-container {
+    padding: 0 1rem !important;
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .brand-tagline {
+    font-size: 0.75rem;
+  }
+
+  /* User menu mobile */
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-email {
+    display: none; /* Hide email on very small screens */
+  }
+
+  /* Map responsive */
   .map-container {
     height: 300px;
-    margin: 0 1rem;
+    margin: 0;
+  }
+
+  /* Card spacing */
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  /* Form fields full width */
+  .form-row,
+  .row {
+    gap: 1rem;
+  }
+
+  /* Modal responsive */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens - additional adjustments */
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .stats-card {
+    padding: 1rem;
+  }
+
+  /* Smaller stat text */
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  /* Tables - ensure horizontal scroll */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ========================================
+   Dashboard Responsive Optimizations
+   ======================================== */
+
+/* Tablets and below */
+@media (max-width: 768px) {
+  /* Dashboard headers stack vertically */
+  .dashboard-header h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Stat cards - ensure they don't overflow */
+  .admin-stats,
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stat-card {
+    min-width: 0 !important;
+  }
+
+  .stat-icon {
+    font-size: 2rem !important;
+  }
+
+  .stat-number {
+    font-size: 1.75rem !important;
+  }
+
+  /* Tables - force horizontal scroll */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+
+  .admin-table {
+    min-width: 600px; /* Force horizontal scroll for wide tables */
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.75rem !important;
+    font-size: 0.875rem;
+  }
+
+  /* Admin sections spacing */
+  .admin-section {
+    padding: 1rem !important;
+  }
+
+  .page-container {
+    padding: 1rem !important;
+  }
+}
+
+/* Mobile specific */
+@media (max-width: 576px) {
+  /* Note: layout-container padding is controlled by useMediaQuery hook in layout components */
+
+  /* Page container - minimal padding */
+  .page-container {
+    padding: 0.75rem !important;
+    margin: 0 !important;
+  }
+
+  /* Smaller dashboard title */
+  .dashboard-header {
+    padding-bottom: 0.75rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .dashboard-subtitle {
+    font-size: 0.875rem !important;
+  }
+
+  /* Stat cards more compact */
+  .stat-card {
+    padding: 1rem !important;
+  }
+
+  .stat-content h3 {
+    font-size: 0.75rem !important;
+  }
+
+  .stat-number {
+    font-size: 1.5rem !important;
+  }
+
+  .stat-change {
+    font-size: 0.7rem !important;
+  }
+
+  /* Section spacing */
+  .admin-section {
+    margin-bottom: 1.5rem !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Buttons full width on mobile */
+  .section-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Table container - extend beyond padding for full width scroll */
+  .table-container {
+    margin: 0 -0.75rem !important;
+    padding: 0 0.75rem !important;
+    width: calc(100% + 1.5rem) !important;
+  }
+
+  /* Table cells more compact */
+  .admin-table {
+    font-size: 0.75rem !important;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap;
+  }
+
+  /* Hide less important table columns on mobile */
+  .admin-table .hide-mobile {
+    display: none;
+  }
+
+  /* Header container - less padding on very small screens */
+  .header-container {
+    padding: 0 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Logo and brand smaller */
+  .logo-image {
+    height: 35px !important;
+  }
+
+  .brand-name {
+    font-size: 1.1rem !important;
+  }
+
+  .brand-tagline {
+    font-size: 0.65rem !important;
+  }
+
+  /* User info more compact */
+  .user-name {
+    font-size: 0.875rem !important;
+  }
+
+  /* Action buttons in sections */
+  .section-header {
+    gap: 0.75rem !important;
+  }
+
+  .section-header h2 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Extra small screens - additional optimizations */
+@media (max-width: 400px) {
+  /* Note: layout-container padding is controlled by useMediaQuery hook in layout components */
+
+  .page-container {
+    padding: 0.5rem !important;
+  }
+
+  .admin-section {
+    padding: 0.5rem !important;
+  }
+
+  .table-container {
+    margin: 0 -0.5rem !important;
+    padding: 0 0.5rem !important;
+    width: calc(100% + 1rem) !important;
+  }
+
+  .header-container {
+    padding: 0 0.5rem !important;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .stat-card {
+    padding: 0.75rem !important;
+  }
+
+  .stat-icon {
+    font-size: 1.75rem !important;
+  }
+
+  .stat-number {
+    font-size: 1.25rem !important;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.4rem 0.2rem !important;
+    font-size: 0.7rem !important;
   }
 }
 

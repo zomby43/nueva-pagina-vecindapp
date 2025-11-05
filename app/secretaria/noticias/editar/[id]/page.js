@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
+import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function EditarNoticiaPage() {
   const params = useParams();
@@ -26,6 +27,8 @@ export default function EditarNoticiaPage() {
     destacado: false,
     estado: 'borrador'
   });
+
+  const [estadoOriginal, setEstadoOriginal] = useState('borrador'); // Para detectar si cambió de borrador a publicado
 
   useEffect(() => {
     if (params.id && user && userProfile?.rol === 'secretaria') {
@@ -63,6 +66,9 @@ export default function EditarNoticiaPage() {
         destacado: data.destacado || false,
         estado: data.estado || 'borrador'
       });
+
+      // Guardar estado original para detectar cambios
+      setEstadoOriginal(data.estado || 'borrador');
 
       // Guardar URL de imagen actual si existe
       setCurrentImageUrl(data.imagen_url || null);
@@ -141,6 +147,31 @@ export default function EditarNoticiaPage() {
       if (error) {
         console.error('Error updating noticia:', error);
         throw error;
+      }
+
+      // Si cambió de borrador a publicado, enviar correos
+      if (estadoOriginal !== 'publicado' && formData.estado === 'publicado') {
+        try {
+          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
+          const enviarCorreoNuevaNoticiaFn =
+            emailHelpers.enviarCorreoNuevaNoticia ||
+            emailHelpers.default?.enviarCorreoNuevaNoticia;
+
+          if (typeof enviarCorreoNuevaNoticiaFn !== 'function') {
+            throw new Error('Helper enviarCorreoNuevaNoticia no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          }
+          console.log('📧 Enviando notificaciones por correo...');
+          await enviarCorreoNuevaNoticiaFn(
+            formData.titulo,
+            formData.resumen || '',
+            formData.categoria,
+            params.id
+          );
+          console.log('✅ Correos enviados exitosamente');
+        } catch (emailError) {
+          console.error('⚠️ Error enviando correos:', emailError);
+          // No fallar la operación principal si los correos fallan
+        }
       }
 
       alert('Noticia actualizada exitosamente');

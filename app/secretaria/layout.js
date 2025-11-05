@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import SecretariaSidebar from '@/components/layout/SecretariaSidebar';
 import Header from '@/components/layout/Header';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsSmallMobile, useIsExtraSmall } from '@/hooks/useMediaQuery';
 
 // Modal de advertencia de inactividad
 function InactivityWarningModal({ timeLeft, onExtend }) {
@@ -75,6 +77,12 @@ function InactivityWarningModal({ timeLeft, onExtend }) {
 
 export default function SecretariaLayout({ children }) {
   const { signOut } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isSmallMobile = useIsSmallMobile();
+  const isExtraSmall = useIsExtraSmall();
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
 
   // Timer de inactividad: 10 minutos total, advertencia 1 minuto antes
   const { showWarning, timeLeft, extendSession } = useInactivityTimer(
@@ -83,22 +91,30 @@ export default function SecretariaLayout({ children }) {
     signOut          // Logout al expirar
   );
 
+  // Determine responsive padding
+  const containerPadding = isExtraSmall ? '0 0.5rem' : isSmallMobile ? '0 0.75rem' : '0 2rem';
+  const containerMargin = isSmallMobile ? '1rem auto' : '2rem auto';
+  const containerGap = isSmallMobile ? '1rem' : '2rem';
+
   return (
     <>
-      <div className="layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#d8e7eb' }}>
-        <Header />
-        <div className="layout-container" style={{
-          maxWidth: '1400px',
-          margin: '2rem auto',
-          padding: '0 2rem',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)',
-          gap: '2rem',
-          flex: 1,
-          width: '100%'
-        }}>
-          <SecretariaSidebar />
-          <main className="main-content" style={{ minHeight: '600px' }}>
+      <div className="layout secretaria-layout">
+        <Header onToggleSidebar={toggleSidebar} />
+        <div
+          className="layout-container secretaria-layout-container"
+          style={{
+            maxWidth: '1400px',
+            margin: containerMargin,
+            padding: containerPadding,
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)',
+            gap: containerGap,
+            flex: 1,
+            width: '100%'
+          }}
+        >
+          <SecretariaSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+          <main className="main-content">
             {children}
           </main>
         </div>

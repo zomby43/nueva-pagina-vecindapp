@@ -1,5 +1,4 @@
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import Header from '@/components/layout/Header';
+import AdminLayoutClient from '@/components/layout/AdminLayoutClient';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function AdminLayout({ children }) {
@@ -31,23 +30,11 @@ export default async function AdminLayout({ children }) {
   }
 
   return (
-    <div className="layout admin-layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#d8e7eb' }}>
-      <Header className="admin-header" initialUser={headerUser} initialProfile={headerProfile} />
-      <div className="layout-container" style={{
-        maxWidth: '1400px',
-        margin: '2rem auto',
-        padding: '0 2rem',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 280px) minmax(0, 1fr)',
-        gap: '2rem',
-        flex: 1,
-        width: '100%'
-      }}>
-        <AdminSidebar />
-        <main className="main-content" style={{ minHeight: '600px' }}>
-          {children}
-        </main>
-      </div>
-    </div>
+    <AdminLayoutClient
+      initialUser={headerUser}
+      initialProfile={headerProfile}
+    >
+      {children}
+    </AdminLayoutClient>
   );
 }

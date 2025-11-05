@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { forceLogout } from '@/lib/forceLogout';
@@ -9,12 +10,14 @@ export default function Header({
   onLoginClick,
   onRegisterClick,
   onLogoClick,
+  onToggleSidebar,
   className = '',
   initialUser = null,
   initialProfile = null,
 }) {
   const { user, userProfile, loading, signOut } = useAuth();
   const softLogout = useSoftLogout();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const hasContextUser = Boolean(user && userProfile);
   const shouldUseInitial = !hasContextUser && loading && initialUser && initialProfile;
@@ -70,6 +73,7 @@ export default function Header({
   const handleSignOut = async (event) => {
     event?.preventDefault?.();
     event?.stopPropagation?.();
+    closeMobileMenu();
 
     try {
       await softLogout();
@@ -88,6 +92,26 @@ export default function Header({
   };
 
   const isAdminHeader = className.includes('admin-header');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      if (window.innerWidth >= 992) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  useEffect(() => {
+    if (!displayUser) {
+      setMobileMenuOpen(false);
+    }
+  }, [displayUser]);
 
   return (
     <header
@@ -110,6 +134,28 @@ export default function Header({
         alignItems: 'center',
         gap: '2rem'
       }}>
+        {/* Hamburger menu button - only visible on mobile when user is logged in */}
+        {displayUser && onToggleSidebar && (
+          <button
+            className="sidebar-toggle-btn d-lg-none"
+            onClick={onToggleSidebar}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem',
+              cursor: 'pointer',
+              color: '#154765',
+              fontSize: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            aria-label="Toggle sidebar"
+          >
+            <i className="bi bi-list"></i>
+          </button>
+        )}
+
         {/* Sección izquierda: Logo y nombre */}
         <div className="header-left" style={{ flexShrink: 0 }}>
           <Link href={displayUser ? getRolDashboard(displayProfile?.rol) : '/'} className="logo-container">
@@ -122,30 +168,39 @@ export default function Header({
         </div>
 
         {/* Sección derecha: Botones de acción o info de usuario */}
-        <div className="header-right" style={{ flexShrink: 0 }}>
+        <div className="header-right">
           {isLoading ? (
             <div style={{ padding: '0.5rem 1rem' }}>
               <span style={{ color: '#6c757d' }}>Cargando...</span>
             </div>
           ) : displayUser && displayProfile ? (
-            <div className="user-menu" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem'
-            }}>
-              {getRolBadge(displayProfile.rol)}
-              <div className="user-info">
-                <span className="user-name">{displayProfile.nombres} {displayProfile.apellidos}</span>
-                <span className="user-email">{displayUser.email}</span>
+            <>
+              <div className="user-menu">
+                {getRolBadge(displayProfile.rol)}
+                <div className="user-info">
+                  <span className="user-name">{displayProfile.nombres} {displayProfile.apellidos}</span>
+                  <span className="user-email">{displayUser.email}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleSignOut}
+                >
+                  Cerrar Sesión
+                </button>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={handleSignOut}
-              >
-                Cerrar Sesión
-              </button>
-            </div>
+              <div className="mobile-user-action d-lg-none">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm"
+                  aria-expanded={mobileMenuOpen ? 'true' : 'false'}
+                  aria-controls="mobile-user-menu"
+                  onClick={toggleMobileMenu}
+                >
+                  <i className={`bi ${mobileMenuOpen ? 'bi-x-lg' : 'bi-person-circle'}`}></i>
+                </button>
+              </div>
+            </>
           ) : (
             <div className="auth-buttons">
               <button
@@ -168,6 +223,37 @@ export default function Header({
           )}
         </div>
       </div>
+
+      {displayUser && displayProfile && (
+        <div
+          id="mobile-user-menu"
+          className={`mobile-user-menu d-lg-none ${mobileMenuOpen ? 'open' : ''}`}
+        >
+          <div className="mobile-user-details">
+            {getRolBadge(displayProfile.rol)}
+            <div className="mobile-user-text">
+              <span className="mobile-user-name">{displayProfile.nombres} {displayProfile.apellidos}</span>
+              <span className="mobile-user-email">{displayUser.email}</span>
+            </div>
+          </div>
+          <div className="mobile-user-actions">
+            <Link
+              href={getRolDashboard(displayProfile.rol)}
+              className="btn btn-outline-primary w-100"
+              onClick={closeMobileMenu}
+            >
+              Ir al panel principal
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary w-100"
+              onClick={handleSignOut}
+            >
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

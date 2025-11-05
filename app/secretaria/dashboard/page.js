@@ -6,7 +6,16 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 // Componente para tarjeta de estadística con estilos inline
-const StatCard = ({ icon, title, value, subtitle, borderColor = '#439fa4', subtitleColor = '#34d399' }) => (
+const StatCard = ({
+  icon,
+  title,
+  value,
+  subtitle,
+  borderColor = '#439fa4',
+  subtitleColor = '#34d399',
+  iconBg = 'rgba(67, 159, 164, 0.12)',
+  iconColor = '#2d7a7f'
+}) => (
   <div className="stat-card" style={{
     background: 'white',
     borderRadius: '16px',
@@ -18,7 +27,23 @@ const StatCard = ({ icon, title, value, subtitle, borderColor = '#439fa4', subti
     transition: 'transform 0.2s',
     borderLeft: `4px solid ${borderColor}`
   }}>
-    <div className="stat-icon" style={{ fontSize: '2.5rem', flexShrink: 0 }}>{icon}</div>
+    <div
+      className="stat-icon"
+      style={{
+        fontSize: '1.5rem',
+        flexShrink: 0,
+        background: iconBg,
+        color: iconColor,
+        width: '3.25rem',
+        height: '3.25rem',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      {icon}
+    </div>
     <div className="stat-content" style={{ flex: 1 }}>
       <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>{title}</h3>
       <p className="stat-number" style={{ fontSize: '2rem', fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0', lineHeight: 1 }}>{value}</p>
@@ -220,71 +245,87 @@ export default function SecretariaDashboard() {
         marginBottom: '2rem'
       }}>
         <StatCard
-          icon="⏰"
+          icon={<i className="bi bi-alarm-fill"></i>}
           title="Vecinos Pendientes"
           value={stats.vecinosPendientes}
           subtitle="Requieren aprobación"
           borderColor="#fb7185"
           subtitleColor="#fbbf24"
+          iconBg="rgba(251, 113, 133, 0.12)"
+          iconColor="#cc2f52"
         />
 
         <StatCard
-          icon="📋"
+          icon={<i className="bi bi-clipboard-data"></i>}
           title="Solicitudes Pendientes"
           value={stats.solicitudesPendientes}
           subtitle="Por revisar"
           borderColor="#fbbf24"
           subtitleColor="#fbbf24"
+          iconBg="rgba(251, 191, 36, 0.12)"
+          iconColor="#c27803"
         />
 
         <StatCard
-          icon="⏳"
+          icon={<i className="bi bi-hourglass-split"></i>}
           title="En Proceso"
           value={stats.solicitudesEnProceso}
           borderColor="#439fa4"
+          iconBg="rgba(67, 159, 164, 0.12)"
+          iconColor="#2d7a7f"
         />
 
         <StatCard
-          icon="📄"
+          icon={<i className="bi bi-file-earmark-text"></i>}
           title="Certificados Emitidos"
           value={stats.certificadosEmitidos}
           subtitle="Este mes"
           borderColor="#34d399"
+          iconBg="rgba(52, 211, 153, 0.12)"
+          iconColor="#0b8a66"
         />
 
         <StatCard
-          icon="👥"
+          icon={<i className="bi bi-people-fill"></i>}
           title="Total Vecinos"
           value={stats.totalVecinos}
           subtitle="Activos"
           borderColor="#439fa4"
+          iconBg="rgba(67, 159, 164, 0.12)"
+          iconColor="#2d7a7f"
         />
 
         <StatCard
-          icon="🏗️"
+          icon={<i className="bi bi-diagram-3"></i>}
           title="Proyectos Pendientes"
           value={stats.proyectosPendientes}
           subtitle="Por revisar"
           borderColor="#fbbf24"
           subtitleColor="#fbbf24"
+          iconBg="rgba(251, 191, 36, 0.12)"
+          iconColor="#c27803"
         />
 
         <StatCard
-          icon="🏟️"
+          icon={<i className="bi bi-calendar-event"></i>}
           title="Reservas Pendientes"
           value={stats.reservasPendientes}
           subtitle="Por aprobar"
           borderColor="#fbbf24"
           subtitleColor="#fbbf24"
+          iconBg="rgba(251, 191, 36, 0.12)"
+          iconColor="#c27803"
         />
 
         <StatCard
-          icon="🎯"
+          icon={<i className="bi bi-bullseye"></i>}
           title="Inscripciones Pendientes"
           value={stats.actividadesPendientes}
           subtitle="Actividades"
           borderColor="#fbbf24"
           subtitleColor="#fbbf24"
+          iconBg="rgba(251, 191, 36, 0.12)"
+          iconColor="#c27803"
         />
       </div>
 
@@ -302,7 +343,10 @@ export default function SecretariaDashboard() {
             alignItems: 'center',
             marginBottom: '1.5rem'
           }}>
-            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>⏰ Vecinos Pendientes de Aprobación</h2>
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
+              <i className="bi bi-alarm-fill me-2 text-danger"></i>
+              Vecinos Pendientes de Aprobación
+            </h2>
             <Link href="/secretaria/vecinos/aprobaciones" className="btn btn-primary btn-sm" style={{
               padding: '0.375rem 0.875rem',
               fontSize: '0.875rem',
@@ -380,7 +424,10 @@ export default function SecretariaDashboard() {
             alignItems: 'center',
             marginBottom: '1.5rem'
           }}>
-            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>📋 Solicitudes Recientes</h2>
+          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
+            <i className="bi bi-clipboard-data me-2 text-primary"></i>
+            Solicitudes Recientes
+          </h2>
             <Link href="/secretaria/solicitudes" className="btn btn-secondary btn-sm" style={{
               padding: '0.375rem 0.875rem',
               fontSize: '0.875rem',
@@ -466,7 +513,10 @@ export default function SecretariaDashboard() {
         marginBottom: '2rem'
       }}>
         <div className="section-header" style={{ marginBottom: '1rem' }}>
-          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>⚡ Acciones Rápidas</h2>
+          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
+            <i className="bi bi-lightning-charge-fill me-2 text-warning"></i>
+            Acciones Rápidas
+          </h2>
         </div>
 
         <div className="actions-grid" style={{
@@ -485,7 +535,9 @@ export default function SecretariaDashboard() {
             position: 'relative',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+            <div className="action-icon" style={{ color: '#0b8a66', background: 'rgba(52, 211, 153, 0.15)' }}>
+              <i className="bi bi-person-check-fill"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Aprobar Vecinos</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Revisar y aprobar nuevos registros</p>
             {stats.vecinosPendientes > 0 && (
@@ -518,7 +570,9 @@ export default function SecretariaDashboard() {
             position: 'relative',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+            <div className="action-icon" style={{ color: '#c27803', background: 'rgba(251, 191, 36, 0.18)' }}>
+              <i className="bi bi-clipboard-check"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Solicitudes Pendientes</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Revisar solicitudes por atender</p>
             {stats.solicitudesPendientes > 0 && (
@@ -550,7 +604,9 @@ export default function SecretariaDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</div>
+            <div className="action-icon" style={{ color: '#2d7a7f', background: 'rgba(67, 159, 164, 0.18)' }}>
+              <i className="bi bi-file-earmark-plus"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Emitir Certificado</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Generar certificados de residencia</p>
           </Link>
@@ -564,7 +620,9 @@ export default function SecretariaDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>👥</div>
+            <div className="action-icon" style={{ color: '#154765', background: 'rgba(21, 71, 101, 0.18)' }}>
+              <i className="bi bi-people"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Gestionar Vecinos</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Ver y administrar vecinos activos</p>
           </Link>
@@ -579,7 +637,9 @@ export default function SecretariaDashboard() {
             position: 'relative',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏗️</div>
+            <div className="action-icon" style={{ color: '#c27803', background: 'rgba(251, 191, 36, 0.18)' }}>
+              <i className="bi bi-diagram-3"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Proyectos Vecinales</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Revisar proyectos postulados</p>
             {stats.proyectosPendientes > 0 && (
@@ -612,7 +672,9 @@ export default function SecretariaDashboard() {
             position: 'relative',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏟️</div>
+            <div className="action-icon" style={{ color: '#c27803', background: 'rgba(251, 191, 36, 0.18)' }}>
+              <i className="bi bi-calendar2-event"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Reservas de Espacios</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Aprobar solicitudes de reserva</p>
             {stats.reservasPendientes > 0 && (
@@ -645,7 +707,9 @@ export default function SecretariaDashboard() {
             position: 'relative',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
+            <div className="action-icon" style={{ color: '#0b8a66', background: 'rgba(52, 211, 153, 0.15)' }}>
+              <i className="bi bi-bullseye"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Inscripciones Actividades</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Aprobar inscripciones pendientes</p>
             {stats.actividadesPendientes > 0 && (
@@ -677,7 +741,9 @@ export default function SecretariaDashboard() {
             textAlign: 'center',
             display: 'block'
           }}>
-            <div className="action-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>📰</div>
+            <div className="action-icon" style={{ color: '#2d7a7f', background: 'rgba(67, 159, 164, 0.18)' }}>
+              <i className="bi bi-newspaper"></i>
+            </div>
             <h3 style={{ color: '#154765', fontSize: '1.125rem', marginBottom: '0.5rem' }}>Gestionar Noticias</h3>
             <p style={{ color: '#439fa4', fontSize: '0.875rem', margin: 0 }}>Publicar y editar noticias</p>
           </Link>
@@ -697,24 +763,31 @@ export default function SecretariaDashboard() {
           padding: '2rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
         }}>
-          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>📊 Resumen General</h3>
+          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>
+            <i className="bi bi-bar-chart-fill me-2 text-primary"></i>
+            Resumen General
+          </h3>
           <div className="chart-placeholder" style={{
             background: '#f4f8f9',
             borderRadius: '12px'
           }}>
             <div style={{ padding: '1.5rem', textAlign: 'left' }}>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  👥 <strong>{stats.totalVecinos}</strong> vecinos activos
+                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <i className="bi bi-people-fill text-primary"></i>
+                  <span><strong>{stats.totalVecinos}</strong> vecinos activos</span>
                 </li>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  📄 <strong>{stats.certificadosEmitidos}</strong> certificados emitidos este mes
+                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <i className="bi bi-file-earmark-text text-success"></i>
+                  <span><strong>{stats.certificadosEmitidos}</strong> certificados emitidos este mes</span>
                 </li>
-                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                  📋 <strong>{stats.solicitudesPendientes + stats.solicitudesEnProceso}</strong> solicitudes activas
+                <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <i className="bi bi-clipboard-data text-warning"></i>
+                  <span><strong>{stats.solicitudesPendientes + stats.solicitudesEnProceso}</strong> solicitudes activas</span>
                 </li>
-                <li style={{ padding: '0.75rem 0', color: '#154765' }}>
-                  🏗️ <strong>{stats.proyectosPendientes}</strong> proyectos pendientes de revisión
+                <li style={{ padding: '0.75rem 0', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <i className="bi bi-diagram-3 text-info"></i>
+                  <span><strong>{stats.proyectosPendientes}</strong> proyectos pendientes de revisión</span>
                 </li>
               </ul>
             </div>
@@ -727,7 +800,10 @@ export default function SecretariaDashboard() {
           padding: '2rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
         }}>
-          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>📌 Recordatorios</h3>
+          <h3 style={{ color: '#154765', marginBottom: '1.5rem' }}>
+            <i className="bi bi-pin-angle-fill me-2 text-danger"></i>
+            Recordatorios
+          </h3>
           <div className="chart-placeholder" style={{
             background: '#f4f8f9',
             borderRadius: '12px'
@@ -735,28 +811,33 @@ export default function SecretariaDashboard() {
             <div style={{ padding: '1.5rem', textAlign: 'left' }}>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {stats.vecinosPendientes > 0 && (
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                    ⏰ <strong>{stats.vecinosPendientes}</strong> vecinos esperando aprobación
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <i className="bi bi-alarm-fill text-danger"></i>
+                    <span><strong>{stats.vecinosPendientes}</strong> vecinos esperando aprobación</span>
                   </li>
                 )}
                 {stats.solicitudesPendientes > 0 && (
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                    📋 <strong>{stats.solicitudesPendientes}</strong> solicitudes por revisar
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <i className="bi bi-clipboard-check text-warning"></i>
+                    <span><strong>{stats.solicitudesPendientes}</strong> solicitudes por revisar</span>
                   </li>
                 )}
                 {stats.proyectosPendientes > 0 && (
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                    🏗️ <strong>{stats.proyectosPendientes}</strong> proyectos por evaluar
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <i className="bi bi-diagram-3 text-warning"></i>
+                    <span><strong>{stats.proyectosPendientes}</strong> proyectos por evaluar</span>
                   </li>
                 )}
                 {stats.reservasPendientes > 0 && (
-                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765' }}>
-                    🏟️ <strong>{stats.reservasPendientes}</strong> reservas por aprobar
+                  <li style={{ padding: '0.75rem 0', borderBottom: '1px solid #bfd3d9', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <i className="bi bi-calendar2-event text-warning"></i>
+                    <span><strong>{stats.reservasPendientes}</strong> reservas por aprobar</span>
                   </li>
                 )}
                 {stats.actividadesPendientes > 0 && (
-                  <li style={{ padding: '0.75rem 0', color: '#154765' }}>
-                    🎯 <strong>{stats.actividadesPendientes}</strong> inscripciones a actividades por revisar
+                  <li style={{ padding: '0.75rem 0', color: '#154765', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <i className="bi bi-bullseye text-success"></i>
+                    <span><strong>{stats.actividadesPendientes}</strong> inscripciones a actividades por revisar</span>
                   </li>
                 )}
                 {stats.vecinosPendientes === 0 && stats.solicitudesPendientes === 0 && stats.proyectosPendientes === 0 && stats.reservasPendientes === 0 && stats.actividadesPendientes === 0 && (

@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import Script from 'next/script';
 import { AuthProvider } from '@/contexts/AuthContext';
+import ScrollToTopButton from '@/components/common/ScrollToTopButton';
 // Importar forceLogout para registrarlo globalmente
 import '@/lib/forceLogout';
 
@@ -12,7 +13,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
+    <html lang="es" className="vecindapp">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning style={{ margin: 0, padding: 0, minHeight: '100vh' }}>
         <AuthProvider>
           {children}
+          <ScrollToTopButton />
         </AuthProvider>
         {/* Bootstrap JS */}
         <Script
