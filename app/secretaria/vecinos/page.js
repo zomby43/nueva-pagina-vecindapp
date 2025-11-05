@@ -7,6 +7,77 @@ import { enviarCorreoAprobacionRegistro } from '@/lib/emails/sendEmail';
 import MapaGeneral from '@/components/maps/MapaGeneral';
 import MapaDetalle from '@/components/maps/MapaDetalle';
 
+// ====== Utils ======
+const DEFAULT_BUCKET = 'documentos';
+
+const isAbsoluteUrl = (u) => { try { new URL(u); return true; } catch { return false; } };
+const cleanPath = (p = '') =>
+  p.trim().replace(/^\/+/, '').replace(/^documentos\//, '').replace(/\\+/g, '/');
+
+const guessFilename = (fromPathOrUrl = '') => {
+  try {
+    const u = new URL(fromPathOrUrl);
+    const name = u.pathname.split('/').pop() || 'archivo';
+    return name.split('?')[0];
+  } catch {
+    const name = (fromPathOrUrl.split('/').pop() || 'archivo').split('?')[0];
+    return name;
+  }
+};
+
+// ====== Abre en pestaña + descarga (MISMO flujo que Aprobaciones) ======
+async function abrirYDescargarComprobante(comprobante_url) {
+  if (!comprobante_url) {
+    alert('Este vecino no subió comprobante');
+    return;
+  }
+
+  const supabase = createClient();
+  let finalUrl = comprobante_url;
+
+  // Firmar si es ruta de storage
+  if (!isAbsoluteUrl(comprobante_url)) {
+    const objectPath = cleanPath(comprobante_url); // ej: "comprobantes/archivo.pdf"
+    const { data, error } = await supabase
+      .storage
+      .from(DEFAULT_BUCKET)
+      .createSignedUrl(objectPath, 300); // 5 min
+
+    if (error || !data?.signedUrl) {
+      console.error('Error firmando URL:', error);
+      alert('No se pudo abrir el comprobante');
+      return;
+    }
+    finalUrl = data.signedUrl;
+  }
+
+  // Abrir para visualizar (misma lógica que en Aprobaciones)
+  window.open(finalUrl, '_blank', 'noopener,noreferrer');
+
+  // Forzar descarga
+  try {
+    const resp = await fetch(finalUrl, { credentials: 'omit', cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const blob = await resp.blob();
+    const tmpUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = tmpUrl;
+    a.download = guessFilename(finalUrl);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(tmpUrl);
+  } catch {
+    // Fallback
+    const a = document.createElement('a');
+    a.href = finalUrl;
+    a.setAttribute('download', guessFilename(finalUrl));
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+
 export default function SecretariaVecinosPage() {
   const { user, userProfile } = useAuth();
   const [vecinos, setVecinos] = useState([]);
@@ -18,46 +89,6 @@ export default function SecretariaVecinosPage() {
   const [vecinoSeleccionado, setVecinoSeleccionado] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [vistaActual, setVistaActual] = useState('tabla'); // 'tabla' | 'mapa'
-
-  // ---------- Helper: abrir comprobante en visor de pantalla completa ----------
-  function isAbsoluteUrl(u) {
-    try { new URL(u); return true; } catch { return false; }
-  }
-  function cleanPath(p) {
-    return (p || '').replace(/^\/+/, '').replace(/^documentos\//, '');
-  }
-  async function abrirComprobante(comprobante_url) {
-    if (!comprobante_url) {
-      alert('Este vecino no subió comprobante');
-      return;
-    }
-    // Si ya es una URL http/https (pública o firmada), lo pasamos igual por el visor:
-    if (isAbsoluteUrl(comprobante_url)) {
-      window.open(
-        `/secretaria/vecinos/comprobantes/ver?url=${encodeURIComponent(comprobante_url)}`,
-        '_blank',
-        'noopener,noreferrer'
-      );
-      return;
-    }
-    // Si es una ruta de storage (bucket privado)
-    const supabase = createClient();
-    const objectPath = cleanPath(comprobante_url);
-    const bucket = 'documentos';
-
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(objectPath, 300);
-    if (error || !data?.signedUrl) {
-      console.error('Error firmando URL de comprobante:', error);
-      alert('No se pudo abrir el comprobante');
-      return;
-    }
-    window.open(
-      `/secretaria/vecinos/comprobantes/ver?url=${encodeURIComponent(data.signedUrl)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
-  }
-  // ---------------------------------------------------------------------------
 
   useEffect(() => {
     if (user && userProfile?.rol === 'secretaria') {
@@ -342,7 +373,23 @@ export default function SecretariaVecinosPage() {
                           <td><small>{formatearFecha(vecino.created_at)}</small></td>
                           <td>
                             <div className="btn-group btn-group-sm">
-                              <button className="btn btn-outline-primary" onClick={() => { setVecinoSeleccionado(vecino); setMostrarModal(true); }}>👁️ Ver</button>
+                              <button
+                                className="btn btn-outline-primary"
+                                onClick={() => { setVecinoSeleccionado(vecino); setMostrarModal(true); }}
+                              >
+                                👁️ Ver
+                              </button>
+
+                              {/* MISMO BOTÓN QUE EN APROBACIONES: ver + descargar */}
+                              <button
+                                className="btn btn-outline-secondary"
+                                onClick={() => abrirYDescargarComprobante(vecino.comprobante_url)}
+                                disabled={!vecino.comprobante_url}
+                                title={vecino.comprobante_url ? 'Ver / Descargar comprobante' : 'Sin comprobante'}
+                              >
+                                📄 Ver / ⬇️ Descargar
+                              </button>
+
                               {vecino.estado === 'pendiente_aprobacion' && (
                                 <>
                                   <button className="btn btn-outline-success" onClick={() => aprobarVecino(vecino.id)}>✅ Aprobar</button>
@@ -422,7 +469,7 @@ export default function SecretariaVecinosPage() {
                   <hr />
                 </div>
 
-                {/* Comprobante: ahora botón que usa abrirComprobante() */}
+                {/* Comprobante: MISMO botón (ver + descargar) */}
                 {vecinoSeleccionado.comprobante_url && (
                   <div className="mb-3">
                     <h6 className="mb-3">📄 Comprobante de Residencia</h6>
@@ -430,9 +477,9 @@ export default function SecretariaVecinosPage() {
                       <button
                         type="button"
                         className="btn btn-outline-primary btn-sm"
-                        onClick={() => abrirComprobante(vecinoSeleccionado.comprobante_url)}
+                        onClick={() => abrirYDescargarComprobante(vecinoSeleccionado.comprobante_url)}
                       >
-                        👁️ Ver Comprobante
+                        👁️ Ver / ⬇️ Descargar
                       </button>
                     </p>
                   </div>
