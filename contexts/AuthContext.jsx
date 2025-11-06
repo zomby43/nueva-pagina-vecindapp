@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { logLogin, logLogout } from '@/lib/logs/createLog';
 
 const AuthContext = createContext({});
 
@@ -149,6 +150,26 @@ export function AuthProvider({ children }) {
       await fetchUserProfile(data.user.id);
       setLoading(false);
 
+      // Registrar log de login exitoso
+      try {
+        const perfil = await supabase
+          .from('usuarios')
+          .select('id, email, nombres, apellidos')
+          .eq('id', data.user.id)
+          .single();
+
+        if (perfil.data) {
+          await logLogin({
+            id: perfil.data.id,
+            email: perfil.data.email,
+            nombre: `${perfil.data.nombres} ${perfil.data.apellidos}`
+          });
+        }
+      } catch (logError) {
+        console.error('Error al registrar log de login:', logError);
+        // No interrumpir el login si falla el log
+      }
+
       return { success: true, data };
     } catch (error) {
       console.error('Login error:', error);
@@ -160,6 +181,20 @@ export function AuthProvider({ children }) {
   // Logout con limpieza completa
   const signOut = async () => {
     try {
+      // Registrar log de logout ANTES de cerrar sesión
+      try {
+        if (userProfile) {
+          await logLogout({
+            id: userProfile.id,
+            email: userProfile.email,
+            nombre: `${userProfile.nombres} ${userProfile.apellidos}`
+          });
+        }
+      } catch (logError) {
+        console.error('Error al registrar log de logout:', logError);
+        // Continuar con el logout aunque falle el log
+      }
+
       // 1. Limpiar estado local primero
       setUser(null);
       setUserProfile(null);

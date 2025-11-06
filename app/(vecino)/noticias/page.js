@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { getReaccionesMultiples } from '@/lib/reacciones/noticiasReacciones';
 
 export default function NoticiasPage() {
   const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('todas');
+  const [reaccionesStats, setReaccionesStats] = useState({});
 
   useEffect(() => {
     fetchNoticias();
@@ -33,6 +35,13 @@ export default function NoticiasPage() {
       }
 
       setNoticias(data || []);
+
+      // Cargar estadísticas de reacciones para todas las noticias
+      if (data && data.length > 0) {
+        const ids = data.map(n => n.id);
+        const stats = await getReaccionesMultiples(ids);
+        setReaccionesStats(stats);
+      }
     } catch (error) {
       console.error('Error completo:', error);
       setError('Error al cargar las noticias');
@@ -75,6 +84,36 @@ export default function NoticiasPage() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Función para extraer texto plano del HTML (sin etiquetas) preservando saltos de línea
+  const extractPlainText = (html) => {
+    if (!html) return '';
+
+    // Reemplazar etiquetas de bloque con saltos de línea antes de extraer texto
+    let processedHtml = html
+      .replace(/<\/p>/gi, '\n')           // Párrafos
+      .replace(/<br\s*\/?>/gi, '\n')       // Saltos de línea
+      .replace(/<\/div>/gi, '\n')          // Divs
+      .replace(/<\/h[1-6]>/gi, '\n')       // Títulos
+      .replace(/<\/li>/gi, '\n')           // Items de lista
+      .replace(/<\/tr>/gi, '\n')           // Filas de tabla
+      .replace(/<\/blockquote>/gi, '\n');  // Citas
+
+    // Crear un elemento temporal para parsear el HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = processedHtml;
+
+    // Obtener solo el texto sin etiquetas
+    let text = temp.textContent || temp.innerText || '';
+
+    // Limpiar múltiples saltos de línea consecutivos
+    text = text.replace(/\n\s*\n\s*\n/g, '\n\n');
+
+    // Limpiar espacios al inicio y final
+    text = text.trim();
+
+    return text;
   };
 
   const noticiasFiltradas = noticias.filter(noticia => {
@@ -177,15 +216,25 @@ export default function NoticiasPage() {
                       'col-md-6 col-lg-4'
                     }`}
                   >
-                    <div className="card h-100 shadow border-warning" style={{ borderWidth: '3px', transition: 'transform 0.2s', padding: 0, overflow: 'hidden' }}>
+                    <div className="card h-100 shadow border-warning noticia-card-destacada" style={{ borderWidth: '3px', transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
                       {/* Imagen de portada */}
                       {noticia.imagen_url && (
-                        <img
-                          src={noticia.imagen_url}
-                          alt={noticia.titulo}
-                          style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block', margin: 0 }}
-                          loading="lazy"
-                        />
+                        <div style={{ position: 'relative', overflow: 'hidden' }}>
+                          <img
+                            src={noticia.imagen_url}
+                            alt={noticia.titulo}
+                            className="noticia-card-image"
+                            style={{
+                              width: '100%',
+                              aspectRatio: '16/9',
+                              objectFit: 'cover',
+                              display: 'block',
+                              margin: 0,
+                              transition: 'transform 0.3s ease'
+                            }}
+                            loading="lazy"
+                          />
+                        </div>
                       )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
@@ -200,11 +249,28 @@ export default function NoticiasPage() {
                             {noticia.resumen}
                           </p>
                         )}
-                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
-                          {noticia.contenido.length > 150
-                            ? `${noticia.contenido.substring(0, 150)}...`
-                            : noticia.contenido}
+                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                          {(() => {
+                            const plainText = extractPlainText(noticia.contenido);
+                            return plainText.length > 150
+                              ? `${plainText.substring(0, 150)}...`
+                              : plainText;
+                          })()}
                         </p>
+                        {/* Reacciones preview */}
+                        {reaccionesStats[noticia.id] && reaccionesStats[noticia.id].total > 0 && (
+                          <div className="mb-3 d-flex gap-3" style={{ fontSize: '0.9rem' }}>
+                            <span className="d-flex align-items-center gap-1" style={{ color: '#10b981' }}>
+                              👍 <strong>{reaccionesStats[noticia.id].meGusta}</strong>
+                            </span>
+                            <span className="d-flex align-items-center gap-1" style={{ color: '#ef4444' }}>
+                              👎 <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
+                            </span>
+                            <span className="text-muted">
+                              · {reaccionesStats[noticia.id].total} {reaccionesStats[noticia.id].total === 1 ? 'reacción' : 'reacciones'}
+                            </span>
+                          </div>
+                        )}
                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                           <small className="text-muted">
                             📅 {formatearFecha(noticia.fecha_publicacion)}
@@ -234,15 +300,25 @@ export default function NoticiasPage() {
               <div className="row g-4">
                 {noticiasRegulares.map((noticia) => (
                   <div key={noticia.id} className="col-12 col-lg-6">
-                    <div className="card h-100 shadow-sm border-0" style={{ transition: 'transform 0.2s', padding: 0, overflow: 'hidden' }}>
+                    <div className="card h-100 shadow-sm border-0 noticia-card-regular" style={{ transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
                       {/* Imagen de portada */}
                       {noticia.imagen_url && (
-                        <img
-                          src={noticia.imagen_url}
-                          alt={noticia.titulo}
-                          style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block', margin: 0 }}
-                          loading="lazy"
-                        />
+                        <div style={{ position: 'relative', overflow: 'hidden' }}>
+                          <img
+                            src={noticia.imagen_url}
+                            alt={noticia.titulo}
+                            className="noticia-card-image"
+                            style={{
+                              width: '100%',
+                              aspectRatio: '16/9',
+                              objectFit: 'cover',
+                              display: 'block',
+                              margin: 0,
+                              transition: 'transform 0.3s ease'
+                            }}
+                            loading="lazy"
+                          />
+                        </div>
                       )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="mb-3">
@@ -256,11 +332,28 @@ export default function NoticiasPage() {
                             {noticia.resumen}
                           </p>
                         )}
-                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
-                          {noticia.contenido.length > 120
-                            ? `${noticia.contenido.substring(0, 120)}...`
-                            : noticia.contenido}
+                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                          {(() => {
+                            const plainText = extractPlainText(noticia.contenido);
+                            return plainText.length > 120
+                              ? `${plainText.substring(0, 120)}...`
+                              : plainText;
+                          })()}
                         </p>
+                        {/* Reacciones preview */}
+                        {reaccionesStats[noticia.id] && reaccionesStats[noticia.id].total > 0 && (
+                          <div className="mb-3 d-flex gap-3" style={{ fontSize: '0.9rem' }}>
+                            <span className="d-flex align-items-center gap-1" style={{ color: '#10b981' }}>
+                              👍 <strong>{reaccionesStats[noticia.id].meGusta}</strong>
+                            </span>
+                            <span className="d-flex align-items-center gap-1" style={{ color: '#ef4444' }}>
+                              👎 <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
+                            </span>
+                            <span className="text-muted">
+                              · {reaccionesStats[noticia.id].total} {reaccionesStats[noticia.id].total === 1 ? 'reacción' : 'reacciones'}
+                            </span>
+                          </div>
+                        )}
                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                           <small className="text-muted">
                             📅 {formatearFecha(noticia.fecha_publicacion)}
@@ -281,6 +374,36 @@ export default function NoticiasPage() {
           )}
         </>
       )}
+
+      <style jsx>{`
+        /* Efectos hover para cards de noticias */
+        .noticia-card-destacada:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 12px 32px rgba(0,0,0,0.15) !important;
+        }
+
+        .noticia-card-regular:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+        }
+
+        .noticia-card-destacada:hover .noticia-card-image,
+        .noticia-card-regular:hover .noticia-card-image {
+          transform: scale(1.08);
+        }
+
+        /* Animación suave en cards */
+        .noticia-card-destacada,
+        .noticia-card-regular {
+          cursor: pointer;
+        }
+
+        /* Mejora visual en hover de badges */
+        .card:hover .badge {
+          transform: scale(1.05);
+          transition: transform 0.2s ease;
+        }
+      `}</style>
     </div>
   );
 }

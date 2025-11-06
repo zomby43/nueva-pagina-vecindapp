@@ -102,6 +102,31 @@ export default function AdminSidebar({ isOpen = true, onClose }) {
 
         <div className="nav-divider"></div>
 
+        <div className="nav-section-title">Sistema</div>
+        <Link
+          href="/admin/roles"
+          className={`nav-link ${isActive('/admin/roles')}`}
+          onClick={handleLinkClick}
+        >
+          <i className="bi bi-shield-lock me-2"></i>Roles y Permisos
+        </Link>
+        <Link
+          href="/admin/logs"
+          className={`nav-link ${isActive('/admin/logs')}`}
+          onClick={handleLinkClick}
+        >
+          <i className="bi bi-file-text me-2"></i>Logs de Actividad
+        </Link>
+        <Link
+          href="/admin/configuracion"
+          className={`nav-link ${isActive('/admin/configuracion')}`}
+          onClick={handleLinkClick}
+        >
+          <i className="bi bi-gear me-2"></i>Configuración
+        </Link>
+
+        <div className="nav-divider"></div>
+
         <div className="nav-section-title">Reportes</div>
         <Link
           href="/admin/reportes"

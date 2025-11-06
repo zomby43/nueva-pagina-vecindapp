@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
 import * as emailHelpers from '@/lib/emails/sendEmail';
+
+// Importar RichTextEditor dinámicamente para evitar problemas de SSR
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
+  ssr: false,
+  loading: () => <div className="p-3 text-center">Cargando editor...</div>
+});
 
 export default function EditarNoticiaPage() {
   const params = useParams();
@@ -279,19 +286,18 @@ export default function EditarNoticiaPage() {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="contenido" className="form-label">
+                  <label className="form-label">
                     Contenido <span className="text-danger">*</span>
                   </label>
-                  <textarea
-                    className="form-control"
-                    id="contenido"
-                    name="contenido"
+                  <p className="text-muted small mb-2">
+                    Usa el editor para dar formato al texto e insertar imágenes dentro del contenido.
+                  </p>
+                  <RichTextEditor
                     value={formData.contenido}
-                    onChange={handleChange}
-                    rows="10"
-                    placeholder="Escribe el contenido completo de la noticia aquí..."
-                    required
-                  ></textarea>
+                    onChange={(content) => setFormData(prev => ({ ...prev, contenido: content }))}
+                    placeholder="Escribe el contenido completo de la noticia aquí... Puedes insertar imágenes haciendo click en el ícono de imagen 🖼️"
+                    minHeight={350}
+                  />
                 </div>
 
                 <div className="row">

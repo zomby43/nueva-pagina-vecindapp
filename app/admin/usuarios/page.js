@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logCambioRol, logCambioEstadoUsuario, logEliminacion } from '@/lib/logs/createLog';
 
 export default function AdminUsuariosPage() {
   const { user } = useAuth();
@@ -87,12 +88,29 @@ export default function AdminUsuariosPage() {
     const supabase = createClient();
 
     try {
+      // Obtener datos actuales del usuario antes de actualizar
+      const { data: usuarioActual } = await supabase
+        .from('usuarios')
+        .select('estado, nombres, apellidos')
+        .eq('id', usuarioId)
+        .single();
+
       const { error } = await supabase
         .from('usuarios')
         .update({ estado: nuevoEstado })
         .eq('id', usuarioId);
 
       if (error) throw error;
+
+      // Registrar log de cambio de estado
+      if (usuarioActual) {
+        await logCambioEstadoUsuario(
+          usuarioId,
+          `${usuarioActual.nombres} ${usuarioActual.apellidos}`,
+          usuarioActual.estado,
+          nuevoEstado
+        );
+      }
 
       alert('Estado actualizado correctamente');
       fetchUsuarios(); // Recargar datos
@@ -110,12 +128,29 @@ export default function AdminUsuariosPage() {
     const supabase = createClient();
 
     try {
+      // Obtener datos actuales del usuario antes de actualizar
+      const { data: usuarioActual } = await supabase
+        .from('usuarios')
+        .select('rol, nombres, apellidos')
+        .eq('id', usuarioId)
+        .single();
+
       const { error } = await supabase
         .from('usuarios')
         .update({ rol: nuevoRol })
         .eq('id', usuarioId);
 
       if (error) throw error;
+
+      // Registrar log de cambio de rol
+      if (usuarioActual) {
+        await logCambioRol(
+          usuarioId,
+          `${usuarioActual.nombres} ${usuarioActual.apellidos}`,
+          usuarioActual.rol,
+          nuevoRol
+        );
+      }
 
       alert('Rol actualizado correctamente');
       fetchUsuarios(); // Recargar datos
@@ -133,6 +168,13 @@ export default function AdminUsuariosPage() {
     const supabase = createClient();
 
     try {
+      // Obtener datos del usuario antes de eliminar
+      const { data: usuarioEliminado } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', usuarioId)
+        .single();
+
       // Eliminar usuario (las foreign keys en cascada eliminarán sus registros relacionados)
       const { error } = await supabase
         .from('usuarios')
@@ -140,6 +182,21 @@ export default function AdminUsuariosPage() {
         .eq('id', usuarioId);
 
       if (error) throw error;
+
+      // Registrar log de eliminación
+      if (usuarioEliminado) {
+        await logEliminacion(
+          'usuario',
+          usuarioId,
+          nombreUsuario,
+          {
+            rol: usuarioEliminado.rol,
+            estado: usuarioEliminado.estado,
+            email: usuarioEliminado.email,
+            rut: usuarioEliminado.rut
+          }
+        );
+      }
 
       alert('Usuario eliminado correctamente');
       fetchUsuarios(); // Recargar datos
