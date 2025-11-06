@@ -1,12 +1,146 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+
+// Estados considerados "procesadas"
+const PROCESSED_STATES = [
+  'completado', 'completada',
+  'aprobado', 'aprobada',
+  'emitido', 'emitida',
+  'rechazado', 'rechazada',
+];
+
+const formatNumber = (n) => {
+  try { return Number(n ?? 0).toLocaleString('es-CL'); }
+  catch { return String(n ?? 0); }
+};
+
+const isProcessed = (estado) =>
+  PROCESSED_STATES.includes(String(estado || '').toLowerCase());
+
+const isVecinoActivo = (row) =>
+  String(row?.rol || '').toLowerCase() === 'vecino' &&
+  String(row?.estado || '').toLowerCase() === 'activo';
 
 export default function Home() {
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const [loading, setLoading] = useState(true);
 
-  // Función para navegar con recarga completa (limpia cache)
+  const [metrics, setMetrics] = useState({
+    vecinosActivos: 0,
+    solicitudesProcesadas: 0,
+  });
+
+  // -------- CARGA INICIAL (counts exactos)
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true);
+
+      // 1) Vecinos activos
+      const { count: vecinosActivos, error: errU } = await supabase
+        .from('usuarios')
+        .select('id', { count: 'exact', head: true })
+        .eq('rol', 'vecino')
+        .eq('estado', 'activo');
+      if (errU) throw errU;
+
+      // 2) Solicitudes procesadas
+      const { count: solicitudesProcesadas, error: errS } = await supabase
+        .from('solicitudes')
+        .select('id', { count: 'exact', head: true })
+        .in('estado', PROCESSED_STATES);
+      if (errS) throw errS;
+
+      setMetrics({
+        vecinosActivos: vecinosActivos ?? 0,
+        solicitudesProcesadas: solicitudesProcesadas ?? 0,
+      });
+    } catch (e) {
+      console.error('Error cargando métricas:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -------- SUSCRIPCIÓN REALTIME (sin filtros frágiles)
+  useEffect(() => {
+    let mounted = true;
+
+    fetchMetrics();
+
+    const channel = supabase
+      .channel('home-metrics')
+      // usuarios: cualquier cambio. Ajustamos contadores según transición
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => {
+        if (!mounted) return;
+        const { eventType, old, new: n } = payload;
+
+        if (eventType === 'INSERT') {
+          if (isVecinoActivo(n)) {
+            setMetrics((m) => ({ ...m, vecinosActivos: Math.max(0, m.vecinosActivos + 1) }));
+          }
+        } else if (eventType === 'UPDATE') {
+          const eraActivo = isVecinoActivo(old);
+          const esActivo = isVecinoActivo(n);
+          if (eraActivo !== esActivo) {
+            setMetrics((m) => ({
+              ...m,
+              vecinosActivos: Math.max(0, m.vecinosActivos + (esActivo ? 1 : -1)),
+            }));
+          }
+        } else if (eventType === 'DELETE') {
+          if (isVecinoActivo(old)) {
+            setMetrics((m) => ({ ...m, vecinosActivos: Math.max(0, m.vecinosActivos - 1) }));
+          }
+        }
+      })
+      // solicitudes: cualquier cambio. Contamos si entra/sale de estados procesados
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, (payload) => {
+        if (!mounted) return;
+        const { eventType, old, new: n } = payload;
+
+        if (eventType === 'INSERT') {
+          if (isProcessed(n?.estado)) {
+            setMetrics((m) => ({
+              ...m,
+              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas + 1),
+            }));
+          }
+        } else if (eventType === 'UPDATE') {
+          const oldProc = isProcessed(old?.estado);
+          const newProc = isProcessed(n?.estado);
+          if (oldProc !== newProc) {
+            setMetrics((m) => ({
+              ...m,
+              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas + (newProc ? 1 : -1)),
+            }));
+          }
+        } else if (eventType === 'DELETE') {
+          if (isProcessed(old?.estado)) {
+            setMetrics((m) => ({
+              ...m,
+              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas - 1),
+            }));
+          }
+        }
+      })
+      .subscribe();
+
+    const onOnline = () => fetchMetrics();
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      mounted = false;
+      channel.unsubscribe();
+      window.removeEventListener('online', onOnline);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Navegación con recarga completa (como tenías)
   const navigateTo = (path) => {
     if (typeof window !== 'undefined') {
       window.location.href = path;
@@ -60,7 +194,7 @@ export default function Home() {
             Gestiona certificados, proyectos y comunicación vecinal en un solo lugar
           </p>
 
-          {/* Trust Badges */}
+          {/* Trust Badges (DINÁMICOS) */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -74,7 +208,9 @@ export default function Home() {
               borderRadius: '16px',
               backdropFilter: 'blur(10px)'
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 700 }}>500+</div>
+              <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+                {loading ? '…' : formatNumber(metrics.vecinosActivos)}
+              </div>
               <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Vecinos Activos</div>
             </div>
             <div style={{
@@ -83,7 +219,9 @@ export default function Home() {
               borderRadius: '16px',
               backdropFilter: 'blur(10px)'
             }}>
-              <div style={{ fontSize: '2rem', fontWeight: 700 }}>1,200+</div>
+              <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+                {loading ? '…' : formatNumber(metrics.solicitudesProcesadas)}
+              </div>
               <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Solicitudes Procesadas</div>
             </div>
             <div style={{
@@ -114,12 +252,12 @@ export default function Home() {
                 transition: 'transform 0.2s, box-shadow 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
             >
               Iniciar Sesión
@@ -139,14 +277,14 @@ export default function Home() {
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = 'white';
-                e.target.style.color = '#439fa4';
-                e.target.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#439fa4';
+                e.currentTarget.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255,255,255,0.2)';
-                e.target.style.color = 'white';
-                e.target.style.transform = 'translateY(0)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                e.currentTarget.style.color = 'white';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
               Registrarse Gratis
@@ -194,15 +332,16 @@ export default function Home() {
           gap: '2rem'
         }}>
           {/* Paso 1 */}
-          <div style={{
-            background: 'white',
-            padding: '2.5rem',
-            borderRadius: '16px',
-            borderLeft: '6px solid #439fa4',
-            boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default'
-          }}
+          <div
+            style={{
+              background: 'white',
+              padding: '2.5rem',
+              borderRadius: '16px',
+              borderLeft: '6px solid #439fa4',
+              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'default'
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -236,15 +375,16 @@ export default function Home() {
           </div>
 
           {/* Paso 2 */}
-          <div style={{
-            background: 'white',
-            padding: '2.5rem',
-            borderRadius: '16px',
-            borderLeft: '6px solid #fbbf24',
-            boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default'
-          }}
+          <div
+            style={{
+              background: 'white',
+              padding: '2.5rem',
+              borderRadius: '16px',
+              borderLeft: '6px solid #fbbf24',
+              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'default'
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -278,15 +418,16 @@ export default function Home() {
           </div>
 
           {/* Paso 3 */}
-          <div style={{
-            background: 'white',
-            padding: '2.5rem',
-            borderRadius: '16px',
-            borderLeft: '6px solid #34d399',
-            boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'default'
-          }}
+          <div
+            style={{
+              background: 'white',
+              padding: '2.5rem',
+              borderRadius: '16px',
+              borderLeft: '6px solid #34d399',
+              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              cursor: 'default'
+            }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -339,15 +480,16 @@ export default function Home() {
             gap: '2rem'
           }}>
             {/* Feature 1 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -369,15 +511,16 @@ export default function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -399,15 +542,16 @@ export default function Home() {
             </div>
 
             {/* Feature 3 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -429,15 +573,16 @@ export default function Home() {
             </div>
 
             {/* Feature 4 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -459,15 +604,16 @@ export default function Home() {
             </div>
 
             {/* Feature 5 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -489,15 +635,16 @@ export default function Home() {
             </div>
 
             {/* Feature 6 */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2rem',
-              borderRadius: '16px',
-              textAlign: 'center',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}
+            <div
+              style={{
+                background: '#f4f8f9',
+                padding: '2rem',
+                borderRadius: '16px',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'default',
+                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
+              }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
@@ -798,12 +945,12 @@ export default function Home() {
               transition: 'transform 0.2s, box-shadow 0.2s'
             }}
             onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-4px) scale(1.05)';
-              e.target.style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)';
+              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0) scale(1)';
-              e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
             }}
           >
             Crear Cuenta Gratis 🚀

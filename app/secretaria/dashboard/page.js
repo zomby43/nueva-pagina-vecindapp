@@ -150,7 +150,7 @@ export default function SecretariaDashboard() {
         actividadesPendientes: actividadesPendientesCount || 0
       });
 
-      // 9. Obtener últimos 3 vecinos pendientes
+      // 9. Últimos 3 vecinos pendientes
       const { data: vecinosData } = await supabase
         .from('usuarios')
         .select('id, nombres, apellidos, rut, direccion, created_at')
@@ -160,7 +160,7 @@ export default function SecretariaDashboard() {
 
       setVecinosPendientes(vecinosData || []);
 
-      // 10. Obtener últimas 3 solicitudes
+      // 10. Últimas 3 solicitudes
       const { data: solicitudesData } = await supabase
         .from('solicitudes')
         .select(`
@@ -193,20 +193,28 @@ export default function SecretariaDashboard() {
 
   const getTipoLabel = (tipo) => {
     const tipos = {
-      'residencia': 'Certificado de Residencia',
-      'antiguedad': 'Certificado de Antigüedad'
+      residencia: 'Certificado de Residencia',
+      antiguedad: 'Certificado de Antigüedad'
     };
     return tipos[tipo] || tipo;
   };
 
   const getEstadoLabel = (estado) => {
     const estados = {
-      'pendiente': 'Pendiente',
-      'en_proceso': 'En Proceso',
-      'completado': 'Completado',
-      'rechazado': 'Rechazado'
+      pendiente: 'Pendiente',
+      en_proceso: 'En Proceso',
+      completado: 'Completado',
+      rechazado: 'Rechazado'
     };
     return estados[estado] || estado;
+  };
+
+  const hrefRevisarSolicitud = (s) => {
+    const esFinal = s.estado === 'completado' || s.estado === 'rechazado';
+    // Misma page de solicitudes; modal si finalizada, foco si activa
+    return esFinal
+      ? `/secretaria/solicitudes?ver=${encodeURIComponent(s.id)}`
+      : `/secretaria/solicitudes?focus=${encodeURIComponent(s.id)}`;
   };
 
   if (loading) {
@@ -424,10 +432,10 @@ export default function SecretariaDashboard() {
             alignItems: 'center',
             marginBottom: '1.5rem'
           }}>
-          <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
-            <i className="bi bi-clipboard-data me-2 text-primary"></i>
-            Solicitudes Recientes
-          </h2>
+            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0 }}>
+              <i className="bi bi-clipboard-data me-2 text-primary"></i>
+              Solicitudes Recientes
+            </h2>
             <Link href="/secretaria/solicitudes" className="btn btn-secondary btn-sm" style={{
               padding: '0.375rem 0.875rem',
               fontSize: '0.875rem',
@@ -459,46 +467,62 @@ export default function SecretariaDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {solicitudesRecientes.map(solicitud => (
-                  <tr key={solicitud.id}>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                      <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
-                        {solicitud.id.substring(0, 8)}
-                      </code>
-                    </td>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{solicitud.usuario?.nombres} {solicitud.usuario?.apellidos}</td>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{getTipoLabel(solicitud.tipo)}</td>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                      <span className={`status-badge badge-${solicitud.estado}`} style={{
-                        display: 'inline-block',
-                        padding: '0.375rem 0.875rem',
-                        borderRadius: '20px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        background: solicitud.estado === 'pendiente' ? 'rgba(251, 191, 36, 0.2)' :
-                                    solicitud.estado === 'en_proceso' ? 'rgba(67, 159, 164, 0.2)' :
-                                    solicitud.estado === 'completado' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 113, 133, 0.2)',
-                        color: solicitud.estado === 'pendiente' ? '#fbbf24' :
-                               solicitud.estado === 'en_proceso' ? '#439fa4' :
-                               solicitud.estado === 'completado' ? '#34d399' : '#fb7185'
-                      }}>
-                        {getEstadoLabel(solicitud.estado)}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>{formatFecha(solicitud.created_at)}</td>
-                    <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
-                      <Link href={`/secretaria/solicitudes/${solicitud.id}`} className="btn-link" style={{
-                        color: '#439fa4',
-                        textDecoration: 'none',
-                        fontWeight: 600,
-                        padding: '0.375rem 0.875rem',
-                        borderRadius: '8px'
-                      }}>
-                        Revisar
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {solicitudesRecientes.map((solicitud) => {
+                  const href = hrefRevisarSolicitud(solicitud);
+                  return (
+                    <tr key={solicitud.id}>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        <code style={{ background: '#bfd3d9', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.875rem' }}>
+                          {solicitud.id.substring(0, 8)}
+                        </code>
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        {solicitud.usuario?.nombres} {solicitud.usuario?.apellidos}
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        {getTipoLabel(solicitud.tipo)}
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        <span className={`status-badge badge-${solicitud.estado}`} style={{
+                          display: 'inline-block',
+                          padding: '0.375rem 0.875rem',
+                          borderRadius: '20px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          background: solicitud.estado === 'pendiente' ? 'rgba(251, 191, 36, 0.2)' :
+                                      solicitud.estado === 'en_proceso' ? 'rgba(67, 159, 164, 0.2)' :
+                                      solicitud.estado === 'completado' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 113, 133, 0.2)',
+                          color: solicitud.estado === 'pendiente' ? '#fbbf24' :
+                                 solicitud.estado === 'en_proceso' ? '#439fa4' :
+                                 solicitud.estado === 'completado' ? '#34d399' : '#fb7185'
+                        }}>
+                          {getEstadoLabel(solicitud.estado)}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        {formatFecha(solicitud.created_at)}
+                      </td>
+                      <td style={{ padding: '1rem', verticalAlign: 'middle', borderColor: '#bfd3d9' }}>
+                        <Link
+                          href={href}
+                          prefetch={false}
+                          className="btn-link"
+                          style={{
+                            color: '#439fa4',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            padding: '0.375rem 0.875rem',
+                            borderRadius: '8px'
+                          }}
+                          aria-label={`Revisar solicitud ${solicitud.id.substring(0,8)}`}
+                          title="Revisar"
+                        >
+                          Revisar
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

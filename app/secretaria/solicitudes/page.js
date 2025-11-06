@@ -6,9 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { descargarCertificado } from '@/lib/pdf/generarCertificado';
 import { enviarCorreoAprobacionSolicitud, enviarCorreoRechazoSolicitud } from '@/lib/emails/sendEmail';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SecretariaSolicitudesPage() {
   const { user, userProfile } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,12 +20,52 @@ export default function SecretariaSolicitudesPage() {
   const [procesandoId, setProcesandoId] = useState(null);
   const [solicitudSeleccionada, setSolicitudSeleccionada] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [focusedId, setFocusedId] = useState(null); // <-- para resaltar fila
 
   useEffect(() => {
     if (user && userProfile?.rol === 'secretaria') {
       fetchSolicitudes();
     }
   }, [user, userProfile]);
+
+  // Aplica ?ver= (modal) y ?focus= (scroll + highlight) cuando ya hay datos
+  useEffect(() => {
+    if (loading) return;
+
+    const verId = searchParams?.get('ver');
+    const focusId = searchParams?.get('focus');
+
+    if (verId) {
+      const s = solicitudes.find((x) => x.id === verId);
+      if (s) {
+        setSolicitudSeleccionada(s);
+        setMostrarModal(true);
+      }
+      return; // si hay ?ver, no aplicamos focus
+    }
+
+    if (focusId) {
+      const s = solicitudes.find((x) => x.id === focusId);
+      if (s) {
+        // Asegura que sea visible aunque haya filtro activo
+        setFiltroEstado('todos');
+        setFocusedId(focusId);
+        // Scroll suave al centro
+        requestAnimationFrame(() => {
+          const el = document.getElementById(`solicitud-${focusId}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        // Quitamos highlight después de unos segundos
+        const t = setTimeout(() => setFocusedId(null), 4000);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [loading, solicitudes, searchParams]); // se recalcula si cambian datos o url
+
+  const clearQuery = () => {
+    // Limpia ?ver o ?focus del URL sin recargar
+    router.replace(window.location.pathname, { scroll: false });
+  };
 
   const fetchSolicitudes = async () => {
     try {
@@ -67,13 +111,11 @@ export default function SecretariaSolicitudesPage() {
       }
 
       console.log('✅ Solicitudes cargadas:', data?.length || 0);
-      console.log('📊 Datos completos:', data);
-      console.log('👤 Ejemplo de usuario en solicitud:', data?.[0]?.usuario);
       setSolicitudes(data || []);
     } catch (error) {
       if (error.name === 'AbortError') {
         console.error('❌ Timeout al cargar solicitudes');
-        return; // El error ya fue seteado en el timeout
+        return;
       }
       console.error('❌ Error completo:', error);
       setError(`Error al cargar las solicitudes: ${error.message || error.toString()}`);
@@ -89,7 +131,7 @@ export default function SecretariaSolicitudesPage() {
 
       // Obtener datos completos de la solicitud antes de actualizar
       const solicitudActual = solicitudes.find(s => s.id === solicitudId);
-      
+
       if (!solicitudActual) {
         alert('No se encontró la solicitud');
         return;
@@ -111,48 +153,50 @@ export default function SecretariaSolicitudesPage() {
         .update(updateData)
         .eq('id', solicitudId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Enviar correo según el estado
+      // Enviar correo según el estado (no bloquea el flujo)
       try {
         const nombreCompleto = `${solicitudActual.usuario?.nombres || ''} ${solicitudActual.usuario?.apellidos || ''}`.trim();
         const email = solicitudActual.usuario?.email;
 
         if (email && nombreCompleto) {
           if (nuevoEstado === 'completado') {
-            await enviarCorreoAprobacionSolicitud(
-              email,
-              nombreCompleto,
-              solicitudActual.tipo
-            );
+            await enviarCorreoAprobacionSolicitud(email, nombreCompleto, solicitudActual.tipo);
             console.log('✅ Correo de aprobación de solicitud enviado a:', email);
           } else if (nuevoEstado === 'rechazado') {
-            await enviarCorreoRechazoSolicitud(
-              email,
-              nombreCompleto,
-              solicitudActual.tipo,
-              motivo || 'No especificado'
-            );
+            await enviarCorreoRechazoSolicitud(email, nombreCompleto, solicitudActual.tipo, motivo || 'No especificado');
             console.log('✅ Correo de rechazo de solicitud enviado a:', email);
           }
         }
       } catch (emailError) {
         console.error('⚠️ Error al enviar correo (la solicitud fue actualizada):', emailError);
-        // No interrumpimos el flujo si falla el email
       }
 
       // Actualizar la lista local
-      setSolicitudes(prev => 
-        prev.map(sol => 
-          sol.id === solicitudId 
-            ? { ...sol, estado: nuevoEstado, atendido_por: user.id, fecha_respuesta: nuevoEstado === 'completado' || nuevoEstado === 'rechazado' ? new Date().toISOString() : null }
+      setSolicitudes(prev =>
+        prev.map(sol =>
+          sol.id === solicitudId
+            ? {
+                ...sol,
+                estado: nuevoEstado,
+                atendido_por: user.id,
+                fecha_respuesta:
+                  nuevoEstado === 'completado' || nuevoEstado === 'rechazado'
+                    ? new Date().toISOString()
+                    : null
+              }
             : sol
         )
       );
 
-      alert(`Solicitud ${nuevoEstado === 'completado' ? 'aprobada' : nuevoEstado === 'rechazado' ? 'rechazada' : 'actualizada'} exitosamente. ${(nuevoEstado === 'completado' || nuevoEstado === 'rechazado') ? 'Se ha enviado un correo de notificación.' : ''}`);
+      alert(
+        `Solicitud ${
+          nuevoEstado === 'completado' ? 'aprobada' : nuevoEstado === 'rechazado' ? 'rechazada' : 'actualizada'
+        } exitosamente. ${
+          nuevoEstado === 'completado' || nuevoEstado === 'rechazado' ? 'Se ha enviado un correo de notificación.' : ''
+        }`
+      );
 
     } catch (error) {
       console.error('Error updating solicitud:', error);
@@ -171,7 +215,6 @@ export default function SecretariaSolicitudesPage() {
       case 'rechazado':
         return 'bg-danger';
       case 'pendiente':
-        return 'bg-secondary';
       default:
         return 'bg-secondary';
     }
@@ -179,29 +222,20 @@ export default function SecretariaSolicitudesPage() {
 
   const getEstadoTexto = (estado) => {
     switch (estado) {
-      case 'completado':
-        return 'Completado';
-      case 'en_proceso':
-        return 'En Proceso';
-      case 'rechazado':
-        return 'Rechazado';
+      case 'completado': return 'Completado';
+      case 'en_proceso': return 'En Proceso';
+      case 'rechazado':  return 'Rechazado';
       case 'pendiente':
-        return 'Pendiente';
-      default:
-        return 'Pendiente';
+      default:           return 'Pendiente';
     }
   };
 
   const getTipoTexto = (tipo) => {
     switch (tipo) {
-      case 'certificado_residencia':
-        return 'Certificado de Residencia';
-      case 'certificado_antiguedad':
-        return 'Certificado de Antigüedad';
-      case 'otro':
-        return 'Otro';
-      default:
-        return tipo;
+      case 'certificado_residencia': return 'Certificado de Residencia';
+      case 'certificado_antiguedad': return 'Certificado de Antigüedad';
+      case 'otro':                   return 'Otro';
+      default:                       return tipo;
     }
   };
 
@@ -253,7 +287,7 @@ export default function SecretariaSolicitudesPage() {
             <h1>Gestión de Solicitudes</h1>
             <p className="text-muted">Administrar solicitudes de certificados de vecinos</p>
           </div>
-          <button 
+          <button
             className="btn btn-outline-primary"
             onClick={fetchSolicitudes}
             disabled={loading}
@@ -268,7 +302,7 @@ export default function SecretariaSolicitudesPage() {
         {error && (
           <div className="alert alert-danger mb-4">
             <strong>Error:</strong> {error}
-            <button 
+            <button
               className="btn btn-sm btn-outline-danger ms-2"
               onClick={fetchSolicitudes}
             >
@@ -350,10 +384,9 @@ export default function SecretariaSolicitudesPage() {
                 <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>📋</div>
                 <h5>No hay solicitudes</h5>
                 <p className="text-muted">
-                  {filtroEstado === 'todos' 
+                  {filtroEstado === 'todos'
                     ? 'No se han encontrado solicitudes'
-                    : `No hay solicitudes con estado "${getEstadoTexto(filtroEstado)}"`
-                  }
+                    : `No hay solicitudes con estado "${getEstadoTexto(filtroEstado)}"`}
                 </p>
               </div>
             ) : (
@@ -372,7 +405,19 @@ export default function SecretariaSolicitudesPage() {
                   </thead>
                   <tbody>
                     {solicitudesFiltradas.map((solicitud) => (
-                      <tr key={solicitud.id}>
+                      <tr
+                        key={solicitud.id}
+                        id={`solicitud-${solicitud.id}`} // <-- ancla para scroll
+                        style={
+                          focusedId === solicitud.id
+                            ? {
+                                outline: '2px solid #439fa4',
+                                background: 'rgba(67,159,164,0.08)',
+                                transition: 'all .3s'
+                              }
+                            : undefined
+                        }
+                      >
                         <td>
                           <code>#{solicitud.id.substring(0, 8)}</code>
                         </td>
@@ -394,10 +439,9 @@ export default function SecretariaSolicitudesPage() {
                             <div className="fw-medium">{solicitud.motivo}</div>
                             {solicitud.observaciones && (
                               <small className="text-muted">
-                                {solicitud.observaciones.length > 30 
+                                {solicitud.observaciones.length > 30
                                   ? `${solicitud.observaciones.substring(0, 30)}...`
-                                  : solicitud.observaciones
-                                }
+                                  : solicitud.observaciones}
                               </small>
                             )}
                           </div>
@@ -414,21 +458,21 @@ export default function SecretariaSolicitudesPage() {
                           <div className="btn-group btn-group-sm">
                             {solicitud.estado === 'pendiente' && (
                               <>
-                                <button 
+                                <button
                                   className="btn btn-outline-info"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'en_proceso')}
                                   disabled={procesandoId === solicitud.id}
                                 >
                                   {procesandoId === solicitud.id ? '⏳' : '📝'} Procesar
                                 </button>
-                                <button 
+                                <button
                                   className="btn btn-outline-success"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'completado')}
                                   disabled={procesandoId === solicitud.id}
                                 >
                                   {procesandoId === solicitud.id ? '⏳' : '✅'} Aprobar
                                 </button>
-                                <button 
+                                <button
                                   className="btn btn-outline-danger"
                                   onClick={() => {
                                     if (confirm('¿Estás segura de rechazar esta solicitud?')) {
@@ -443,14 +487,14 @@ export default function SecretariaSolicitudesPage() {
                             )}
                             {solicitud.estado === 'en_proceso' && (
                               <>
-                                <button 
+                                <button
                                   className="btn btn-outline-success"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'completado')}
                                   disabled={procesandoId === solicitud.id}
                                 >
                                   {procesandoId === solicitud.id ? '⏳' : '✅'} Completar
                                 </button>
-                                <button 
+                                <button
                                   className="btn btn-outline-danger"
                                   onClick={() => {
                                     if (confirm('¿Estás segura de rechazar esta solicitud?')) {
@@ -514,14 +558,14 @@ export default function SecretariaSolicitudesPage() {
 
       {/* Modal de Detalles */}
       {mostrarModal && solicitudSeleccionada && (
-        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setMostrarModal(false)}>
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => { setMostrarModal(false); clearQuery(); }}>
           <div className="modal-dialog modal-lg modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
                   Detalles de Solicitud #{solicitudSeleccionada.id.substring(0, 8)}
                 </h5>
-                <button type="button" className="btn-close" onClick={() => setMostrarModal(false)}></button>
+                <button type="button" className="btn-close" onClick={() => { setMostrarModal(false); clearQuery(); }}></button>
               </div>
               <div className="modal-body">
                 {/* Estado */}
@@ -644,7 +688,7 @@ export default function SecretariaSolicitudesPage() {
                     📄 Descargar Certificado
                   </button>
                 )}
-                <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>
+                <button type="button" className="btn btn-secondary" onClick={() => { setMostrarModal(false); clearQuery(); }}>
                   Cerrar
                 </button>
               </div>
