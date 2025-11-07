@@ -218,6 +218,14 @@ export default function SecretariaSidebar({ isOpen = true, onClose }) {
         <i className="bi bi-sliders me-2"></i>Configuración
       </Link>
 
+      <Link
+        href="/secretaria/directiva"
+        className={`nav-link ${isActive('/secretaria/directiva')}`}
+        onClick={handleLinkClick}
+      >
+        <i className="bi bi-people me-2"></i>Gestión Directiva
+      </Link>
+
       <div className="nav-divider"></div>
 
       <a href="/" className="nav-link nav-link-secondary" onClick={handleLinkClick}>

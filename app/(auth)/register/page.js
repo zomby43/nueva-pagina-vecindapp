@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
 
   const router = useRouter();
   const supabase = createClient();
@@ -83,6 +85,55 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Validar Turnstile token
+    if (!turnstileToken) {
+      setError('Por favor, completa la verificación de seguridad');
+      setLoading(false);
+      return;
+    }
+
+    // Verificar el token con nuestro backend
+    try {
+      console.log('🔐 [Register] Verificando Turnstile token...');
+
+      const verifyResponse = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: turnstileToken }),
+      });
+
+      console.log('📡 [Register] Response status:', verifyResponse.status);
+      console.log('📡 [Register] Response ok:', verifyResponse.ok);
+
+      if (!verifyResponse.ok) {
+        console.error('❌ [Register] API response not ok:', verifyResponse.status);
+        const errorText = await verifyResponse.text();
+        console.error('❌ [Register] Error text:', errorText);
+        setError(`Error del servidor (${verifyResponse.status}). Por favor, verifica que el servidor esté corriendo.`);
+        setLoading(false);
+        return;
+      }
+
+      const verifyData = await verifyResponse.json();
+      console.log('📦 [Register] Verify data:', verifyData);
+
+      if (!verifyData.success) {
+        console.error('❌ [Register] Verificación fallida:', verifyData);
+        setError('Verificación de seguridad fallida. Por favor, recarga la página e intenta nuevamente.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ [Register] Turnstile verificado exitosamente');
+    } catch (error) {
+      console.error('❌ [Register] Error verificando Turnstile:', error);
+      setError(`Error al verificar la seguridad: ${error.message}`);
+      setLoading(false);
+      return;
+    }
 
     // Validaciones
     if (formData.password !== formData.confirmPassword) {
@@ -360,7 +411,31 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loading}>
+          {/* Cloudflare Turnstile CAPTCHA */}
+          <div className="mb-3 d-flex justify-content-center">
+            <Turnstile
+              siteKey={'0x4AAAAAAB_l_YIutfZuFp2x'}
+              onSuccess={(token) => {
+                console.log('✅ Turnstile token obtenido:', token?.substring(0, 20) + '...');
+                setTurnstileToken(token);
+                setError(''); // Limpiar error si había
+              }}
+              onError={(error) => {
+                console.error('❌ Error en Turnstile:', error);
+                setError('Error al cargar la verificación de seguridad. Por favor, recarga la página.');
+              }}
+              onExpire={() => {
+                console.warn('⏰ Turnstile token expirado');
+                setTurnstileToken(null);
+              }}
+              options={{
+                theme: 'light',
+                size: 'normal',
+              }}
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loading || !turnstileToken}>
             {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
         </form>

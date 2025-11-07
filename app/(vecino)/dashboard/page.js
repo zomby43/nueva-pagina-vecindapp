@@ -86,15 +86,37 @@ export default function UserDashboard() {
         setConfiguracion(configData);
       }
 
+      // Obtener contactos de la directiva
       const { data: contactosData, error: contactosError } = await supabase
-        .from('usuarios')
-        .select('id, nombres, apellidos, email, telefono, rol')
-        .in('rol', ['secretaria', 'admin'])
-        .eq('estado', 'activo')
-        .order('rol', { ascending: true });
+        .from('directiva_contactos')
+        .select('*')
+        .eq('activo', true)
+        .order('orden', { ascending: true });
 
       if (!contactosError && contactosData) {
         setContactosDirectiva(contactosData);
+      } else {
+        console.log('No se pudieron cargar contactos de directiva:', contactosError);
+        // Fallback: usar usuarios con rol secretaria/admin
+        const { data: usuariosData } = await supabase
+          .from('usuarios')
+          .select('id, nombres, apellidos, email, telefono, rol')
+          .in('rol', ['secretaria', 'admin'])
+          .eq('estado', 'activo')
+          .order('rol', { ascending: true })
+          .limit(3);
+
+        if (usuariosData) {
+          setContactosDirectiva(usuariosData.map((u, idx) => ({
+            id: u.id,
+            cargo: u.rol === 'admin' ? 'Admin' : 'Secretaría',
+            nombre_completo: `${u.nombres} ${u.apellidos}`,
+            email: u.email,
+            telefono: u.telefono,
+            orden: idx + 1,
+            activo: true
+          })));
+        }
       }
     } catch (error) {
       console.error('Error cargando información institucional:', error);
@@ -308,20 +330,37 @@ export default function UserDashboard() {
                 ) : (
                   <ul className="list-unstyled mb-0" style={{ lineHeight: 1.7 }}>
                     {contactosDirectiva.map((contacto) => (
-                      <li key={contacto.id} className="mb-2">
-                        <strong>{contacto.nombres} {contacto.apellidos}</strong>
-                        <br />
-                        <span className="badge bg-light text-dark me-2" style={{ textTransform: 'capitalize' }}>{contacto.rol}</span>
-                        <span className="text-muted small d-flex align-items-center gap-2">
-                          <i className="bi bi-envelope-fill"></i>
-                          {contacto.email || 'Sin email'}
-                        </span>
-                        {contacto.telefono && (
-                          <span className="text-muted small d-flex align-items-center gap-2">
-                            <i className="bi bi-telephone-fill"></i>
-                            {contacto.telefono}
-                          </span>
-                        )}
+                      <li key={contacto.id} className="mb-3 pb-2" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <div className="d-flex flex-column gap-1">
+                          <div>
+                            <strong style={{ color: '#154765' }}>{contacto.nombre_completo}</strong>
+                          </div>
+                          <div>
+                            <span className="badge" style={{
+                              backgroundColor: '#439fa4',
+                              fontSize: '0.75rem',
+                              fontWeight: 500
+                            }}>
+                              {contacto.cargo}
+                            </span>
+                          </div>
+                          {contacto.email && (
+                            <div className="text-muted small d-flex align-items-center gap-1">
+                              <i className="bi bi-envelope"></i>
+                              <a href={`mailto:${contacto.email}`} style={{ color: '#6b7280', textDecoration: 'none' }}>
+                                {contacto.email}
+                              </a>
+                            </div>
+                          )}
+                          {contacto.telefono && (
+                            <div className="text-muted small d-flex align-items-center gap-1">
+                              <i className="bi bi-telephone"></i>
+                              <span style={{ color: '#6b7280' }}>
+                                {contacto.telefono}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 
 // Estados considerados "procesadas"
 const PROCESSED_STATES = [
@@ -17,25 +16,39 @@ const formatNumber = (n) => {
   catch { return String(n ?? 0); }
 };
 
-const isProcessed = (estado) =>
-  PROCESSED_STATES.includes(String(estado || '').toLowerCase());
+// Métricas estáticas iniciales (se muestran mientras se carga)
+const FALLBACK_METRICS = {
+  vecinosActivos: 12,
+  solicitudesProcesadas: 48,
+  certificadosMes: 8,
+};
 
-const isVecinoActivo = (row) =>
-  String(row?.rol || '').toLowerCase() === 'vecino' &&
-  String(row?.estado || '').toLowerCase() === 'activo';
+const getCurrentMonthRange = () => {
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
+  end.setMilliseconds(end.getMilliseconds() - 1);
+  return {
+    start: start.toISOString(),
+    end: end.toISOString(),
+  };
+};
 
 export default function Home() {
-  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
+  const [metricsLoaded, setMetricsLoaded] = useState(false); // Track if real metrics loaded
+  const [userInteracted, setUserInteracted] = useState(false); // Track user interaction
 
-  const [metrics, setMetrics] = useState({
-    vecinosActivos: 0,
-    solicitudesProcesadas: 0,
-  });
+  const [metrics, setMetrics] = useState(FALLBACK_METRICS);
 
-  // -------- CARGA INICIAL (counts exactos)
+  // -------- CARGA INICIAL (counts exactos) - Solo se ejecuta después de interacción
   const fetchMetrics = async () => {
+    // Si ya se cargaron las métricas reales, no volver a cargar
+    if (metricsLoaded) return;
+
     try {
       setLoading(true);
 
@@ -54,10 +67,22 @@ export default function Home() {
         .in('estado', PROCESSED_STATES);
       if (errS) throw errS;
 
+      // 3) Certificados emitidos este mes
+      const monthRange = getCurrentMonthRange();
+      const { count: certificadosMes, error: errC } = await supabase
+        .from('solicitudes')
+        .select('id', { count: 'exact', head: true })
+        .in('estado', PROCESSED_STATES)
+        .gte('fecha_respuesta', monthRange.start)
+        .lte('fecha_respuesta', monthRange.end);
+      if (errC) throw errC;
+
       setMetrics({
-        vecinosActivos: vecinosActivos ?? 0,
-        solicitudesProcesadas: solicitudesProcesadas ?? 0,
+        vecinosActivos: vecinosActivos ?? FALLBACK_METRICS.vecinosActivos,
+        solicitudesProcesadas: solicitudesProcesadas ?? FALLBACK_METRICS.solicitudesProcesadas,
+        certificadosMes: certificadosMes ?? FALLBACK_METRICS.certificadosMes,
       });
+      setMetricsLoaded(true);
     } catch (e) {
       console.error('Error cargando métricas:', e);
     } finally {
@@ -65,77 +90,40 @@ export default function Home() {
     }
   };
 
-  // -------- SUSCRIPCIÓN REALTIME (sin filtros frágiles)
+  // -------- CARGA DIFERIDA: Solo cargar datos después de interacción del usuario
   useEffect(() => {
-    let mounted = true;
+    // Mostrar métricas estáticas inicialmente
+    setLoading(false);
 
-    fetchMetrics();
+    // Detectar interacción del usuario (scroll, mouse move, touch, o click)
+    const handleUserInteraction = () => {
+      if (!userInteracted) {
+        console.log('👆 Usuario interactuó, cargando métricas reales...');
+        setUserInteracted(true);
+        fetchMetrics();
+      }
+    };
 
-    const channel = supabase
-      .channel('home-metrics')
-      // usuarios: cualquier cambio. Ajustamos contadores según transición
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios' }, (payload) => {
-        if (!mounted) return;
-        const { eventType, old, new: n } = payload;
+    // Eventos de interacción
+    const events = ['scroll', 'mousemove', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, handleUserInteraction, { once: true, passive: true });
+    });
 
-        if (eventType === 'INSERT') {
-          if (isVecinoActivo(n)) {
-            setMetrics((m) => ({ ...m, vecinosActivos: Math.max(0, m.vecinosActivos + 1) }));
-          }
-        } else if (eventType === 'UPDATE') {
-          const eraActivo = isVecinoActivo(old);
-          const esActivo = isVecinoActivo(n);
-          if (eraActivo !== esActivo) {
-            setMetrics((m) => ({
-              ...m,
-              vecinosActivos: Math.max(0, m.vecinosActivos + (esActivo ? 1 : -1)),
-            }));
-          }
-        } else if (eventType === 'DELETE') {
-          if (isVecinoActivo(old)) {
-            setMetrics((m) => ({ ...m, vecinosActivos: Math.max(0, m.vecinosActivos - 1) }));
-          }
-        }
-      })
-      // solicitudes: cualquier cambio. Contamos si entra/sale de estados procesados
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, (payload) => {
-        if (!mounted) return;
-        const { eventType, old, new: n } = payload;
-
-        if (eventType === 'INSERT') {
-          if (isProcessed(n?.estado)) {
-            setMetrics((m) => ({
-              ...m,
-              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas + 1),
-            }));
-          }
-        } else if (eventType === 'UPDATE') {
-          const oldProc = isProcessed(old?.estado);
-          const newProc = isProcessed(n?.estado);
-          if (oldProc !== newProc) {
-            setMetrics((m) => ({
-              ...m,
-              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas + (newProc ? 1 : -1)),
-            }));
-          }
-        } else if (eventType === 'DELETE') {
-          if (isProcessed(old?.estado)) {
-            setMetrics((m) => ({
-              ...m,
-              solicitudesProcesadas: Math.max(0, m.solicitudesProcesadas - 1),
-            }));
-          }
-        }
-      })
-      .subscribe();
-
-    const onOnline = () => fetchMetrics();
-    window.addEventListener('online', onOnline);
+    // También cargar después de 3 segundos si no hay interacción
+    const timeout = setTimeout(() => {
+      if (!userInteracted) {
+        console.log('⏰ Timeout alcanzado, cargando métricas reales...');
+        setUserInteracted(true);
+        fetchMetrics();
+      }
+    }, 3000);
 
     return () => {
-      mounted = false;
-      channel.unsubscribe();
-      window.removeEventListener('online', onOnline);
+      events.forEach(event => {
+        window.removeEventListener(event, handleUserInteraction);
+      });
+      clearTimeout(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -148,519 +136,160 @@ export default function Home() {
   };
 
   return (
-    <div style={{ width: '100%', background: '#f4f8f9' }}>
-      {/* Hero Section */}
-      <section style={{
-        background: 'linear-gradient(135deg, #439fa4 0%, #2d7a7f 50%, #154765 100%)',
-        padding: '6rem 2rem',
-        textAlign: 'center',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <div style={{ marginBottom: '2rem' }}>
+    <div className="home-page">
+      <section className="hero">
+        <div className="hero__container">
+          <div className="hero__logo-wrapper">
             <img
               src="/vencinapp.svg"
               alt="VecindApp Logo"
-              style={{ height: '100px', marginBottom: '1rem' }}
+              className="hero__logo"
             />
           </div>
-
-          <h1 style={{
-            fontSize: '3.5rem',
-            fontWeight: 700,
-            marginBottom: '1.5rem',
-            textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-          }}>
-            VecindApp
-          </h1>
-
-          <p style={{
-            fontSize: '1.5rem',
-            marginBottom: '1rem',
-            maxWidth: '800px',
-            margin: '0 auto 1rem auto',
-            opacity: 0.95
-          }}>
+          <h1 className="hero__title">VecindApp</h1>
+          <p className="hero__subtitle">
             La plataforma digital que conecta a tu Junta de Vecinos con la comunidad
           </p>
-
-          <p style={{
-            fontSize: '1.125rem',
-            marginBottom: '3rem',
-            opacity: 0.85
-          }}>
+          <p className="hero__description">
             Gestiona certificados, proyectos y comunicación vecinal en un solo lugar
           </p>
-
-          {/* Trust Badges (DINÁMICOS) */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '2rem',
-            marginBottom: '3rem',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{
-              background: 'rgba(255,255,255,0.15)',
-              padding: '1rem 1.5rem',
-              borderRadius: '16px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+          <div className="hero-stats">
+            <div
+              className="hero-stat"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={loading ? 'Cargando vecinos activos' : `${formatNumber(metrics.vecinosActivos)} vecinos activos`}
+            >
+              <div className="hero-stat__number">
                 {loading ? '…' : formatNumber(metrics.vecinosActivos)}
               </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Vecinos Activos</div>
+              <div className="hero-stat__label">Vecinos Activos</div>
             </div>
-            <div style={{
-              background: 'rgba(255,255,255,0.15)',
-              padding: '1rem 1.5rem',
-              borderRadius: '16px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+            <div
+              className="hero-stat"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={loading ? 'Cargando solicitudes procesadas' : `${formatNumber(metrics.solicitudesProcesadas)} solicitudes procesadas`}
+            >
+              <div className="hero-stat__number">
                 {loading ? '…' : formatNumber(metrics.solicitudesProcesadas)}
               </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Solicitudes Procesadas</div>
+              <div className="hero-stat__label">Solicitudes Procesadas</div>
             </div>
-            <div style={{
-              background: 'rgba(255,255,255,0.15)',
-              padding: '1rem 1.5rem',
-              borderRadius: '16px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '2rem', fontWeight: 700 }}>24/7</div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Disponibilidad</div>
+            <div
+              className="hero-stat"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={loading ? 'Cargando certificados emitidos este mes' : `${formatNumber(metrics.certificadosMes)} certificados emitidos este mes`}
+            >
+              <div className="hero-stat__number">
+                {loading ? '…' : formatNumber(metrics.certificadosMes)}
+              </div>
+              <div className="hero-stat__label">Certificados este mes</div>
+            </div>
+            <div className="hero-stat" aria-hidden="true">
+              <div className="hero-stat__number">24/7</div>
+              <div className="hero-stat__label">Disponibilidad</div>
             </div>
           </div>
-
-          {/* CTA Buttons */}
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => navigateTo('/login')}
-              style={{
-                background: 'white',
-                color: '#439fa4',
-                padding: '1rem 2.5rem',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-              }}
-            >
+          <div className="hero-cta">
+            <button className="hero-btn hero-btn--primary" onClick={() => navigateTo('/login')}>
               Iniciar Sesión
             </button>
-            <button
-              onClick={() => navigateTo('/register')}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                padding: '1rem 2.5rem',
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                border: '2px solid white',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'white';
-                e.currentTarget.style.color = '#439fa4';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-                e.currentTarget.style.color = 'white';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
+            <button className="hero-btn hero-btn--outline" onClick={() => navigateTo('/register')}>
               Registrarse Gratis
             </button>
           </div>
         </div>
-
-        {/* Decorative Elements */}
-        <div style={{
-          position: 'absolute',
-          top: '-50px',
-          right: '-50px',
-          width: '300px',
-          height: '300px',
-          background: 'rgba(255,255,255,0.1)',
-          borderRadius: '50%',
-          filter: 'blur(60px)'
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-100px',
-          left: '-100px',
-          width: '400px',
-          height: '400px',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '50%',
-          filter: 'blur(80px)'
-        }} />
+        <div className="hero__orb hero__orb--top" aria-hidden="true" />
+        <div className="hero__orb hero__orb--bottom" aria-hidden="true" />
       </section>
 
-      {/* Cómo Funciona */}
-      <section style={{ padding: '5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-            ¿Cómo Funciona?
-          </h2>
-          <p style={{ fontSize: '1.125rem', color: '#439fa4', maxWidth: '600px', margin: '0 auto' }}>
-            Tres simples pasos para comenzar a gestionar tus trámites vecinales
-          </p>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '2rem'
-        }}>
-          {/* Paso 1 */}
-          <div
-            style={{
-              background: 'white',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              borderLeft: '6px solid #439fa4',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-            }}
-          >
-            <div style={{
-              background: '#439fa4',
-              color: 'white',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              fontWeight: 700,
-              marginBottom: '1.5rem'
-            }}>
-              1
-            </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Regístrate
-            </h3>
-            <p style={{ fontSize: '1rem', color: '#439fa4', lineHeight: 1.6 }}>
-              Crea tu cuenta proporcionando tus datos personales y un comprobante de domicilio. Es rápido y seguro.
+      <section className="section">
+        <div className="section__container">
+          <div className="section__header">
+            <h2 className="section__title">¿Cómo Funciona?</h2>
+            <p className="section__subtitle">
+              Tres simples pasos para comenzar a gestionar tus trámites vecinales
             </p>
           </div>
-
-          {/* Paso 2 */}
-          <div
-            style={{
-              background: 'white',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              borderLeft: '6px solid #fbbf24',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-            }}
-          >
-            <div style={{
-              background: '#fbbf24',
-              color: '#78350f',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              fontWeight: 700,
-              marginBottom: '1.5rem'
-            }}>
-              2
+          <div className="steps-grid">
+            <div className="card-step">
+              <div className="card-step__badge">1</div>
+              <h3 className="card-step__title">Regístrate</h3>
+              <p className="card-text">
+                Crea tu cuenta proporcionando tus datos personales y un comprobante de domicilio. Es rápido y seguro.
+              </p>
             </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Espera la Aprobación
-            </h3>
-            <p style={{ fontSize: '1rem', color: '#439fa4', lineHeight: 1.6 }}>
-              La directiva de tu Junta de Vecinos revisará y aprobará tu cuenta. Te notificaremos por email.
-            </p>
-          </div>
-
-          {/* Paso 3 */}
-          <div
-            style={{
-              background: 'white',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              borderLeft: '6px solid #34d399',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'default'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-            }}
-          >
-            <div style={{
-              background: '#34d399',
-              color: '#064e3b',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              fontWeight: 700,
-              marginBottom: '1.5rem'
-            }}>
-              3
+            <div className="card-step card-step--warning">
+              <div className="card-step__badge">2</div>
+              <h3 className="card-step__title">Espera la Aprobación</h3>
+              <p className="card-text">
+                La directiva de tu Junta de Vecinos revisará y aprobará tu cuenta. Te notificaremos por email.
+              </p>
             </div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Comienza a Usar
-            </h3>
-            <p style={{ fontSize: '1rem', color: '#439fa4', lineHeight: 1.6 }}>
-              Solicita certificados, consulta avisos, participa en proyectos y mantente conectado con tu comunidad.
-            </p>
+            <div className="card-step card-step--success">
+              <div className="card-step__badge">3</div>
+              <h3 className="card-step__title">Comienza a Usar</h3>
+              <p className="card-text">
+                Solicita certificados, consulta avisos, participa en proyectos y mantente conectado con tu comunidad.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Características/Features */}
-      <section style={{ padding: '5rem 2rem', background: 'white' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              ¿Qué puedes hacer en VecindApp?
-            </h2>
-            <p style={{ fontSize: '1.125rem', color: '#439fa4', maxWidth: '700px', margin: '0 auto' }}>
+      <section className="section section--light">
+        <div className="section__container">
+          <div className="section__header">
+            <h2 className="section__title">¿Qué puedes hacer en VecindApp?</h2>
+            <p className="section__subtitle">
               Una plataforma completa para vecinos y directivas de Juntas de Vecinos
             </p>
           </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '2rem'
-          }}>
-            {/* Feature 1 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-file-earmark-text" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Solicitar Certificados
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+          <div className="features-grid">
+            <div className="card-feature">
+              <i className="bi bi-file-earmark-text card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Solicitar Certificados</h3>
+              <p className="card-feature__text">
                 Solicita certificados de residencia y antigüedad de forma 100% digital. Sin filas, sin papel.
               </p>
             </div>
-
-            {/* Feature 2 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-graph-up-arrow" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Seguimiento en Tiempo Real
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+            <div className="card-feature">
+              <i className="bi bi-graph-up-arrow card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Seguimiento en Tiempo Real</h3>
+              <p className="card-feature__text">
                 Monitorea el estado de tus solicitudes 24/7. Recibe notificaciones de cada actualización.
               </p>
             </div>
-
-            {/* Feature 3 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-megaphone" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Avisos y Noticias
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+            <div className="card-feature">
+              <i className="bi bi-megaphone card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Avisos y Noticias</h3>
+              <p className="card-feature__text">
                 Mantente informado de avisos importantes, eventos y noticias de tu comunidad vecinal.
               </p>
             </div>
-
-            {/* Feature 4 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-buildings" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Proyectos Vecinales
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+            <div className="card-feature">
+              <i className="bi bi-buildings card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Proyectos Vecinales</h3>
+              <p className="card-feature__text">
                 Postula y vota proyectos para mejorar tu barrio. Transparencia en cada iniciativa.
               </p>
             </div>
-
-            {/* Feature 5 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-calendar-event" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Actividades Comunitarias
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+            <div className="card-feature">
+              <i className="bi bi-calendar-event card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Actividades Comunitarias</h3>
+              <p className="card-feature__text">
                 Participa en talleres, eventos deportivos, culturales y sociales organizados por tu junta.
               </p>
             </div>
-
-            {/* Feature 6 */}
-            <div
-              style={{
-                background: '#f4f8f9',
-                padding: '2rem',
-                borderRadius: '16px',
-                textAlign: 'center',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default',
-                boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 16px rgba(21, 71, 101, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(21, 71, 101, 0.06)';
-              }}
-            >
-              <div style={{ marginBottom: '1.5rem' }}>
-                <i className="bi bi-geo-alt" style={{ fontSize: '4rem', color: '#439fa4' }}></i>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-                Mapa Interactivo
-              </h3>
-              <p style={{ fontSize: '0.9375rem', color: '#439fa4', lineHeight: 1.6 }}>
+            <div className="card-feature">
+              <i className="bi bi-geo-alt card-feature__icon" aria-hidden="true" />
+              <h3 className="card-feature__title">Mapa Interactivo</h3>
+              <p className="card-feature__text">
                 Visualiza tu vecindario, localiza vecinos y conoce tu unidad vecinal en un mapa dinámico.
               </p>
             </div>
@@ -668,246 +297,86 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Estadísticas */}
-      <section style={{ padding: '5rem 2rem', background: '#d8e7eb' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Impacto Real en la Comunidad
-            </h2>
-            <p style={{ fontSize: '1.125rem', color: '#439fa4' }}>
+      <section className="section stats-section">
+        <div className="section__container">
+          <div className="section__header">
+            <h2 className="section__title">Impacto Real en la Comunidad</h2>
+            <p className="section__subtitle">
               Números que reflejan el compromiso de nuestra plataforma
             </p>
           </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '2rem'
-          }}>
-            {/* Stat 1 */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '2rem',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              borderLeft: '4px solid #439fa4',
-              textAlign: 'center'
-            }}>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <i className="bi bi-lightning-charge" style={{ fontSize: '3rem', color: '#439fa4' }}></i>
-              </div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '0.5rem' }}>
-                &lt; 24h
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#439fa4', textTransform: 'uppercase', fontWeight: 600 }}>
-                Tiempo Promedio de Respuesta
-              </div>
+          <div className="stats-grid">
+            <div className="card-stat">
+              <i className="bi bi-lightning-charge card-stat__icon" aria-hidden="true" />
+              <div className="card-stat__value">&lt; 24h</div>
+              <div className="card-stat__label">Tiempo Promedio de Respuesta</div>
             </div>
-
-            {/* Stat 2 */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '2rem',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              borderLeft: '4px solid #34d399',
-              textAlign: 'center'
-            }}>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <i className="bi bi-check-circle" style={{ fontSize: '3rem', color: '#34d399' }}></i>
-              </div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '0.5rem' }}>
-                95%
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#439fa4', textTransform: 'uppercase', fontWeight: 600 }}>
-                Satisfacción de Usuarios
-              </div>
+            <div className="card-stat card-stat--success">
+              <i className="bi bi-check-circle card-stat__icon" aria-hidden="true" />
+              <div className="card-stat__value">95%</div>
+              <div className="card-stat__label">Satisfacción de Usuarios</div>
             </div>
-
-            {/* Stat 3 */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '2rem',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              borderLeft: '4px solid #fbbf24',
-              textAlign: 'center'
-            }}>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <i className="bi bi-house-heart" style={{ fontSize: '3rem', color: '#fbbf24' }}></i>
-              </div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '0.5rem' }}>
-                15+
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#439fa4', textTransform: 'uppercase', fontWeight: 600 }}>
-                Juntas de Vecinos Activas
-              </div>
+            <div className="card-stat card-stat--warning">
+              <i className="bi bi-house-heart card-stat__icon" aria-hidden="true" />
+              <div className="card-stat__value">15+</div>
+              <div className="card-stat__label">Juntas de Vecinos Activas</div>
             </div>
-
-            {/* Stat 4 */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '2rem',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
-              borderLeft: '4px solid #fb7185',
-              textAlign: 'center'
-            }}>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <i className="bi bi-file-earmark-check" style={{ fontSize: '3rem', color: '#fb7185' }}></i>
-              </div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '0.5rem' }}>
-                100%
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#439fa4', textTransform: 'uppercase', fontWeight: 600 }}>
-                Digital - Sin Papel
-              </div>
+            <div className="card-stat card-stat--danger">
+              <i className="bi bi-file-earmark-check card-stat__icon" aria-hidden="true" />
+              <div className="card-stat__value">100%</div>
+              <div className="card-stat__label">Digital - Sin Papel</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Beneficios por Rol */}
-      <section style={{ padding: '5rem 2rem', background: 'white' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Beneficios para Todos
-            </h2>
-            <p style={{ fontSize: '1.125rem', color: '#439fa4' }}>
-              Una solución diseñada para vecinos y directivas
-            </p>
+      <section className="section section--light">
+        <div className="section__container">
+          <div className="section__header">
+            <h2 className="section__title">Beneficios para Todos</h2>
+            <p className="section__subtitle">Una solución diseñada para vecinos y directivas</p>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            {/* Para Vecinos */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}>
-              <div style={{
-                display: 'inline-block',
-                background: 'linear-gradient(135deg, #154765 0%, #0f3449 100%)',
-                color: 'white',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '20px',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem'
-              }}>
-                👤 PARA VECINOS
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Solicita certificados desde cualquier lugar
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Seguimiento transparente de tus trámites
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Participa en proyectos y actividades
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Recibe avisos importantes al instante
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Conecta con tu comunidad vecinal
-                </li>
+          <div className="benefits-grid">
+            <div className="card-benefit">
+              <div className="benefit-badge benefit-badge--dark">👤 PARA VECINOS</div>
+              <ul className="benefit-list" role="list" aria-label="Beneficios para vecinos">
+                <li className="benefit-item">Solicita certificados desde cualquier lugar</li>
+                <li className="benefit-item">Seguimiento transparente de tus trámites</li>
+                <li className="benefit-item">Participa en proyectos y actividades</li>
+                <li className="benefit-item">Recibe avisos importantes al instante</li>
+                <li className="benefit-item">Conecta con tu comunidad vecinal</li>
               </ul>
             </div>
-
-            {/* Para Directiva */}
-            <div style={{
-              background: '#f4f8f9',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-            }}>
-              <div style={{
-                display: 'inline-block',
-                background: 'linear-gradient(135deg, #439fa4 0%, #2d7a7f 100%)',
-                color: 'white',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '20px',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem'
-              }}>
-                👥 PARA DIRECTIVAS
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Gestión eficiente de solicitudes
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Emite certificados digitales válidos
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Administra proyectos y presupuestos
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Comunica con toda la comunidad fácilmente
-                </li>
-                <li style={{ marginBottom: '1rem', paddingLeft: '2rem', position: 'relative', color: '#439fa4' }}>
-                  <span style={{ position: 'absolute', left: 0 }}>✓</span>
-                  Registro digital de todas las actividades
-                </li>
+            <div className="card-benefit">
+              <div className="benefit-badge benefit-badge--teal">👥 PARA DIRECTIVAS</div>
+              <ul className="benefit-list" role="list" aria-label="Beneficios para directivas">
+                <li className="benefit-item">Gestión eficiente de solicitudes</li>
+                <li className="benefit-item">Emite certificados digitales válidos</li>
+                <li className="benefit-item">Administra proyectos y presupuestos</li>
+                <li className="benefit-item">Comunica con toda la comunidad fácilmente</li>
+                <li className="benefit-item">Registro digital de todas las actividades</li>
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mapa de Comunidad */}
-      <section style={{ padding: '5rem 2rem', background: '#f4f8f9' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#154765', marginBottom: '1rem' }}>
-              Explora tu Vecindario
-            </h2>
-            <p style={{ fontSize: '1.125rem', color: '#439fa4' }}>
-              Visualiza tu ubicación y conoce tu comunidad
-            </p>
+      <section className="section section--muted">
+        <div className="section__container">
+          <div className="section__header">
+            <h2 className="section__title">Explora tu Vecindario</h2>
+            <p className="section__subtitle">Visualiza tu ubicación y conoce tu comunidad</p>
           </div>
-
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '2rem',
-            boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
-          }}>
+          <div className="map-card">
             <img
               src="https://providencia.cl/provi/site/artic/20191112/imag/foto_0000000120191112153536/unidades_vecinales.png"
               alt="Mapa de Unidades Vecinales"
-              style={{
-                width: '100%',
-                borderRadius: '12px',
-                display: 'block'
-              }}
             />
-            <div style={{
-              marginTop: '2rem',
-              textAlign: 'center',
-              padding: '1.5rem',
-              background: '#f4f8f9',
-              borderRadius: '12px'
-            }}>
-              <p style={{ fontSize: '1rem', color: '#439fa4', marginBottom: '0.5rem' }}>
-                <strong style={{ color: '#154765' }}>¿Sabías que...?</strong> Cada Junta de Vecinos representa una Unidad Vecinal específica
+            <div className="map-card__callout">
+              <p className="card-text">
+                <strong>¿Sabías que...?</strong> Cada Junta de Vecinos representa una Unidad Vecinal específica
               </p>
-              <p style={{ fontSize: '0.875rem', color: '#bfd3d9', margin: 0 }}>
+              <p className="map-card__note">
                 Identifica tu unidad vecinal y conecta con tus vecinos más cercanos
               </p>
             </div>
@@ -915,118 +384,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section style={{
-        background: 'linear-gradient(135deg, #439fa4 0%, #2d7a7f 50%, #154765 100%)',
-        padding: '5rem 2rem',
-        textAlign: 'center',
-        color: 'white'
-      }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-            ¿Listo para Digitalizar tu Comunidad?
-          </h2>
-          <p style={{ fontSize: '1.25rem', marginBottom: '3rem', opacity: 0.95, lineHeight: 1.6 }}>
+      <section className="section section--teal cta-final">
+        <div className="section__container cta-final__container">
+          <h2 className="cta-final__title">¿Listo para Digitalizar tu Comunidad?</h2>
+          <p className="cta-final__copy">
             Únete a cientos de vecinos que ya están gestionando sus trámites de forma digital.
             Simplifica, ahorra tiempo y conecta con tu comunidad.
           </p>
-          <button
-            onClick={() => navigateTo('/register')}
-            style={{
-              background: 'white',
-              color: '#439fa4',
-              padding: '1.25rem 3rem',
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
-              e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-          >
+          <button className="cta-final__btn" onClick={() => navigateTo('/register')}>
             Crear Cuenta Gratis 🚀
           </button>
-          <p style={{ fontSize: '0.875rem', marginTop: '1.5rem', opacity: 0.8 }}>
-            Sin costos ocultos • 100% seguro • Aprobación en 24-48 horas
-          </p>
+          <p className="cta-final__notes">Sin costos ocultos • 100% seguro • Aprobación en 24-48 horas</p>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ background: '#154765', color: 'white', padding: '3rem 2rem 2rem 2rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '3rem',
-            marginBottom: '3rem'
-          }}>
-            {/* Columna 1 */}
+      <footer className="landing-footer">
+        <div className="section__container">
+          <div className="landing-footer__grid">
             <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>
-                VecindApp
-              </h3>
-              <p style={{ fontSize: '0.875rem', lineHeight: 1.6, color: '#bfd3d9' }}>
+              <h3 className="landing-footer__title">VecindApp</h3>
+              <p className="landing-footer__text">
                 La plataforma digital que conecta a las Juntas de Vecinos con su comunidad.
                 Gestión moderna para organizaciones vecinales de Chile.
               </p>
             </div>
-
-            {/* Columna 2 */}
             <div>
-              <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>
-                Enlaces Rápidos
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  <a href="/login" style={{ color: '#bfd3d9', textDecoration: 'none', fontSize: '0.875rem' }}>
-                    Iniciar Sesión
-                  </a>
+              <h4 className="landing-footer__subtitle">Enlaces Rápidos</h4>
+              <ul className="landing-footer__links">
+                <li>
+                  <a href="/login">Iniciar Sesión</a>
                 </li>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  <a href="/register" style={{ color: '#bfd3d9', textDecoration: 'none', fontSize: '0.875rem' }}>
-                    Registrarse
-                  </a>
+                <li>
+                  <a href="/register">Registrarse</a>
                 </li>
               </ul>
             </div>
-
-            {/* Columna 3 */}
             <div>
-              <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>
-                Contacto
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ marginBottom: '0.5rem', color: '#bfd3d9', fontSize: '0.875rem' }}>
-                  📧 contacto@vecindapp.cl
-                </li>
-                <li style={{ marginBottom: '0.5rem', color: '#bfd3d9', fontSize: '0.875rem' }}>
-                  📱 +56 9 XXXX XXXX
-                </li>
-                <li style={{ marginBottom: '0.5rem', color: '#bfd3d9', fontSize: '0.875rem' }}>
-                  🏢 Santiago, Chile
-                </li>
+              <h4 className="landing-footer__subtitle">Contacto</h4>
+              <ul className="landing-footer__contact">
+                <li>📧 contacto@vecindapp.cl</li>
+                <li>📱 +56 9 XXXX XXXX</li>
+                <li>🏢 Santiago, Chile</li>
               </ul>
             </div>
           </div>
-
-          <div style={{
-            borderTop: '1px solid rgba(191, 211, 217, 0.2)',
-            paddingTop: '2rem',
-            textAlign: 'center'
-          }}>
-            <p style={{ fontSize: '0.875rem', color: '#bfd3d9', margin: 0 }}>
-              © 2025 VecindApp. Todos los derechos reservados. | Hecho con 💚 para las comunidades de Chile
-            </p>
+          <div className="landing-footer__divider">
+            © 2025 VecindApp. Todos los derechos reservados. | Hecho con 💚 para las comunidades de Chile
           </div>
         </div>
       </footer>

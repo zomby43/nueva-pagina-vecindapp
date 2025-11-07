@@ -5,9 +5,14 @@ import { NextResponse } from 'next/server';
 const SECRETARIA_INACTIVITY_TIMEOUT = 10 * 60 * 1000;
 
 export async function middleware(request) {
-  const { supabaseResponse, user, userProfile } = await updateSession(request);
-
   const path = request.nextUrl.pathname;
+
+  // Excluir rutas de API del middleware
+  if (path.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  const { supabaseResponse, user, userProfile } = await updateSession(request);
 
   // Rutas públicas que no requieren autenticación
   const publicRoutes = ['/', '/login', '/register'];
