@@ -4,6 +4,18 @@
 import { useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 
+// --- Lista de comunas (Región Metropolitana) ---
+const COMUNAS_RM = [
+  "Alhué","Buin","Calera de Tango","Cerrillos","Cerro Navia","Colina","Conchalí","Curacaví",
+  "El Bosque","El Monte","Estación Central","Huechuraba","Independencia","Isla de Maipo",
+  "La Cisterna","La Florida","La Granja","La Pintana","La Reina","Lampa","Las Condes",
+  "Lo Barnechea","Lo Espejo","Lo Prado","Macul","Maipú","María Pinto","Melipilla","Ñuñoa",
+  "Paine","Pedro Aguirre Cerda","Peñaflor","Peñalolén","Pirque","Providencia","Pudahuel",
+  "Puente Alto","Quilicura","Quinta Normal","Recoleta","Renca","San Bernardo","San Joaquín",
+  "San José de Maipo","San Miguel","San Pedro","San Ramón","Santiago","Talagante","Tiltil",
+  "Vitacura"
+].sort();
+
 // --- Utilidades RUT / Fecha ---
 function limpiarRut(rut) {
   return (rut || "").replace(/[.\-]/g, "").toUpperCase();
@@ -45,7 +57,7 @@ export default function EmitirCertificadoResidenciaPage() {
     rut: "",
     direccion: "",
     comuna: "",
-    ciudad: "",
+    ciudad: "Santiago", // Fija a Santiago
     numero: "", // folio asignado automáticamente (readOnly)
   });
   const [errors, setErrors] = useState({});
@@ -62,8 +74,8 @@ export default function EmitirCertificadoResidenciaPage() {
     if (!form.rut.trim()) e.rut = "Ingresa el RUT";
     else if (!validarRut(form.rut)) e.rut = "RUT inválido";
     if (!form.direccion.trim()) e.direccion = "Ingresa la dirección";
-    if (!form.comuna.trim()) e.comuna = "Ingresa la comuna";
-    if (!form.ciudad.trim()) e.ciudad = "Ingresa la ciudad";
+    if (!form.comuna.trim()) e.comuna = "Selecciona la comuna";
+    // ciudad siempre es "Santiago"
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -77,7 +89,7 @@ export default function EmitirCertificadoResidenciaPage() {
         rut: form.rut,
         direccion: form.direccion,
         comuna: form.comuna,
-        ciudad: form.ciudad,
+        ciudad: form.ciudad, // "Santiago"
       }),
     });
     const data = await res.json();
@@ -85,47 +97,38 @@ export default function EmitirCertificadoResidenciaPage() {
       alert(data.error || "Error al generar folio en la base de datos");
       throw new Error("Error al emitir certificado");
     }
-    return String(data.folio); // <-- folio REAL desde BD
+    return String(data.folio); // folio REAL desde BD
   }
 
   async function emitirYGenerarPDF() {
     if (!validar()) return;
     const folio = await emitirEnSupabase();
     setForm((prev) => ({ ...prev, numero: folio }));
-    generarPDFEstiloSolicitudes(folio); // <-- mismo estilo que la page de solicitudes
+    generarPDFEstiloSolicitudes(folio); // mismo estilo que la page de solicitudes
   }
 
-  /**
-   * Genera el PDF con el MISMO ESTILO que la vista de solicitudes:
-   * - Bordes dobles azules
-   * - Título y textos centrados
-   * - Línea "N° {folio}" centrada (folio real)
-   * - Firma centrada y pie
-   * Mantiene tus datos del formulario y variables de entorno.
-   */
+  // === PDF (estilo solicitudes, con folio real) ===
   function generarPDFEstiloSolicitudes(folio) {
-    // Usamos mm para calc exacto como el otro estilo
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const centerX = pageWidth / 2;
 
-    // Datos desde env (igual que tu versión original)
     const nombreJunta = (process.env.NEXT_PUBLIC_JUNTA_NOMBRE || "Junta de Vecinos") + "";
     const rutJunta = (process.env.NEXT_PUBLIC_JUNTA_RUT || "") + "";
 
-    // ===== BORDE DECORATIVO (doble) =====
+    // Borde doble
     doc.setLineWidth(2);
-    doc.setDrawColor(41, 128, 185); // azul fuerte
+    doc.setDrawColor(41, 128, 185);
     doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
     doc.setLineWidth(0.5);
-    doc.setDrawColor(52, 152, 219); // azul claro
+    doc.setDrawColor(52, 152, 219);
     doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
 
     let y = 30;
 
-    // ===== ENCABEZADO =====
+    // Encabezado
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(41, 128, 185);
@@ -139,14 +142,7 @@ export default function EmitirCertificadoResidenciaPage() {
       doc.text(`RUT: ${rutJunta}`, centerX, y, { align: "center" });
       y += 6;
     }
-    if (form.comuna || form.ciudad) {
-      doc.text(
-        `Comuna de ${form.comuna || "-"}, ${form.ciudad || "-"}`,
-        centerX,
-        y,
-        { align: "center" }
-      );
-    }
+    doc.text(`Comuna de ${form.comuna || "-" }, ${form.ciudad}`, centerX, y, { align: "center" });
     y += 15;
 
     // Separador
@@ -155,31 +151,25 @@ export default function EmitirCertificadoResidenciaPage() {
     doc.line(20, y, pageWidth - 20, y);
     y += 15;
 
-    // ===== TÍTULO =====
+    // Título
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
     doc.text("CERTIFICADO DE RESIDENCIA", centerX, y, { align: "center" });
     y += 15;
 
-    // ===== NÚMERO REAL (folio) =====
+    // Folio real
     doc.setFontSize(10);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(100, 100, 100);
     doc.text(`N° ${folio}`, centerX, y, { align: "center" });
     y += 15;
 
-    // ===== CUERPO CENTRADO =====
+    // Cuerpo
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-
-    doc.text(
-      `La Directiva de la ${nombreJunta},`,
-      centerX,
-      y,
-      { align: "center" }
-    );
+    doc.text(`La Directiva de la ${nombreJunta},`, centerX, y, { align: "center" });
     y += 7;
     doc.text("por medio del presente documento,", centerX, y, { align: "center" });
     y += 12;
@@ -189,7 +179,6 @@ export default function EmitirCertificadoResidenciaPage() {
     doc.text("CERTIFICA QUE:", centerX, y, { align: "center" });
     y += 12;
 
-    // Datos del vecino
     const nombreCompleto = (form.nombre || "").toUpperCase();
     const rutFmt = rutFormateado || form.rut || "";
     const direccion = form.direccion || "";
@@ -204,37 +193,18 @@ export default function EmitirCertificadoResidenciaPage() {
       doc.text(`RUT: ${rutFmt}`, centerX, y, { align: "center" });
       y += 10;
     }
-
     doc.text(`Es residente de la dirección: ${direccion}`, centerX, y, { align: "center" });
     y += 7;
-
-    if (form.comuna || form.ciudad) {
-      doc.text(
-        `Comuna de ${form.comuna || "-"}, ${form.ciudad || "-"}.`,
-        centerX,
-        y,
-        { align: "center" }
-      );
-      y += 8;
-    } else {
-      doc.text("Perteneciente a nuestra Unidad Vecinal.", centerX, y, { align: "center" });
-      y += 8;
-    }
-
-    // Fecha
+    doc.text(`Comuna de ${form.comuna}, ${form.ciudad}.`, centerX, y, { align: "center" });
     y += 10;
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    const fechaEmision = hoyCL();
-    if (form.comuna) {
-      doc.text(`Se extiende el presente certificado en ${form.comuna},`, centerX, y, { align: "center" });
-      y += 6;
-      doc.text(`a ${fechaEmision}`, centerX, y, { align: "center" });
-    } else {
-      doc.text(`Se extiende con fecha ${fechaEmision}.`, centerX, y, { align: "center" });
-    }
 
-    // ===== FIRMA CENTRADA =====
+    doc.setFontSize(11);
+    const fechaEmision = hoyCL();
+    doc.text(`Se extiende el presente certificado en ${form.comuna},`, centerX, y, { align: "center" });
+    y += 6;
+    doc.text(`a ${fechaEmision}`, centerX, y, { align: "center" });
+
+    // Firma
     y = pageHeight - 60;
     doc.setLineWidth(0.5);
     doc.setDrawColor(0, 0, 0);
@@ -248,15 +218,13 @@ export default function EmitirCertificadoResidenciaPage() {
     doc.setFont("helvetica", "normal");
     doc.text(nombreJunta, centerX, y, { align: "center" });
 
-    // ===== PIE =====
+    // Pie
     y = pageHeight - 25;
     doc.setFontSize(8);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(120, 120, 120);
-    const pie = "Este documento ha sido generado digitalmente por la Junta de Vecinos.";
-    doc.text(pie, centerX, y, { align: "center" });
+    doc.text("Este documento ha sido generado digitalmente por la Junta de Vecinos.", centerX, y, { align: "center" });
 
-    // Guardar (mismo nombre que usabas)
     const nombreArchivo = `certificado_residencia_${limpiarRut(form.rut)}.pdf`;
     doc.save(nombreArchivo);
   }
@@ -300,12 +268,14 @@ export default function EmitirCertificadoResidenciaPage() {
           className="grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}
         >
+          {/* Nombre */}
           <div className="field" style={{ display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>Nombre completo</label>
             <input name="nombre" value={form.nombre} onChange={onChange} placeholder="Ej: María Pérez Soto" style={inputStyle} />
             {errors.nombre && <span style={errorStyle}>{errors.nombre}</span>}
           </div>
 
+          {/* RUT */}
           <div className="field" style={{ display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>RUT</label>
             <input name="rut" value={form.rut} onChange={onChange} placeholder="12.345.678-9" style={inputStyle} />
@@ -315,24 +285,43 @@ export default function EmitirCertificadoResidenciaPage() {
             {errors.rut && <span style={errorStyle}>{errors.rut}</span>}
           </div>
 
+          {/* Dirección */}
           <div className="field" style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>Dirección</label>
             <input name="direccion" value={form.direccion} onChange={onChange} placeholder="Calle 123, depto 45" style={inputStyle} />
             {errors.direccion && <span style={errorStyle}>{errors.direccion}</span>}
           </div>
 
+          {/* Comuna (SELECT) */}
           <div className="field" style={{ display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>Comuna</label>
-            <input name="comuna" value={form.comuna} onChange={onChange} placeholder="Ej: Maipú" style={inputStyle} />
+            <select
+              name="comuna"
+              value={form.comuna}
+              onChange={onChange}
+              style={{ ...inputStyle, appearance: "auto" }}
+            >
+              <option value="">Selecciona la comuna…</option>
+              {COMUNAS_RM.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
             {errors.comuna && <span style={errorStyle}>{errors.comuna}</span>}
           </div>
 
+          {/* Ciudad (solo lectura = Santiago) */}
           <div className="field" style={{ display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>Ciudad</label>
-            <input name="ciudad" value={form.ciudad} onChange={onChange} placeholder="Ej: Santiago" style={inputStyle} />
+            <input
+              name="ciudad"
+              value={form.ciudad}
+              readOnly
+              style={{ ...inputStyle, backgroundColor: "#f0f0f0" }}
+            />
             {errors.ciudad && <span style={errorStyle}>{errors.ciudad}</span>}
           </div>
 
+          {/* Nº de certificado (readonly) */}
           <div className="field" style={{ display: "flex", flexDirection: "column" }}>
             <label style={labelStyle}>Nº de certificado</label>
             <input
