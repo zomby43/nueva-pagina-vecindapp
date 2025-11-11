@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { logLogin, logLogout } from '@/lib/logs/createLog';
+import { clearClientStorage } from '@/lib/auth/clearClientStorage';
 
 const AuthContext = createContext({});
 
@@ -205,8 +206,7 @@ export function AuthProvider({ children }) {
       await supabase.auth.signOut();
 
       // 3. Limpiar todo el storage del navegador
-      localStorage.clear();
-      sessionStorage.clear();
+      clearClientStorage();
 
       // 4. Pequeña espera para asegurar limpieza
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -216,8 +216,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
       // Forzar limpieza y recarga incluso si hay error
-      localStorage.clear();
-      sessionStorage.clear();
+      clearClientStorage();
       window.location.href = '/';
     }
   };

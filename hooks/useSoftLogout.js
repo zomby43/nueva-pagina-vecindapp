@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { clearClientStorage } from '@/lib/auth/clearClientStorage';
 
 /**
  * Hook personalizado para logout suave que mantiene los estilos
@@ -20,12 +21,10 @@ export const useSoftLogout = () => {
 
       console.log('✅ Sesión cerrada en Supabase');
 
-      // 2. Limpiar almacenamiento local
+      // 2. Limpiar almacenamiento local específico
       if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
+        clearClientStorage();
 
-        // Limpiar cookies de Supabase específicamente
         const supabaseCookies = [
           'sb-access-token',
           'sb-refresh-token',
@@ -39,22 +38,19 @@ export const useSoftLogout = () => {
           document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
         });
 
-        console.log('🍪 Almacenamiento limpiado');
+        console.log('🍪 Tokens de Supabase limpiados');
       }
 
-      // 3. IMPORTANTE: Usar window.location.href para forzar recarga completa
-      // Esto limpia el cache del router de Next.js y previene mostrar dashboard anterior
-      console.log('🔄 Forzando recarga completa...');
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
+      // 3. Navegación limpia usando el router de Next
+      console.log('🔄 Redirigiendo al landing...');
+      router.replace('/');
+      router.refresh();
 
     } catch (error) {
       console.error('❌ Error en logout:', error);
       // Fallback: forzar recarga de todas formas
       if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
+        clearClientStorage();
         window.location.href = '/';
       }
     }

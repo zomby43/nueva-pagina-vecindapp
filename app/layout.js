@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from 'next/script';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ScrollToTopButton from '@/components/common/ScrollToTopButton';
+import HelpChatWidget from '@/components/chat/HelpChatWidget';
 // Importar forceLogout para registrarlo globalmente
 import '@/lib/forceLogout';
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning style={{ margin: 0, padding: 0, minHeight: '100vh' }}>
         <AuthProvider>
           {children}
+          <HelpChatWidget />
           <ScrollToTopButton />
         </AuthProvider>
         {/* Bootstrap JS */}
