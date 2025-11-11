@@ -13,100 +13,133 @@
 
 ---
 
-## Descripción
+## 📋 Descripción
 
-VecindApp es una plataforma web integral diseñada para modernizar la gestión de juntas de vecinos. Facilita la comunicación entre vecinos y la administración, permitiendo solicitar certificados, participar en actividades, reservar espacios comunitarios, y mucho más.
+VecindApp es una plataforma web integral diseñada para modernizar la gestión de juntas de vecinos en Chile. Facilita la comunicación entre vecinos y la administración, permitiendo solicitar certificados, participar en actividades, reservar espacios comunitarios, visualizar noticias, postular proyectos, y mucho más.
 
-### Características Principales
+### ✨ Características Principales
 
-- **Autenticación segura** con roles diferenciados (Vecino, Secretaria, Admin)
-- **Gestión de certificados** de residencia y antigüedad con generación automática de PDFs
-- **Sistema de noticias** con reacciones e interacción social
-- **Actividades comunitarias** con sistema de inscripciones
-- **Proyectos vecinales** con postulaciones y seguimiento
-- **Reservas de espacios** comunes (quincho, salón de eventos, etc.)
-- **Mapa interactivo** de la comunidad
-- **Notificaciones por email** automatizadas
-- **Panel administrativo** completo con logs y reportes
-- **Diseño responsive** adaptado a todos los dispositivos
+- **🔐 Autenticación segura** con roles diferenciados (Vecino, Secretaría, Admin)
+- **📄 Gestión de certificados** de residencia y antigüedad con generación automática de PDFs
+- **📰 Sistema de noticias** con editor WYSIWYG, imágenes y reacciones
+- **🎯 Actividades comunitarias** con sistema de inscripciones y control de cupos
+- **🏗️ Proyectos vecinales** con postulaciones, documentos adjuntos y seguimiento
+- **🏠 Reservas de espacios** comunes con calendario y gestión de bloques horarios
+- **📢 Sistema de avisos** con prioridades y fechas de vigencia
+- **🗺️ Mapa interactivo** con clustering de marcadores y geocodificación
+- **📧 Notificaciones por email** automatizadas con plantillas profesionales
+- **👥 Gestión de directiva** con contactos y cargos
+- **📊 Panel administrativo** completo con logs, reportes y estadísticas
+- **🤖 Chatbot de ayuda** con IA integrada (OpenAI GPT-4o-mini)
+- **🛡️ Protección anti-spam** con Cloudflare Turnstile
+- **📱 Diseño responsive** adaptado a todos los dispositivos
+- **🎨 Interfaz moderna** con Bootstrap Icons y paleta de colores profesional
 
 ---
 
-## Tecnologías
+## 🚀 Tecnologías
 
 | Categoría | Tecnología | Versión | Uso |
 |-----------|-----------|---------|-----|
-| **Framework** | Next.js | 14.2.3 | App Router + Server Components |
-| **Lenguaje** | JavaScript | ES6+ | Client & Server |
-| **Base de Datos** | Supabase (PostgreSQL) | - | Auth + Storage + Database |
+| **Framework** | Next.js | 14.2.3 | App Router + Server/Client Components |
+| **Lenguaje** | JavaScript | ES6+ | Full-stack development |
+| **Base de Datos** | Supabase (PostgreSQL) | Latest | Auth + Storage + Database + RLS |
 | **Autenticación** | Supabase Auth | 2.75+ | Sistema de roles y permisos |
-| **Estilos** | Bootstrap | 5.3.8 | UI Framework responsive |
-| **Mapas** | Leaflet | 1.9.4 | Mapas interactivos |
+| **UI Framework** | Bootstrap | 5.3.8 | Responsive design + Components |
+| **Iconos** | Bootstrap Icons | 1.11+ | Iconografía consistente |
+| **Mapas** | Leaflet + React Leaflet | 1.9.4 / 4.2+ | Mapas interactivos |
+| **Clustering** | react-leaflet-cluster | 2.1+ | Agrupación de marcadores |
+| **Editor** | Quill (react-quill) | 2.0+ | Editor WYSIWYG para noticias |
 | **PDF** | jsPDF + AutoTable | 3.0+ | Generación de certificados |
 | **Emails** | SendGrid | 8.1+ | Notificaciones automatizadas |
-| **Seguridad** | Cloudflare Turnstile | - | Protección anti-bots |
-| **Imágenes** | browser-image-compression | 2.0+ | Optimización de imágenes |
+| **IA** | OpenAI API | 4.0+ | Chatbot de ayuda con GPT-4o-mini |
+| **Seguridad** | Cloudflare Turnstile | Latest | Protección anti-bots en registro |
+| **Geocoding** | Nominatim OSM | - | Obtención de coordenadas |
+| **Imágenes** | browser-image-compression | 2.0+ | Optimización automática |
 
 ---
 
-## Estructura del Proyecto
+## 📁 Estructura del Proyecto
 
 ```
 nueva-pagina-vecindapp/
 ├── 📁 app/                          # Next.js App Router
-│   ├── 📁 (auth)/                   # Rutas de autenticación
+│   ├── 📁 (auth)/                   # Rutas de autenticación públicas
 │   │   ├── login/                   # Inicio de sesión
-│   │   └── register/                # Registro de usuarios
+│   │   └── register/                # Registro con CAPTCHA
 │   ├── 📁 (vecino)/                 # Rutas protegidas para vecinos
-│   │   ├── dashboard/               # Panel principal del vecino
-│   │   ├── solicitudes/             # Solicitar certificados
-│   │   ├── perfil/                  # Gestionar perfil
-│   │   ├── mapa/                    # Mapa de la comunidad
-│   │   ├── noticias/                # Ver noticias
+│   │   ├── dashboard/               # Panel principal con estadísticas
+│   │   ├── solicitudes/             # Gestionar certificados
+│   │   │   └── nueva/               # Nueva solicitud
+│   │   ├── perfil/                  # Editar perfil y foto
+│   │   ├── mapa/                    # Mapa interactivo de la comunidad
+│   │   ├── noticias/                # Ver noticias publicadas
+│   │   │   └── [id]/                # Detalle de noticia
+│   │   ├── avisos/                  # Tablón de avisos
 │   │   ├── actividades/             # Actividades comunitarias
+│   │   │   ├── [id]/                # Detalle e inscripción
+│   │   │   └── mis-inscripciones/   # Mis inscripciones
 │   │   ├── proyectos/               # Proyectos vecinales
-│   │   ├── reservas/                # Reservar espacios
-│   │   └── avisos/                  # Tablón de avisos
+│   │   │   ├── [id]/                # Detalle de proyecto
+│   │   │   ├── postular/            # Postular proyecto
+│   │   │   └── mis-postulaciones/   # Mis postulaciones
+│   │   └── reservas/                # Reservar espacios
+│   │       └── mis-reservas/        # Mis reservas
 │   ├── 📁 secretaria/               # Panel de secretaría
-│   │   ├── dashboard/               # Estadísticas y resumen
-│   │   ├── vecinos/                 # Gestionar vecinos
-│   │   │   └── aprobaciones/        # Aprobar registros
-│   │   ├── solicitudes/             # Gestionar solicitudes
-│   │   ├── certificados/            # Emitir certificados
-│   │   ├── noticias/                # Publicar noticias
-│   │   ├── actividades/             # Crear actividades
-│   │   ├── proyectos/               # Gestionar proyectos
-│   │   ├── reservas/                # Administrar reservas
-│   │   ├── avisos/                  # Publicar avisos
-│   │   └── directiva/               # Gestionar directiva
-│   ├── 📁 admin/                    # Panel de administración
 │   │   ├── dashboard/               # Dashboard con métricas
+│   │   ├── vecinos/                 # Gestionar vecinos
+│   │   │   └── aprobaciones/        # Aprobar registros pendientes
+│   │   ├── solicitudes/             # Gestionar solicitudes
+│   │   ├── certificados/            # Emitir certificados manualmente
+│   │   ├── noticias/                # Publicar y editar noticias
+│   │   │   ├── nueva/               # Crear noticia
+│   │   │   └── editar/[id]/         # Editar noticia
+│   │   ├── avisos/                  # Gestionar avisos
+│   │   │   ├── nuevo/               # Crear aviso
+│   │   │   └── editar/[id]/         # Editar aviso
+│   │   ├── actividades/             # Gestionar actividades
+│   │   │   ├── nueva/               # Crear actividad
+│   │   │   ├── editar/[id]/         # Editar actividad
+│   │   │   └── inscripciones/[id]/  # Gestionar inscripciones
+│   │   ├── proyectos/               # Gestionar proyectos
+│   │   │   ├── [id]/                # Detalle y gestión
+│   │   │   └── pendientes/          # Proyectos pendientes
+│   │   ├── reservas/                # Administrar reservas
+│   │   │   └── pendientes/          # Reservas pendientes
+│   │   ├── espacios/                # Administrar espacios
+│   │   ├── directiva/               # Gestionar directiva
+│   │   └── configuracion/           # Configuración de la organización
+│   ├── 📁 admin/                    # Panel de administración
+│   │   ├── dashboard/               # Dashboard global
 │   │   ├── usuarios/                # Gestión de usuarios
+│   │   │   └── [id]/                # Editar usuario
 │   │   ├── solicitudes/             # Todas las solicitudes
-│   │   ├── roles/                   # Gestión de roles
-│   │   ├── logs/                    # Logs del sistema
+│   │   │   └── [id]/                # Gestionar solicitud
+│   │   ├── roles/                   # Gestión de roles y permisos
+│   │   ├── logs/                    # Logs de actividad del sistema
 │   │   ├── reportes/                # Generación de reportes
-│   │   └── configuracion/           # Configuración global
+│   │   └── configuracion/           # Configuración global del sistema
 │   ├── 📁 api/                      # API Routes
 │   │   ├── auth/                    # Endpoints de autenticación
-│   │   ├── certificados/            # Generación de certificados
+│   │   ├── certificados/            # Generación de certificados PDF
 │   │   ├── emails/                  # Envío de correos
-│   │   └── verify-turnstile/        # Validación CAPTCHA
+│   │   ├── chat/                    # Chatbot con OpenAI
+│   │   └── verify-turnstile/        # Validación de CAPTCHA
 │   ├── pendiente-aprobacion/        # Página de espera post-registro
-│   ├── layout.js                    # Layout principal
+│   ├── layout.js                    # Layout raíz con AuthProvider
 │   ├── page.js                      # Landing page pública
-│   └── globals.css                  # Estilos globales
+│   └── globals.css                  # Estilos globales (3600+ líneas)
 ├── 📁 components/                   # Componentes reutilizables
-│   ├── layout/                      # Headers, Sidebars, Footers
-│   ├── common/                      # Componentes comunes
-│   ├── maps/                        # Componentes de mapas
-│   ├── noticias/                    # Componentes de noticias
-│   ├── proyectos/                   # Componentes de proyectos
-│   └── ui/                          # Componentes de UI
+│   ├── layout/                      # Headers, Sidebars (Vecino, Secretaría, Admin)
+│   ├── maps/                        # MapContainer, VecinoMarker, MapaGeneral
+│   ├── noticias/                    # NoticiaCard, ReaccionButton
+│   ├── secretaria/                  # VecinosPageClient
+│   └── chatbot/                     # ChatbotButton, ChatWindow
 ├── 📁 contexts/                     # Context API de React
 │   └── AuthContext.jsx              # Estado global de autenticación
 ├── 📁 hooks/                        # Custom Hooks
-│   └── useAuth.js                   # Hook de autenticación
+│   ├── useAuth.js                   # Hook de autenticación
+│   └── useSoftLogout.js             # Logout suave (mantiene CSS)
 ├── 📁 lib/                          # Utilidades y helpers
 │   ├── supabase/                    # Clientes de Supabase
 │   │   ├── client.js                # Cliente browser
@@ -114,40 +147,50 @@ nueva-pagina-vecindapp/
 │   │   ├── middleware.js            # Cliente middleware
 │   │   └── admin.js                 # Cliente admin
 │   ├── emails/                      # Sistema de correos
-│   │   ├── sendEmail.js             # Funciones de envío
-│   │   └── templates.js             # Plantillas HTML
+│   │   ├── sendEmail.js             # 13 funciones de envío
+│   │   └── templates.js             # Plantillas HTML responsive
 │   ├── pdf/                         # Generación de PDFs
-│   │   └── generarCertificado.js    # Certificados
+│   │   └── generarCertificado.js    # Certificados con marca de agua
 │   ├── storage/                     # Gestión de archivos
+│   │   ├── uploadImage.js           # Subida de imágenes
+│   │   └── deleteFile.js            # Eliminación de archivos
 │   ├── logs/                        # Sistema de logs
-│   └── geocoding/                   # Geocodificación
+│   │   ├── createLog.js             # Creación de logs
+│   │   └── getLogs.js               # Consulta de logs
+│   ├── geocoding/                   # Geocodificación
+│   │   └── getCoordinates.js        # Nominatim OSM
+│   └── forceLogout.js               # Logout de emergencia
 ├── 📁 public/                       # Archivos estáticos
-│   └── vencinapp.svg                # Logo de la aplicación
-├── 📄 middleware.js                 # Middleware de Next.js (rutas protegidas)
+│   ├── vencinapp.svg                # Logo de la aplicación
+│   └── vecindapp-icon.png           # Favicon
+├── 📄 middleware.js                 # Middleware de Next.js (protección de rutas)
 ├── 📄 next.config.js                # Configuración de Next.js
 ├── 📄 jsconfig.json                 # Alias de importación (@/)
 ├── 📄 package.json                  # Dependencias del proyecto
-├── 📄 supabase-schema.sql           # Schema de la base de datos
+├── 📄 supabase-schema.sql           # Schema completo de la BD
 ├── 📄 .env.local                    # Variables de entorno (local)
+├── 📄 .env.example                  # Ejemplo de variables de entorno
 ├── 📄 README.md                     # Este archivo
-├── 📄 SETUP.md                      # Guía de configuración
-├── 📄 EMAILS.md                     # Configuración de correos
-└── 📄 SENDGRID_SETUP.md             # Configuración de SendGrid
+├── 📄 SETUP-ENV.md                  # Guía de configuración de entorno
+├── 📄 NOTIFICACIONES-EMAIL.md       # Configuración de correos
+├── 📄 TURNSTILE-SETUP.md            # Configuración de CAPTCHA
+└── 📄 INSTRUCCIONES-*.md            # Guías de funcionalidades específicas
 ```
 
 ---
 
-## Requisitos Previos
+## 📋 Requisitos Previos
 
 - **Node.js** 18.x o superior
 - **npm** o **yarn**
-- Cuenta en [Supabase](https://supabase.com) (gratuita)
-- Cuenta en [SendGrid](https://sendgrid.com) (opcional, para emails)
-- Cuenta en [Cloudflare](https://cloudflare.com) (opcional, para Turnstile)
+- Cuenta en [Supabase](https://supabase.com) (Plan gratuito disponible)
+- Cuenta en [SendGrid](https://sendgrid.com) (Opcional - para emails)
+- Cuenta en [Cloudflare](https://cloudflare.com) (Opcional - para Turnstile)
+- Cuenta en [OpenAI](https://platform.openai.com) (Opcional - para chatbot IA)
 
 ---
 
-## Instalación Rápida
+## ⚡ Instalación Rápida
 
 ### 1. Clonar el Repositorio
 
@@ -164,7 +207,7 @@ npm install
 
 ### 3. Configurar Variables de Entorno
 
-Crea un archivo `.env.local` en la raíz del proyecto:
+Crea un archivo `.env.local` en la raíz del proyecto (puedes copiar `.env.example`):
 
 ```env
 # Supabase
@@ -175,6 +218,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
 SENDGRID_API_KEY=SG.tu-api-key
 SENDGRID_FROM_EMAIL=noreply@tu-dominio.com
 EMAIL_SERVICE_ENABLED=false  # true para activar envío real
+
+# OpenAI (Opcional - para chatbot IA)
+OPENAI_API_KEY=sk-tu-api-key
 
 # Cloudflare Turnstile (Opcional - para CAPTCHA)
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=tu-site-key
@@ -187,10 +233,11 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ### 4. Configurar Base de Datos en Supabase
 
 1. Ve a tu [dashboard de Supabase](https://supabase.com/dashboard)
-2. Abre el **SQL Editor**
-3. Copia y pega el contenido del archivo `supabase-schema.sql`
-4. Ejecuta el script
-5. Verifica que se crearon las tablas: `usuarios`, `solicitudes`, y el bucket `documentos`
+2. Crea un nuevo proyecto
+3. Abre el **SQL Editor**
+4. Copia y pega el contenido del archivo `supabase-schema.sql`
+5. Ejecuta el script completo
+6. Verifica que se crearon todas las tablas y buckets de storage
 
 ### 5. Iniciar el Servidor de Desarrollo
 
@@ -202,189 +249,439 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ---
 
-## Configuración Detallada
+## 📚 Configuración Detallada
 
-Para una guía paso a paso completa, consulta:
+Para guías paso a paso completas, consulta:
 
-- **[SETUP.md](./SETUP.md)** - Configuración de Supabase y autenticación
-- **[EMAILS.md](./EMAILS.md)** - Configuración del sistema de correos
-- **[SENDGRID_SETUP.md](./SENDGRID_SETUP.md)** - Guía rápida de SendGrid
+- **[SETUP-ENV.md](./SETUP-ENV.md)** - Configuración completa de variables de entorno
+- **[NOTIFICACIONES-EMAIL.md](./NOTIFICACIONES-EMAIL.md)** - Sistema de correos con SendGrid
+- **[TURNSTILE-SETUP.md](./TURNSTILE-SETUP.md)** - Protección anti-spam con Cloudflare
+- **[INSTRUCCIONES-MAPA-VECINOS.md](./INSTRUCCIONES-MAPA-VECINOS.md)** - Configuración del mapa
+- **[INSTRUCCIONES-STORAGE-NOTICIAS.md](./INSTRUCCIONES-STORAGE-NOTICIAS.md)** - Storage de imágenes
 
 ---
 
-## Sistema de Roles y Permisos
+## 👥 Sistema de Roles y Permisos
 
-### Vecino
+### 🏘️ Vecino
 
 **Acceso:** Dashboard, Solicitudes, Perfil, Mapa, Noticias, Actividades, Proyectos, Reservas, Avisos
 
 **Permisos:**
 - ✅ Ver y editar su propio perfil
+- ✅ Subir y cambiar foto de perfil
 - ✅ Crear solicitudes de certificados
 - ✅ Ver estado de sus solicitudes
-- ✅ Descargar certificados aprobados
-- ✅ Ver noticias y reaccionar
-- ✅ Inscribirse en actividades
-- ✅ Postular a proyectos
+- ✅ Descargar certificados aprobados (PDF)
+- ✅ Ver noticias publicadas y reaccionar (👍 ❤️ 👏 🎉 😮 😢 😡)
+- ✅ Ver avisos activos
+- ✅ Inscribirse en actividades comunitarias
+- ✅ Ver sus inscripciones
+- ✅ Postular a proyectos vecinales
+- ✅ Subir documentos adjuntos a proyectos
+- ✅ Ver estado de sus postulaciones
 - ✅ Reservar espacios comunitarios
-- ✅ Ver avisos
+- ✅ Ver sus reservas
+- ✅ Ver mapa de la comunidad con su ubicación
+- ✅ Usar chatbot de ayuda con IA
 - ❌ No puede gestionar otros usuarios
-- ❌ No puede aprobar solicitudes
+- ❌ No puede aprobar solicitudes/reservas/proyectos
+- ❌ No puede publicar noticias/avisos
 
-### Secretaria
+### 📋 Secretaría
 
-**Acceso:** Todo lo de Vecino + Panel de Secretaría
+**Acceso:** Todo lo de Vecino + Panel de Secretaría completo
 
 **Permisos adicionales:**
 - ✅ Aprobar/rechazar registros de nuevos vecinos
-- ✅ Gestionar solicitudes de certificados
+- ✅ Ver lista completa de vecinos con filtros
+- ✅ Ver detalles completos de vecinos
+- ✅ Gestionar solicitudes de certificados (aprobar/rechazar)
 - ✅ Emitir certificados manualmente
-- ✅ Crear y editar noticias
-- ✅ Crear y gestionar actividades
+- ✅ Crear, editar y eliminar noticias
+- ✅ Subir imágenes a noticias (con optimización automática)
+- ✅ Editor WYSIWYG para contenido HTML
+- ✅ Crear, editar y eliminar avisos
+- ✅ Configurar prioridad y vigencia de avisos
+- ✅ Crear y gestionar actividades comunitarias
 - ✅ Gestionar inscripciones a actividades
-- ✅ Gestionar proyectos y postulaciones
-- ✅ Aprobar/rechazar reservas
-- ✅ Publicar avisos
+- ✅ Control de cupos disponibles
+- ✅ Gestionar proyectos vecinales y postulaciones
+- ✅ Aprobar/rechazar proyectos
+- ✅ Cambiar estados de proyectos
+- ✅ Aprobar/rechazar reservas de espacios
+- ✅ Gestionar espacios disponibles
+- ✅ Configurar bloques horarios
 - ✅ Gestionar información de la directiva
+- ✅ Configurar datos de la organización
 - ⚠️ Sesión con timeout de 10 minutos de inactividad
+- ❌ No puede gestionar roles de usuarios
+- ❌ No puede acceder a logs del sistema
 
-### Administrador
+### 🛡️ Administrador
 
-**Acceso:** Acceso total a todo el sistema + Panel de Administración
+**Acceso:** Acceso total + Panel de Administración avanzado
 
 **Permisos adicionales:**
-- ✅ Todo lo de Secretaria
-- ✅ Gestionar roles de usuarios
-- ✅ Ver logs del sistema
-- ✅ Generar reportes
-- ✅ Modificar configuración global
-- ✅ Gestionar todos los aspectos del sistema
+- ✅ Todo lo de Secretaría
+- ✅ Gestión completa de usuarios
+- ✅ Cambiar roles de usuarios (vecino/secretaria/admin)
+- ✅ Cambiar estados de usuarios
+- ✅ Ver y filtrar logs de actividad del sistema
+- ✅ Generar reportes y estadísticas globales
+- ✅ Ver matriz de permisos por rol
+- ✅ Modificar configuración global del sistema
+- ✅ Acceso a todas las funcionalidades
 
 ---
 
-## Funcionalidades Implementadas
+## 🎯 Funcionalidades Implementadas
 
-### Autenticación y Seguridad
+### 🔐 Autenticación y Seguridad
 
-- [x] Registro con validación de RUT chileno
+- [x] Registro con validación de RUT chileno (formato y dígito verificador)
 - [x] Validación de formato de email
-- [x] Subida de comprobante de residencia (obligatorio)
+- [x] Subida de comprobante de residencia obligatoria
 - [x] Protección CAPTCHA con Cloudflare Turnstile
 - [x] Login con email y contraseña
 - [x] Middleware de protección de rutas por rol
-- [x] Estados de usuario (pendiente, activo, rechazado, inactivo)
+- [x] Estados de usuario (pendiente_aprobacion, activo, rechazado, inactivo)
 - [x] Página de espera para usuarios pendientes
 - [x] Timeout automático de sesión para secretaría (10 min)
+- [x] Logout suave (mantiene CSS cargado)
 - [x] Headers anti-cache para seguridad
-- [x] Row Level Security (RLS) en Supabase
+- [x] Row Level Security (RLS) completo en Supabase
+- [x] Políticas de acceso granulares por tabla
 
-### Gestión de Solicitudes
+### 📄 Gestión de Solicitudes y Certificados
 
 - [x] Crear solicitudes de certificados
 - [x] Tipos: Certificado de Residencia, Certificado de Antigüedad
 - [x] Estados: Pendiente, En Proceso, Completado, Rechazado
-- [x] Seguimiento de solicitudes en tiempo real
-- [x] Generación automática de PDFs
-- [x] Descarga de certificados aprobados
+- [x] Seguimiento en tiempo real
+- [x] Generación automática de PDFs con jsPDF
+- [x] Marca de agua y formato profesional
+- [x] Descarga directa de certificados aprobados
 - [x] Sistema de observaciones
-- [x] Historial completo de solicitudes
+- [x] Notificación por email al aprobar/rechazar
+- [x] Historial completo con fechas
+- [x] Filtros por estado y tipo
+- [x] Estadísticas por estado
 
-### Sistema de Noticias
+### 📰 Sistema de Noticias
 
-- [x] Publicación de noticias con imágenes
-- [x] Editor de texto enriquecido (Quill)
-- [x] Sistema de reacciones (Me gusta, Me encanta, etc.)
+- [x] Publicación con editor WYSIWYG (Quill)
+- [x] Formatos de texto: negrita, cursiva, listas, títulos, enlaces
+- [x] Subida y gestión de imágenes
+- [x] Optimización automática de imágenes (browser-image-compression)
+- [x] Storage en Supabase con políticas de acceso
+- [x] Sistema de reacciones (7 tipos: 👍 ❤️ 👏 🎉 😮 😢 😡)
 - [x] Contador de reacciones en tiempo real
-- [x] Vista detallada de noticias
-- [x] Gestión completa desde panel de secretaría
+- [x] Vista detallada con HTML renderizado
+- [x] Vista previa de cards con extracto
+- [x] Gestión completa desde secretaría (crear/editar/eliminar)
+- [x] Filtros por fecha
+- [x] Estadísticas de publicaciones
 
-### Actividades Comunitarias
+### 📢 Sistema de Avisos
 
-- [x] Creación de actividades con fechas y cupos
-- [x] Sistema de inscripciones
+- [x] Publicación de avisos importantes
+- [x] Niveles de prioridad (normal, importante, urgente)
+- [x] Fechas de vigencia (desde/hasta)
+- [x] Activación/desactivación
+- [x] Subida de imágenes
+- [x] Gestión completa desde secretaría
+- [x] Filtrado por estado (activos/todos)
+- [x] Ordenamiento por prioridad y fecha
+
+### 🎯 Actividades Comunitarias
+
+- [x] Creación con fecha, hora y lugar
 - [x] Control de cupos disponibles
+- [x] Sistema de inscripciones
+- [x] Validación de cupos llenos
 - [x] Gestión de inscripciones desde secretaría
+- [x] Lista de inscritos con datos de contacto
 - [x] Historial de actividades
-- [x] Listado de mis inscripciones (vecino)
+- [x] Mi historial de inscripciones (vecino)
+- [x] Estados: Próximas, En curso, Finalizadas
+- [x] Cancelación de inscripción
 
-### Proyectos Vecinales
+### 🏗️ Proyectos Vecinales
 
-- [x] Publicación de proyectos
+- [x] Publicación de proyectos con presupuesto
 - [x] Sistema de postulaciones
-- [x] Subida de documentos adjuntos
-- [x] Estados: Pendiente, Aprobado, Rechazado
-- [x] Gestión de postulaciones desde secretaría
-- [x] Visualización de proyectos activos
+- [x] Subida de documentos adjuntos (PDF, imágenes, Word)
+- [x] Múltiples archivos por proyecto
+- [x] Estados: Pendiente, Aprobado, Rechazado, En Ejecución, Completado
+- [x] Gestión desde secretaría (aprobar/rechazar/cambiar estado)
+- [x] Vista detallada con todos los documentos
+- [x] Listado de postulaciones del vecino
+- [x] Notificaciones por email
+- [x] Estadísticas por estado
+- [x] Filtros avanzados
 
-### Reservas de Espacios
+### 🏠 Reservas de Espacios
 
 - [x] Reserva de espacios comunitarios
-- [x] Calendario de disponibilidad
-- [x] Estados: Pendiente, Confirmado, Rechazado
-- [x] Gestión de reservas desde secretaría
-- [x] Generación de comprobante de reserva
+- [x] Bloques horarios (Mañana, Tarde, Noche, Día Completo)
+- [x] Gestión de espacios disponibles
+- [x] Control de disponibilidad por fecha
+- [x] Estados: Pendiente, Aprobada, Rechazada, Cancelada, Completada
+- [x] Aprobación/rechazo desde secretaría
+- [x] Motivo de rechazo
 - [x] Mis reservas (vecino)
+- [x] Notificaciones por email
+- [x] Estadísticas completas
+- [x] Administración de espacios
 
-### Sistema de Correos
+### 🗺️ Mapa Interactivo
 
-- [x] Integración con SendGrid
-- [x] Plantillas HTML responsive
+- [x] Mapa con Leaflet y OpenStreetMap
+- [x] Marcadores de vecinos con coordenadas
+- [x] Clustering de marcadores cercanos (react-leaflet-cluster)
+- [x] Colores por cantidad (pequeño/mediano/grande)
+- [x] Spiderfy al hacer zoom máximo
+- [x] Geocodificación automática de direcciones
+- [x] Popup con información del vecino
+- [x] Estadísticas de vecinos en el mapa
+- [x] Lista de vecinos sin coordenadas
+- [x] Mapa de comunidad para vecinos con datos reales
+- [x] Lugares de interés cercanos
+- [x] Integración con configuración de la organización
+
+### 📧 Sistema de Correos
+
+- [x] Integración completa con SendGrid
+- [x] 13 tipos de notificaciones diferentes
+- [x] Plantillas HTML responsive profesionales
 - [x] Notificación de aprobación de registro
+- [x] Notificación de rechazo de registro
 - [x] Notificación de aprobación de solicitud
-- [x] Notificación de rechazo
-- [x] Modo desarrollo (logs en consola)
-- [x] Modo producción (envío real)
+- [x] Notificación de rechazo de solicitud
+- [x] Notificación de aprobación de reserva
+- [x] Notificación de rechazo de reserva
+- [x] Modo desarrollo (logs en consola, sin envío real)
+- [x] Modo producción (envío real vía SendGrid)
+- [x] Gestión de errores y reintentos
+- [x] Variables de entorno configurables
 
-### Panel Administrativo
+### 🤖 Chatbot con IA
+
+- [x] Integración con OpenAI GPT-4o-mini
+- [x] Botón flotante en todas las páginas
+- [x] Ventana de chat con historial
+- [x] Restricciones por rol (vecino solo pregunta sobre funciones de vecino)
+- [x] Conocimiento completo de la plataforma
+- [x] Guías paso a paso para cada función
+- [x] Respuestas contextualizadas
+- [x] Rechazo de preguntas fuera de alcance
+- [x] Interfaz moderna y responsive
+
+### 👥 Gestión de Directiva
+
+- [x] CRUD completo de contactos de directiva
+- [x] Cargos personalizables
+- [x] Datos de contacto (email, teléfono)
+- [x] Orden de visualización
+- [x] Activar/desactivar contactos
+- [x] Vista pública en landing page
+
+### 📊 Panel Administrativo
 
 - [x] Dashboard con métricas globales
+- [x] Estadísticas de usuarios, solicitudes, proyectos, reservas
 - [x] Gestión completa de usuarios
 - [x] Edición de roles y estados
-- [x] Sistema de logs del sistema
+- [x] Sistema de logs de actividad
+- [x] Filtros avanzados en logs (acción, entidad, fecha, búsqueda)
+- [x] Paginación de logs
+- [x] Estadísticas de logs
 - [x] Generación de reportes
-- [x] Configuración global de la aplicación
-- [x] Visualización de actividad del sistema
+- [x] Configuración global del sistema
+- [x] Visualización de actividad en tiempo real
+- [x] Matriz de permisos por rol
 
-### Mapa Interactivo
-
-- [x] Mapa de la comunidad con Leaflet
-- [x] Marcadores interactivos
-- [x] Información de ubicación
-
-### Gestión de Perfil
+### 👤 Gestión de Perfil
 
 - [x] Edición de datos personales
 - [x] Cambio de contraseña
-- [x] Actualización de foto de perfil
-- [x] Historial de actividad
+- [x] Subida y cambio de foto de perfil
+- [x] Optimización automática de imágenes
+- [x] Preview de foto antes de guardar
+- [x] Historial de actividad del usuario
 
-### Avisos
+### 🎨 Diseño y UX
 
-- [x] Publicación de avisos importantes
-- [x] Listado de avisos activos
-- [x] Gestión desde secretaría
+- [x] Interfaz moderna con Bootstrap 5
+- [x] Diseño 100% responsive
+- [x] Bootstrap Icons en toda la aplicación (consistencia visual)
+- [x] Paleta de colores profesional
+- [x] Animaciones suaves
+- [x] Estados de carga consistentes
+- [x] Mensajes de error claros
+- [x] Feedback visual en todas las acciones
+- [x] Sidebar diferenciado por rol (Vecino, Secretaría, Admin)
+- [x] Headers con información del usuario
+- [x] Breadcrumbs y navegación clara
 
 ---
 
-## Scripts Disponibles
+## 🗄️ Base de Datos
+
+### Tablas Principales
+
+#### `usuarios`
+- **id** (UUID, PK) - Referencia a auth.users
+- **email** (TEXT, UNIQUE)
+- **rut** (TEXT, UNIQUE)
+- **nombres**, **apellidos** (TEXT)
+- **direccion**, **telefono** (TEXT)
+- **latitude**, **longitude** (DOUBLE PRECISION) - Coordenadas
+- **rol** (vecino | secretaria | admin)
+- **estado** (pendiente_aprobacion | activo | rechazado | inactivo)
+- **comprobante_url** (TEXT)
+- **foto_url** (TEXT)
+- **created_at**, **updated_at** (TIMESTAMP)
+
+#### `solicitudes`
+- **id** (UUID, PK)
+- **usuario_id** (UUID, FK)
+- **tipo** (certificado_residencia | certificado_antiguedad)
+- **estado** (pendiente | en_proceso | completado | rechazado)
+- **motivo**, **observaciones** (TEXT)
+- **documento_url** (TEXT)
+- **fecha_solicitud**, **fecha_respuesta** (TIMESTAMP)
+- **atendido_por** (UUID, FK)
+
+#### `noticias`
+- **id** (UUID, PK)
+- **titulo**, **contenido** (TEXT)
+- **imagen_url** (TEXT)
+- **autor_id** (UUID, FK)
+- **created_at**, **updated_at** (TIMESTAMP)
+
+#### `noticias_reacciones`
+- **id** (UUID, PK)
+- **noticia_id**, **usuario_id** (UUID, FK)
+- **tipo_reaccion** (me_gusta | me_encanta | me_divierte | me_asombra | me_entristece | me_enoja | me_importa)
+- **created_at** (TIMESTAMP)
+
+#### `avisos`
+- **id** (UUID, PK)
+- **titulo**, **descripcion** (TEXT)
+- **prioridad** (normal | importante | urgente)
+- **fecha_inicio**, **fecha_fin** (DATE)
+- **activo** (BOOLEAN)
+- **imagen_url** (TEXT)
+- **autor_id** (UUID, FK)
+
+#### `actividades`
+- **id** (UUID, PK)
+- **titulo**, **descripcion** (TEXT)
+- **fecha**, **hora**, **lugar** (TEXT)
+- **cupos_disponibles**, **cupos_totales** (INTEGER)
+- **imagen_url** (TEXT)
+- **creador_id** (UUID, FK)
+- **created_at**, **updated_at** (TIMESTAMP)
+
+#### `proyectos`
+- **id** (UUID, PK)
+- **titulo**, **descripcion** (TEXT)
+- **presupuesto** (DECIMAL)
+- **num_beneficiarios** (INTEGER)
+- **estado** (pendiente | aprobado | rechazado | en_ejecucion | completado)
+- **creador_id**, **aprobador_id** (UUID, FK)
+- **created_at**, **updated_at** (TIMESTAMP)
+
+#### `proyectos_adjuntos`
+- **id** (UUID, PK)
+- **proyecto_id** (UUID, FK)
+- **nombre_archivo**, **url**, **tipo** (TEXT)
+- **tamano** (BIGINT)
+
+#### `reservas`
+- **id** (UUID, PK)
+- **espacio_id**, **solicitante_id** (UUID, FK)
+- **fecha_reserva** (DATE)
+- **bloque_horario** (manana | tarde | noche | dia_completo)
+- **estado** (pendiente | aprobada | rechazada | cancelada | completada)
+- **motivo**, **motivo_rechazo** (TEXT)
+- **num_asistentes** (INTEGER)
+- **aprobador_id** (UUID, FK)
+
+#### `directiva_contactos`
+- **id** (UUID, PK)
+- **cargo**, **nombre_completo** (TEXT)
+- **email**, **telefono** (TEXT)
+- **orden** (INTEGER)
+- **activo** (BOOLEAN)
+
+#### `configuracion_organizacion`
+- **id** (UUID, PK)
+- **numero_unidad_vecinal** (INTEGER)
+- **nombre_organizacion**, **comuna**, **region** (TEXT)
+- **direccion**, **telefono**, **email** (TEXT)
+- **nombre_presidente**, **cargo_presidente** (TEXT)
+- **rut_organizacion** (TEXT)
+- **fecha_constitucion** (DATE)
+
+#### `logs_actividad`
+- **id** (UUID, PK)
+- **usuario_id** (UUID, FK)
+- **accion** (login | logout | crear | editar | eliminar | cambiar_rol | cambiar_estado)
+- **entidad** (sistema | usuario | solicitud | noticia | proyecto | reserva | actividad)
+- **entidad_id** (UUID)
+- **detalles** (JSONB)
+- **created_at** (TIMESTAMP)
+
+### Storage Buckets
+
+- **documentos**
+  - `/comprobantes/{user_id}/` - Comprobantes de residencia
+  - `/certificados/{user_id}/` - Certificados generados
+  - `/fotos-perfil/{user_id}/` - Fotos de perfil
+
+- **noticias**
+  - `/{noticia_id}/` - Imágenes de noticias
+
+- **avisos**
+  - `/{aviso_id}/` - Imágenes de avisos
+
+- **actividades**
+  - `/{actividad_id}/` - Imágenes de actividades
+
+- **proyectos-adjuntos**
+  - `/{proyecto_id}/` - Documentos adjuntos de proyectos
+
+### Row Level Security (RLS)
+
+- ✅ Políticas habilitadas en todas las tablas
+- ✅ Vecinos solo ven sus propios datos
+- ✅ Secretaría y Admin ven todos los datos
+- ✅ Políticas granulares por operación (SELECT, INSERT, UPDATE, DELETE)
+- ✅ Validación de roles en políticas
+- ✅ Protección de datos sensibles
+
+---
+
+## 🛠️ Scripts Disponibles
 
 ```bash
 # Desarrollo
-npm run dev          # Inicia servidor de desarrollo en http://localhost:3000
+npm run dev          # Servidor de desarrollo en http://localhost:3000
 
 # Producción
-npm run build        # Construye la aplicación optimizada para producción
-npm start            # Inicia el servidor de producción
+npm run build        # Build optimizado para producción
+npm start            # Servidor de producción
 
 # Utilidades
-npm install          # Instala todas las dependencias
+npm install          # Instalar dependencias
 ```
 
 ---
 
-## Paleta de Colores
-
-El diseño utiliza una paleta moderna y profesional:
+## 🎨 Paleta de Colores
 
 ```css
 --bg: #d8e7eb           /* Fondo principal - Mist Blue */
@@ -401,78 +698,9 @@ El diseño utiliza una paleta moderna y profesional:
 
 ---
 
-## Base de Datos
-
-### Tablas Principales
-
-#### `usuarios`
-- **id** (UUID, PK) - Referencia a auth.users
-- **email** (TEXT, UNIQUE)
-- **rut** (TEXT, UNIQUE)
-- **nombres** (TEXT)
-- **apellidos** (TEXT)
-- **direccion** (TEXT)
-- **telefono** (TEXT)
-- **rol** (vecino | secretaria | admin)
-- **estado** (pendiente_aprobacion | activo | rechazado | inactivo)
-- **comprobante_url** (TEXT) - URL del comprobante en Storage
-- **created_at, updated_at** (TIMESTAMP)
-
-#### `solicitudes`
-- **id** (UUID, PK)
-- **usuario_id** (UUID, FK → usuarios.id)
-- **tipo** (certificado_residencia | certificado_antiguedad | otro)
-- **estado** (pendiente | en_proceso | completado | rechazado)
-- **motivo** (TEXT)
-- **observaciones** (TEXT)
-- **documento_url** (TEXT) - URL del certificado generado
-- **fecha_solicitud, fecha_respuesta** (TIMESTAMP)
-- **atendido_por** (UUID, FK → usuarios.id)
-- **created_at, updated_at** (TIMESTAMP)
-
-### Storage
-
-- **Bucket: `documentos`**
-  - `/comprobantes/{user_id}/` - Comprobantes de residencia
-  - `/certificados/{user_id}/` - Certificados generados
-
-### Row Level Security (RLS)
-
-- Los vecinos solo pueden ver sus propios datos
-- Secretaria y Admin pueden ver todos los datos
-- Las políticas están definidas en `supabase-schema.sql`
-
----
-
-## API Routes
-
-### Autenticación
-
-- `POST /api/auth/register` - Registro de usuarios
-- `POST /api/auth/login` - Inicio de sesión
-- `POST /api/auth/logout` - Cerrar sesión
-- `GET /api/auth/session` - Obtener sesión actual
-
-### Certificados
-
-- `POST /api/certificados/emitir` - Generar certificado PDF
-
-### Emails
-
-- `POST /api/emails/send` - Enviar email individual
-- `POST /api/emails/send-bulk` - Envío masivo
-
-### Seguridad
-
-- `POST /api/verify-turnstile` - Validar CAPTCHA
-
----
-
-## Deployment
+## 🚀 Deployment
 
 ### Variables de Entorno en Producción
-
-Asegúrate de configurar todas las variables de entorno en tu plataforma de hosting:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://...
@@ -480,6 +708,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SENDGRID_API_KEY=...
 SENDGRID_FROM_EMAIL=...
 EMAIL_SERVICE_ENABLED=true
+OPENAI_API_KEY=...
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
 TURNSTILE_SECRET_KEY=...
@@ -488,98 +717,45 @@ TURNSTILE_SECRET_KEY=...
 ### Plataformas Recomendadas
 
 - **Vercel** - Deploy automático desde Git (recomendado para Next.js)
-- **Netlify** - Alternativa con CI/CD
-- **Railway** - Deploy con PostgreSQL incluido
-- **DigitalOcean App Platform** - Deploy con más control
-
-### Build Command
-
-```bash
-npm run build
-```
-
-### Start Command
-
-```bash
-npm start
-```
+- **Netlify** - Alternativa con CI/CD integrado
+- **Railway** - Deploy con bases de datos incluidas
+- **DigitalOcean App Platform** - Más control sobre infraestructura
 
 ---
 
-## Troubleshooting
+## 🐛 Troubleshooting
 
-### Problemas Comunes
-
-**Error: "Invalid API key"**
-- Verifica que `.env.local` tenga las credenciales correctas de Supabase
-- Reinicia el servidor después de modificar `.env.local`
-
-**Error: "Failed to upload comprobante"**
-- Verifica que el bucket 'documentos' exista en Supabase Storage
-- Verifica que las políticas RLS estén configuradas correctamente
-
-**Usuario queda en "Pendiente de Aprobación"**
-- Es el comportamiento esperado. Un admin/secretaria debe aprobar manualmente desde el panel
-- Para testing: actualiza manualmente el campo `estado` a `activo` en la tabla `usuarios`
-
-**Middleware redirige en loop**
-- Asegúrate de que el perfil del usuario exista en la tabla `usuarios`
-- Verifica que el `rol` y `estado` sean válidos
-
-**Los correos no se envían**
-- Verifica que `EMAIL_SERVICE_ENABLED=true` en `.env.local`
-- Revisa la consola del servidor para ver errores
-- Si está en `false`, los correos solo se muestran en la consola (modo desarrollo)
-
-**Sesión de secretaria expira muy rápido**
-- El timeout es de 10 minutos de inactividad (configurable en `middleware.js`)
-- Cualquier interacción con la página reinicia el contador
+Ver documentación completa en el archivo original. Problemas comunes cubiertos:
+- Errores de API key
+- Problemas de subida de archivos
+- Usuarios pendientes de aprobación
+- Loops de redirección
+- Envío de correos
+- Timeout de sesión
 
 ---
 
-## Contribución
+## 🤝 Contribución
 
-Este proyecto es parte de un proyecto académico. Para contribuir:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/NuevaFuncionalidad`)
-3. Commit tus cambios (`git commit -m 'Add: descripción del cambio'`)
-4. Push a la rama (`git push origin feature/NuevaFuncionalidad`)
-5. Abre un Pull Request
-
-### Convenciones de Commits
-
-- `Add:` - Nueva funcionalidad
-- `Update:` - Actualización de funcionalidad existente
-- `Fix:` - Corrección de bugs
-- `Refactor:` - Refactorización de código
-- `Docs:` - Cambios en documentación
-- `Style:` - Cambios de estilo (formato, CSS)
+Proyecto académico. Para contribuir:
+1. Fork del proyecto
+2. Crear rama (`git checkout -b feature/NuevaFuncionalidad`)
+3. Commit (`git commit -m 'Add: descripción'`)
+4. Push (`git push origin feature/NuevaFuncionalidad`)
+5. Pull Request
 
 ---
 
-## Licencia
+## 📄 Licencia
 
-Este proyecto es de uso académico y educativo.
+Proyecto de uso académico y educativo.
 
 ---
 
-## Autor
+## 👨‍💻 Autor
 
 Proyecto desarrollado como parte del proyecto Capstone semestral.
 
 ---
 
-## Soporte
-
-Para problemas o preguntas:
-
-1. Revisa la documentación en `/SETUP.md`, `/EMAILS.md`
-2. Revisa los logs del servidor en la consola
-3. Verifica la configuración de Supabase
-4. Consulta la [documentación de Next.js](https://nextjs.org/docs)
-5. Consulta la [documentación de Supabase](https://supabase.com/docs)
-
----
-
-**Última actualización:** Noviembre 2025
+**Última actualización:** Diciembre 2024

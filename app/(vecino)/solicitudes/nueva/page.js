@@ -93,7 +93,7 @@ export default function NuevaSolicitudPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Nueva Solicitud</h1>
+        <h1><i className="bi bi-plus-circle me-2"></i>Nueva Solicitud</h1>
         <p className="dashboard-subtitle">Completa el formulario para crear una nueva solicitud</p>
       </div>
 

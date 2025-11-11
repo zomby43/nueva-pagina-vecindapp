@@ -193,7 +193,7 @@ export default function MisReservasPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="mb-4">
-        <h1 className="display-6 fw-bold mb-3">📋 Mis Reservas</h1>
+        <h1 className="display-6 fw-bold mb-3"><i className="bi bi-house-door me-2"></i>Mis Reservas</h1>
         <p className="lead text-muted">Revisa el estado de todas tus solicitudes de reserva</p>
       </div>
 

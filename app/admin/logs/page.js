@@ -112,7 +112,7 @@ export default function AdminLogsPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>📜 Registro de Actividad del Sistema</h1>
+          <h1><i className="bi bi-file-text me-2"></i>Registro de Actividad del Sistema</h1>
           <p className="page-subtitle">Auditoría y seguimiento de acciones</p>
         </div>
       </div>

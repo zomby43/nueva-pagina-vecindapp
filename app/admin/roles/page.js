@@ -113,7 +113,7 @@ export default function AdminRolesPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>👥 Gestión de Roles y Permisos</h1>
+        <h1><i className="bi bi-shield-lock me-2"></i>Gestión de Roles y Permisos</h1>
         <p className="page-subtitle">Matriz de permisos y control de acceso del sistema</p>
       </div>
 

@@ -212,7 +212,7 @@ export default function AprobacionesPage() {
       <div className="page-header">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1>⏰ Aprobación de Vecinos</h1>
+            <h1><i className="bi bi-person-check me-2"></i>Aprobación de Vecinos</h1>
             <p className="text-muted">Revisa y aprueba las solicitudes de inscripción de nuevos vecinos</p>
           </div>
           <button className="btn btn-outline-primary" onClick={fetchVecinosPendientes} disabled={loading}>

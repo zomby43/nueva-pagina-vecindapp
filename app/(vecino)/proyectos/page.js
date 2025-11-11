@@ -109,7 +109,7 @@ export default function ProyectosPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3">🏗️ Proyectos Vecinales</h1>
+        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-building me-2"></i>Proyectos Vecinales</h1>
         <p className="lead text-muted">Conoce los proyectos que están transformando nuestra comunidad</p>
       </div>
 

@@ -251,7 +251,7 @@ export default function ReservasPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="mb-4">
-        <h1 className="display-6 fw-bold mb-3">🏟️ Reservar Espacios</h1>
+        <h1 className="display-6 fw-bold mb-3"><i className="bi bi-house-door me-2"></i>Reservar Espacios</h1>
         <p className="lead text-muted">
           Solicita la reserva de espacios comunes de la junta de vecinos
         </p>

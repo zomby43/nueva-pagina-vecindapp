@@ -1,10 +1,23 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
+import { useSoftLogout } from '@/hooks/useSoftLogout';
 import Link from 'next/link';
 
 export default function PendienteAprobacionPage() {
   const { user, signOut } = useAuth();
+  const softLogout = useSoftLogout();
+
+  const handleLogout = async () => {
+    try {
+      await softLogout();
+    } catch (error) {
+      console.warn('Soft logout falló, usando signOut tradicional', error);
+      if (typeof signOut === 'function') {
+        await signOut();
+      }
+    }
+  };
 
   return (
     <div style={{
@@ -64,7 +77,7 @@ export default function PendienteAprobacionPage() {
             Usuario: {user?.email}
           </p>
           <button
-            onClick={signOut}
+            onClick={handleLogout}
             style={{
               background: '#6c757d',
               color: 'white',

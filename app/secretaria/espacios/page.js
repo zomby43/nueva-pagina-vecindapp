@@ -193,7 +193,7 @@ export default function AdministracionEspaciosPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>⚙️ Administración de Espacios</h1>
+          <h1><i className="bi bi-gear me-2"></i>Administración de Espacios</h1>
           <p className="text-muted">Gestiona los espacios disponibles para reserva</p>
         </div>
         <button

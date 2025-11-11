@@ -146,7 +146,7 @@ export default function SecretariaActividadesPage() {
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
-          <h1 className="display-6 fw-bold mb-2">🎯 Gestión de Actividades</h1>
+          <h1 className="display-6 fw-bold mb-2"><i className="bi bi-calendar-event me-2"></i>Gestión de Actividades</h1>
           <p className="text-muted">Administra las actividades vecinales</p>
         </div>
         <Link href="/secretaria/actividades/nueva" className="btn btn-primary btn-lg">

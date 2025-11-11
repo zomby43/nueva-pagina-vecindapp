@@ -148,7 +148,7 @@ export default function ConfiguracionPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>Configuración de la Organización</h1>
+          <h1><i className="bi bi-sliders me-2"></i>Configuración de la Organización</h1>
           <p className="text-muted">Personaliza los datos de tu Junta de Vecinos</p>
         </div>
       </div>

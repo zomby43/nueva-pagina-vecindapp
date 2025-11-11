@@ -284,7 +284,7 @@ export default function SecretariaSolicitudesPage() {
       <div className="page-header">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1>Gestión de Solicitudes</h1>
+            <h1><i className="bi bi-clipboard-check me-2"></i>Gestión de Solicitudes</h1>
             <p className="text-muted">Administrar solicitudes de certificados de vecinos</p>
           </div>
           <button
@@ -311,36 +311,46 @@ export default function SecretariaSolicitudesPage() {
           </div>
         )}
 
-        {/* Resumen de estadísticas */}
-        <div className="row mb-4">
+        {/* Estadísticas */}
+        <div className="row g-3 mb-4">
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number">{stats.total}</div>
-              <div className="stat-label">Total</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-primary">{stats.total}</div>
+                <small className="text-muted">Total</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-warning">{stats.pendientes}</div>
-              <div className="stat-label">Pendientes</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-warning">{stats.pendientes}</div>
+                <small className="text-muted">Pendientes</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-info">{stats.enProceso}</div>
-              <div className="stat-label">En Proceso</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-info">{stats.enProceso}</div>
+                <small className="text-muted">En Proceso</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-success">{stats.completadas}</div>
-              <div className="stat-label">Completadas</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-success">{stats.completadas}</div>
+                <small className="text-muted">Completadas</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-danger">{stats.rechazadas}</div>
-              <div className="stat-label">Rechazadas</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-danger">{stats.rechazadas}</div>
+                <small className="text-muted">Rechazadas</small>
+              </div>
             </div>
           </div>
         </div>

@@ -91,7 +91,7 @@ export default function ProyectosPendientesPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>⏳ Proyectos Pendientes de Revisión</h1>
+          <h1><i className="bi bi-hourglass-split me-2"></i>Proyectos Pendientes de Revisión</h1>
           <p className="text-muted">Revisa y gestiona los proyectos que esperan aprobación</p>
         </div>
         <Link href="/secretaria/proyectos" className="btn btn-secondary">

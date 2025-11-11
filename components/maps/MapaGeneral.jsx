@@ -1,12 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import MapContainer from './MapContainer';
 import VecinoMarker from './VecinoMarker';
+
+// Importar MarkerClusterGroup dinámicamente para evitar problemas de SSR
+const MarkerClusterGroup = dynamic(
+  () => import('react-leaflet-cluster'),
+  { ssr: false }
+);
 
 /**
  * Mapa general que muestra todos los vecinos del barrio
  * Permite ver la distribución geográfica de los vecinos
+ * Incluye clustering para agrupar marcadores cercanos
  */
 export default function MapaGeneral({ vecinos, onVerDetalles }) {
   const [center, setCenter] = useState([-33.4489, -70.6693]); // Santiago por defecto
@@ -99,13 +107,40 @@ export default function MapaGeneral({ vecinos, onVerDetalles }) {
           zoom={zoom}
           style={{ height: '600px' }}
         >
-          {vecinosConCoordenadas.map(vecino => (
-            <VecinoMarker
-              key={vecino.id}
-              vecino={vecino}
-              onVerDetalles={onVerDetalles}
-            />
-          ))}
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={60}
+            spiderfyOnMaxZoom={true}
+            showCoverageOnHover={false}
+            zoomToBoundsOnClick={true}
+            iconCreateFunction={(cluster) => {
+              const count = cluster.getChildCount();
+              let size = 'small';
+              let colorClass = 'cluster-small';
+
+              if (count > 10) {
+                size = 'large';
+                colorClass = 'cluster-large';
+              } else if (count > 5) {
+                size = 'medium';
+                colorClass = 'cluster-medium';
+              }
+
+              return new L.DivIcon({
+                html: `<div class="custom-cluster-icon ${colorClass}"><span>${count}</span></div>`,
+                className: 'custom-cluster',
+                iconSize: L.point(40, 40, true),
+              });
+            }}
+          >
+            {vecinosConCoordenadas.map(vecino => (
+              <VecinoMarker
+                key={vecino.id}
+                vecino={vecino}
+                onVerDetalles={onVerDetalles}
+              />
+            ))}
+          </MarkerClusterGroup>
         </MapContainer>
       ) : (
         <div className="empty-map" style={{

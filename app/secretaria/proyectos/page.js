@@ -132,7 +132,7 @@ export default function GestionProyectosPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>🏗️ Gestión de Proyectos Vecinales</h1>
+          <h1><i className="bi bi-building me-2"></i>Gestión de Proyectos Vecinales</h1>
           <p className="text-muted">Administra todas las postulaciones de proyectos de la comunidad</p>
         </div>
         <Link href="/secretaria/proyectos/pendientes" className="btn btn-warning">

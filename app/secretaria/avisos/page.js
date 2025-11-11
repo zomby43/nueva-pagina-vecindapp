@@ -187,7 +187,7 @@ export default function AvisosSecretariaPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>📢 Gestión de Avisos</h1>
+          <h1><i className="bi bi-megaphone me-2"></i>Gestión de Avisos</h1>
           <p className="text-muted">Administra los avisos y notificaciones de la junta de vecinos</p>
         </div>
         <Link href="/secretaria/avisos/nuevo" className="btn btn-primary">

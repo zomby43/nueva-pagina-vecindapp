@@ -134,7 +134,7 @@ export default function SolicitudesPage() {
       <div className="page-header">
         <div className="page-header-content">
           <div>
-            <h1>Mis Solicitudes</h1>
+            <h1><i className="bi bi-file-text me-2"></i>Mis Solicitudes</h1>
             <p className="text-muted mb-0">Gestiona tus certificados y solicitudes</p>
           </div>
           <Link href="/solicitudes/nueva" className="btn btn-primary btn-new-request">

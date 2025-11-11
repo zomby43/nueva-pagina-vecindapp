@@ -138,7 +138,7 @@ export default function AdminConfiguracionPage() {
     return (
       <div className="page-container">
         <div className="page-header">
-          <h1>⚙️ Configuración del Sistema</h1>
+          <h1><i className="bi bi-gear me-2"></i>Configuración del Sistema</h1>
         </div>
         <p>Cargando configuración...</p>
       </div>
@@ -148,7 +148,7 @@ export default function AdminConfiguracionPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>⚙️ Configuración del Sistema</h1>
+        <h1><i className="bi bi-gear me-2"></i>Configuración del Sistema</h1>
         <p className="page-subtitle">Administración de la información de la organización</p>
       </div>
 

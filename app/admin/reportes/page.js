@@ -124,7 +124,7 @@ export default function ReportesPage() {
       <div className="page-header">
         <div className="page-header-content">
           <div>
-            <h1>Estadísticas Generales</h1>
+            <h1><i className="bi bi-graph-up me-2"></i>Estadísticas Generales</h1>
             <p className="text-muted mb-0">Resumen rápido del estado actual de la plataforma</p>
           </div>
         </div>

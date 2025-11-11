@@ -248,7 +248,7 @@ export default function SecretariaNoticiasPage() {
       <div className="page-header">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1>Gestión de Noticias</h1>
+            <h1><i className="bi bi-newspaper me-2"></i>Gestión de Noticias</h1>
             <p className="text-muted">Administrar noticias y comunicados de la junta de vecinos</p>
           </div>
           <div className="d-flex gap-2">
@@ -274,35 +274,45 @@ export default function SecretariaNoticiasPage() {
         )}
 
         {/* Estadísticas */}
-        <div className="row mb-4">
+        <div className="row g-3 mb-4">
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number">{stats.total}</div>
-              <div className="stat-label">Total</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-primary">{stats.total}</div>
+                <small className="text-muted">Total</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-success">{stats.publicadas}</div>
-              <div className="stat-label">Publicadas</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-success">{stats.publicadas}</div>
+                <small className="text-muted">Publicadas</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-warning">{stats.borradores}</div>
-              <div className="stat-label">Borradores</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-warning">{stats.borradores}</div>
+                <small className="text-muted">Borradores</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-secondary">{stats.archivadas}</div>
-              <div className="stat-label">Archivadas</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-secondary">{stats.archivadas}</div>
+                <small className="text-muted">Archivadas</small>
+              </div>
             </div>
           </div>
           <div className="col-md-2">
-            <div className="stat-card text-center">
-              <div className="stat-number text-info">{stats.destacadas}</div>
-              <div className="stat-label">Destacadas</div>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-info">{stats.destacadas}</div>
+                <small className="text-muted">Destacadas</small>
+              </div>
             </div>
           </div>
         </div>

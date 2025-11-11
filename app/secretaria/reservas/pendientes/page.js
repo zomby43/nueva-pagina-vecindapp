@@ -169,7 +169,7 @@ export default function ReservasPendientesPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>⏳ Reservas Pendientes de Aprobación</h1>
+          <h1><i className="bi bi-clock-history me-2"></i>Reservas Pendientes de Aprobación</h1>
           <p className="text-muted">Revisa y gestiona las solicitudes de reserva pendientes</p>
         </div>
         <Link href="/secretaria/reservas" className="btn btn-secondary">

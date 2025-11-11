@@ -222,7 +222,7 @@ export default function MisInscripcionesPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3">📋 Mis Inscripciones</h1>
+        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-calendar-event me-2"></i>Mis Inscripciones</h1>
         <p className="lead text-muted">Gestiona tus inscripciones a actividades vecinales</p>
       </div>
 

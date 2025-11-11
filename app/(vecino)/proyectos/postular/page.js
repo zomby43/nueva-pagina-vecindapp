@@ -170,7 +170,7 @@ export default function PostularProyectoPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="mb-4">
-        <h1 className="display-6 fw-bold mb-3">➕ Postular Proyecto Vecinal</h1>
+        <h1 className="display-6 fw-bold mb-3"><i className="bi bi-building me-2"></i>Postular Proyecto Vecinal</h1>
         <p className="lead text-muted">Presenta tu propuesta para mejorar nuestra comunidad</p>
       </div>
 

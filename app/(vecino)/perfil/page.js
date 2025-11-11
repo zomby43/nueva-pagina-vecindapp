@@ -155,7 +155,7 @@ export default function PerfilPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1>Mi Perfil</h1>
+        <h1><i className="bi bi-person me-2"></i>Mi Perfil</h1>
         <p className="text-muted">Gestiona tu información personal</p>
       </div>
 

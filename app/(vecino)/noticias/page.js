@@ -140,7 +140,7 @@ export default function NoticiasPage() {
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
       <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3">Noticias de la Junta de Vecinos</h1>
+        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-newspaper me-2"></i>Noticias de la Junta de Vecinos</h1>
         <p className="lead text-muted">Mantente informado sobre las novedades de nuestra comunidad</p>
       </div>
 

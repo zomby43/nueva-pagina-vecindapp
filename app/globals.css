@@ -3504,3 +3504,96 @@ input[type="file"] {
     height: 420px;
   }
 }
+
+/* ========================================
+   Leaflet Marker Clustering Styles
+   ======================================== */
+
+/* Estilos base para los clusters */
+.custom-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-cluster-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  border: 3px solid white;
+}
+
+.custom-cluster-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Clusters pequeños (2-5 vecinos) */
+.cluster-small {
+  background: linear-gradient(135deg, #439fa4 0%, #34a89f 100%);
+}
+
+/* Clusters medianos (6-10 vecinos) */
+.cluster-medium {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+}
+
+/* Clusters grandes (11+ vecinos) */
+.cluster-large {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+/* Animación cuando el cluster se divide */
+.marker-cluster-animated {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Estilos para el spiderfy (cuando se abren los marcadores) */
+.leaflet-cluster-spider-leg {
+  stroke: #439fa4 !important;
+  stroke-width: 2 !important;
+  stroke-opacity: 0.6 !important;
+}
+
+/* Hover effect en las líneas del spider */
+.leaflet-cluster-spider-leg:hover {
+  stroke-width: 3 !important;
+  stroke-opacity: 0.8 !important;
+}
+
+/* Animación de entrada de clusters */
+@keyframes cluster-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-cluster-icon {
+  animation: cluster-pulse 0.4s ease-out;
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
+  .custom-cluster-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+    border-width: 2px;
+  }
+}

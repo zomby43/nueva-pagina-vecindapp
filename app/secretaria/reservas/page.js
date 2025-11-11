@@ -272,7 +272,7 @@ export default function GestionReservasPage() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1>🏟️ Gestión de Reservas</h1>
+          <h1><i className="bi bi-house-door me-2"></i>Gestión de Reservas</h1>
           <p className="text-muted">Administra las solicitudes de reserva de espacios comunes</p>
         </div>
         <div className="d-flex gap-2">

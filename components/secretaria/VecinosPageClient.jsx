@@ -272,7 +272,7 @@ export default function SecretariaVecinosPage() {
       <div className="page-header">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1>Gestión de Vecinos</h1>
+            <h1><i className="bi bi-people me-2"></i>Gestión de Vecinos</h1>
             <p className="text-muted">Administrar vecinos registrados en la plataforma</p>
           </div>
           <button className="btn btn-outline-primary" onClick={fetchVecinos} disabled={loading}>
@@ -289,13 +289,48 @@ export default function SecretariaVecinosPage() {
           </div>
         )}
 
-        {/* Stats */}
-        <div className="row mb-4">
-          <div className="col-md-2"><div className="stat-card text-center"><div className="stat-number">{stats.total}</div><div className="stat-label">Total Usuarios</div></div></div>
-          <div className="col-md-2"><div className="stat-card text-center"><div className="stat-number text-info">{stats.totalVecinos}</div><div className="stat-label">Vecinos</div></div></div>
-          <div className="col-md-2"><div className="stat-card text-center"><div className="stat-number text-success">{stats.activos}</div><div className="stat-label">Activos</div></div></div>
-          <div className="col-md-2"><div className="stat-card text-center"><div className="stat-number text-warning">{stats.pendientes}</div><div className="stat-label">Pendientes</div></div></div>
-          <div className="col-md-2"><div className="stat-card text-center"><div className="stat-number text-danger">{stats.rechazados}</div><div className="stat-label">Rechazados</div></div></div>
+        {/* Estadísticas */}
+        <div className="row g-3 mb-4">
+          <div className="col-md-2">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-primary">{stats.total}</div>
+                <small className="text-muted">Total Usuarios</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-info">{stats.totalVecinos}</div>
+                <small className="text-muted">Vecinos</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-success">{stats.activos}</div>
+                <small className="text-muted">Activos</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-warning">{stats.pendientes}</div>
+                <small className="text-muted">Pendientes</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-2">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-3">
+                <div className="fs-3 fw-bold text-danger">{stats.rechazados}</div>
+                <small className="text-muted">Rechazados</small>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Toggle vista */}

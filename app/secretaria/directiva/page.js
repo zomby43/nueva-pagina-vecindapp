@@ -236,9 +236,12 @@ export default function SecretariaDirectivaPage() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Cargando...</span>
+      <div className="page-container">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+          <div className="text-center">
+            <div className="spinner-border mb-3" role="status"></div>
+            <p>Cargando contactos de directiva...</p>
+          </div>
         </div>
       </div>
     );
@@ -246,26 +249,32 @@ export default function SecretariaDirectivaPage() {
 
   if (error) {
     return (
-      <div className="container-fluid py-4">
-        <div className="alert alert-danger">
-          <h5>⚠️ Configuración necesaria</h5>
-          <p>{error}</p>
-          <p>Ejecuta el siguiente comando en SQL Editor de Supabase Dashboard:</p>
-          <pre style={{ backgroundColor: '#f5f5f5', padding: '1rem', borderRadius: '4px', fontSize: '0.85rem' }}>
-            {`Copia el contenido del archivo: add-directiva-contactos-table.sql`}
-          </pre>
+      <div className="page-container">
+        <div className="page-header">
+          <h1><i className="bi bi-people me-2"></i>Gestión de Directiva</h1>
+          <p className="text-muted">Administra los contactos de la directiva de la Junta de Vecinos</p>
+        </div>
+        <div className="solicitudes-content">
+          <div className="alert alert-danger">
+            <h5>⚠️ Configuración necesaria</h5>
+            <p>{error}</p>
+            <p>Ejecuta el siguiente comando en SQL Editor de Supabase Dashboard:</p>
+            <pre style={{ backgroundColor: '#f5f5f5', padding: '1rem', borderRadius: '4px', fontSize: '0.85rem' }}>
+              {`Copia el contenido del archivo: add-directiva-contactos-table.sql`}
+            </pre>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="page-container">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="page-header">
         <div>
-          <h2 className="mb-1">👥 Gestión de Directiva</h2>
-          <p className="text-muted mb-0">Administra los contactos de la directiva de la Junta de Vecinos</p>
+          <h1><i className="bi bi-people me-2"></i>Gestión de Directiva</h1>
+          <p className="text-muted">Administra los contactos de la directiva de la Junta de Vecinos</p>
         </div>
         <button
           className="btn btn-primary"
@@ -275,8 +284,9 @@ export default function SecretariaDirectivaPage() {
         </button>
       </div>
 
-      {/* Lista de contactos */}
-      <div className="card">
+      <div className="solicitudes-content">
+        {/* Lista de contactos */}
+        <div className="card">
         <div className="card-header">
           <h5 className="mb-0">Directiva y Contacto</h5>
         </div>
@@ -353,6 +363,7 @@ export default function SecretariaDirectivaPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Modal de crear/editar */}
