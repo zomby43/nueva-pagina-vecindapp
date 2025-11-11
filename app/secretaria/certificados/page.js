@@ -85,60 +85,183 @@ export default function EmitirCertificadoResidenciaPage() {
       alert(data.error || "Error al generar folio en la base de datos");
       throw new Error("Error al emitir certificado");
     }
-    return String(data.folio);
+    return String(data.folio); // <-- folio REAL desde BD
   }
 
   async function emitirYGenerarPDF() {
     if (!validar()) return;
     const folio = await emitirEnSupabase();
     setForm((prev) => ({ ...prev, numero: folio }));
-    generarPDF(folio);
+    generarPDFEstiloSolicitudes(folio); // <-- mismo estilo que la page de solicitudes
   }
 
-  function generarPDF(folio) {
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    const margin = 56; // ~0.78in
-    let y = margin;
+  /**
+   * Genera el PDF con el MISMO ESTILO que la vista de solicitudes:
+   * - Bordes dobles azules
+   * - Título y textos centrados
+   * - Línea "N° {folio}" centrada (folio real)
+   * - Firma centrada y pie
+   * Mantiene tus datos del formulario y variables de entorno.
+   */
+  function generarPDFEstiloSolicitudes(folio) {
+    // Usamos mm para calc exacto como el otro estilo
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
 
-    const nombreJunta = process.env.NEXT_PUBLIC_JUNTA_NOMBRE || "Junta de Vecinos";
-    const rutJunta = process.env.NEXT_PUBLIC_JUNTA_RUT || "";
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const centerX = pageWidth / 2;
 
-    // Encabezado
-    doc.setFont("Times", "Bold"); doc.setFontSize(18);
-    doc.text(nombreJunta, margin, y); y += 18;
-    doc.setFont("Times", "Normal"); doc.setFontSize(11);
-    if (rutJunta) { doc.text(`RUT: ${rutJunta}`, margin, y); y += 16; }
-    if (folio) { doc.text(`Certificado Nº: ${folio}`, margin, y); y += 16; }
-    doc.setDrawColor(0); doc.line(margin, y, 612 - margin, y); y += 24;
+    // Datos desde env (igual que tu versión original)
+    const nombreJunta = (process.env.NEXT_PUBLIC_JUNTA_NOMBRE || "Junta de Vecinos") + "";
+    const rutJunta = (process.env.NEXT_PUBLIC_JUNTA_RUT || "") + "";
 
-    // Título
-    doc.setFont("Times", "Bold"); doc.setFontSize(16);
-    doc.text("CERTIFICADO DE RESIDENCIA", 306, y, { align: "center" }); y += 24;
+    // ===== BORDE DECORATIVO (doble) =====
+    doc.setLineWidth(2);
+    doc.setDrawColor(41, 128, 185); // azul fuerte
+    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(52, 152, 219); // azul claro
+    doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
 
-    // Cuerpo
-    doc.setFont("Times", "Normal"); doc.setFontSize(12);
-    const texto =
-      `Quien suscribe, en representación de ${nombreJunta}, certifica que ${form.nombre} (RUT ${rutFormateado}) ` +
-      `reside en ${form.direccion}, comuna de ${form.comuna}, ciudad de ${form.ciudad}.\n\n` +
-      `El presente certificado se emite para los fines que la persona estime convenientes, con fecha ${hoyCL()}.`;
-    const lines = doc.splitTextToSize(texto, 612 - margin * 2);
-    doc.text(lines, margin, y);
-    y += lines.length * 16 + 16;
+    let y = 30;
 
-    // Firma (según tu pedido previo)
-    const firmaY = y + 60;
-    doc.line(200, firmaY, 412, firmaY);
-    doc.text("Junta de Vecinos 2025", 306, firmaY + 16, { align: "center" });
+    // ===== ENCABEZADO =====
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(41, 128, 185);
+    doc.text(nombreJunta.toUpperCase(), centerX, y, { align: "center" });
+    y += 8;
 
-    // Pie
-    doc.setFontSize(9);
-    doc.text("Este documento ha sido generado digitalmente por la Junta de Vecinos.", 306, 756, { align: "center" });
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100, 100, 100);
+    if (rutJunta) {
+      doc.text(`RUT: ${rutJunta}`, centerX, y, { align: "center" });
+      y += 6;
+    }
+    if (form.comuna || form.ciudad) {
+      doc.text(
+        `Comuna de ${form.comuna || "-"}, ${form.ciudad || "-"}`,
+        centerX,
+        y,
+        { align: "center" }
+      );
+    }
+    y += 15;
 
+    // Separador
+    doc.setDrawColor(41, 128, 185);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 15;
+
+    // ===== TÍTULO =====
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0, 0, 0);
+    doc.text("CERTIFICADO DE RESIDENCIA", centerX, y, { align: "center" });
+    y += 15;
+
+    // ===== NÚMERO REAL (folio) =====
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(100, 100, 100);
+    doc.text(`N° ${folio}`, centerX, y, { align: "center" });
+    y += 15;
+
+    // ===== CUERPO CENTRADO =====
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+
+    doc.text(
+      `La Directiva de la ${nombreJunta},`,
+      centerX,
+      y,
+      { align: "center" }
+    );
+    y += 7;
+    doc.text("por medio del presente documento,", centerX, y, { align: "center" });
+    y += 12;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("CERTIFICA QUE:", centerX, y, { align: "center" });
+    y += 12;
+
+    // Datos del vecino
+    const nombreCompleto = (form.nombre || "").toUpperCase();
+    const rutFmt = rutFormateado || form.rut || "";
+    const direccion = form.direccion || "";
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Don/Doña: ${nombreCompleto}`, centerX, y, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    y += 10;
+
+    if (rutFmt) {
+      doc.text(`RUT: ${rutFmt}`, centerX, y, { align: "center" });
+      y += 10;
+    }
+
+    doc.text(`Es residente de la dirección: ${direccion}`, centerX, y, { align: "center" });
+    y += 7;
+
+    if (form.comuna || form.ciudad) {
+      doc.text(
+        `Comuna de ${form.comuna || "-"}, ${form.ciudad || "-"}.`,
+        centerX,
+        y,
+        { align: "center" }
+      );
+      y += 8;
+    } else {
+      doc.text("Perteneciente a nuestra Unidad Vecinal.", centerX, y, { align: "center" });
+      y += 8;
+    }
+
+    // Fecha
+    y += 10;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const fechaEmision = hoyCL();
+    if (form.comuna) {
+      doc.text(`Se extiende el presente certificado en ${form.comuna},`, centerX, y, { align: "center" });
+      y += 6;
+      doc.text(`a ${fechaEmision}`, centerX, y, { align: "center" });
+    } else {
+      doc.text(`Se extiende con fecha ${fechaEmision}.`, centerX, y, { align: "center" });
+    }
+
+    // ===== FIRMA CENTRADA =====
+    y = pageHeight - 60;
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(0, 0, 0);
+    doc.line(centerX - 30, y, centerX + 30, y);
+    y += 6;
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("DIRECTIVA", centerX, y, { align: "center" });
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.text(nombreJunta, centerX, y, { align: "center" });
+
+    // ===== PIE =====
+    y = pageHeight - 25;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(120, 120, 120);
+    const pie = "Este documento ha sido generado digitalmente por la Junta de Vecinos.";
+    doc.text(pie, centerX, y, { align: "center" });
+
+    // Guardar (mismo nombre que usabas)
     const nombreArchivo = `certificado_residencia_${limpiarRut(form.rut)}.pdf`;
     doc.save(nombreArchivo);
   }
 
-  // ---- Estilos en línea, consistentes con tu Dashboard ----
+  // ---- Estilos UI (como tu dashboard) ----
   const palette = {
     primary: "#439fa4",
     primaryDark: "#154765",
