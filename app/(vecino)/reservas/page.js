@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { enviarCorreoSolicitudReserva } from '@/lib/emails/sendEmail';
+import { useIsSmallMobile } from '@/hooks/useMediaQuery';
+
+const BLOQUES_HORARIOS = {
+  manana: { inicio: '09:00', fin: '13:00', label: 'Mañana (09:00 - 13:00)' },
+  tarde: { inicio: '14:00', fin: '18:00', label: 'Tarde (14:00 - 18:00)' },
+  noche: { inicio: '19:00', fin: '23:00', label: 'Noche (19:00 - 23:00)' },
+  dia_completo: { inicio: '09:00', fin: '23:00', label: 'Día completo (09:00 - 23:00)' }
+};
 
 export default function ReservasPage() {
   const { user } = useAuth();
@@ -15,6 +23,8 @@ export default function ReservasPage() {
   const [mesActual, setMesActual] = useState(new Date());
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const esCalendarioCompacto = useIsSmallMobile();
+  const [detalleReserva, setDetalleReserva] = useState(null);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -186,16 +196,9 @@ export default function ReservasPage() {
         estado: 'pendiente'
       };
 
-      // Definir horarios según bloque
-      const bloques = {
-        manana: { inicio: '09:00', fin: '13:00' },
-        tarde: { inicio: '14:00', fin: '18:00' },
-        noche: { inicio: '19:00', fin: '23:00' },
-        dia_completo: { inicio: '09:00', fin: '23:00' }
-      };
-
-      dataToSave.hora_inicio = bloques[formData.bloque_horario].inicio;
-      dataToSave.hora_fin = bloques[formData.bloque_horario].fin;
+      const bloqueSeleccionado = BLOQUES_HORARIOS[formData.bloque_horario];
+      dataToSave.hora_inicio = bloqueSeleccionado?.inicio || null;
+      dataToSave.hora_fin = bloqueSeleccionado?.fin || null;
 
       const { error } = await supabase
         .from('reservas')
@@ -236,15 +239,14 @@ export default function ReservasPage() {
     }
   };
 
-  const getBloqueTexto = (bloque) => {
-    const textos = {
-      manana: 'Mañana (9:00-13:00)',
-      tarde: 'Tarde (14:00-18:00)',
-      noche: 'Noche (19:00-23:00)',
-      dia_completo: 'Día Completo (9:00-23:00)'
-    };
-    return textos[bloque] || bloque;
+  const handleVerDetalleReserva = ({ fechaISO, reservasDetalle }) => {
+    setDetalleReserva({
+      fecha: fechaISO,
+      reservas: reservasDetalle
+    });
   };
+
+  const cerrarDetalleReserva = () => setDetalleReserva(null);
 
   const espacioActual = espacios.find(e => e.id === espacioSeleccionado);
 
@@ -428,11 +430,11 @@ export default function ReservasPage() {
         /* Calendario de Disponibilidad */
         <div className="card shadow-sm border-0">
           <div className="card-body p-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="calendario-toolbar d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
               <h5 className="card-title mb-0">
                 📅 Calendario de {espacioActual?.nombre || 'Disponibilidad'}
               </h5>
-              <div className="d-flex gap-2">
+              <div className="calendario-toolbar-actions d-flex gap-2 flex-wrap">
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   onClick={fetchReservasDelMes}
@@ -474,6 +476,8 @@ export default function ReservasPage() {
                 mes={mesActual}
                 reservas={reservas}
                 espacioId={espacioSeleccionado}
+                compacto={esCalendarioCompacto}
+                onVerDetalle={handleVerDetalleReserva}
               />
             )}
 
@@ -497,16 +501,84 @@ export default function ReservasPage() {
           </div>
         </div>
       )}
+
+      {detalleReserva && (
+        <div
+          className="calendario-modal-backdrop"
+          role="presentation"
+          onClick={cerrarDetalleReserva}
+        >
+          <div
+            className="calendario-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Detalles de reservas del día"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <p className="text-muted mb-1">Reservas para</p>
+                <h5 className="mb-0">
+                  {new Date(detalleReserva.fecha).toLocaleDateString('es-CL', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </h5>
+              </div>
+              <button
+                type="button"
+                className="btn-close"
+                aria-label="Cerrar"
+                onClick={cerrarDetalleReserva}
+              ></button>
+            </div>
+
+            <div className="calendario-modal-body">
+              {(detalleReserva.reservas || []).map((reserva) => {
+                const bloque = BLOQUES_HORARIOS[reserva.bloque_horario];
+                const key = reserva.id || `${reserva.fecha_reserva}-${reserva.bloque_horario}-${reserva.hora_inicio}`;
+                return (
+                  <div key={key} className="calendario-modal-reserva">
+                    <div className="calendario-modal-icon" aria-hidden="true">
+                      🔒
+                    </div>
+                    <div className="calendario-modal-info">
+                      <strong>{bloque?.label || 'Horario reservado'}</strong>
+                      <small className="text-muted d-block">
+                        Horario: {reserva.hora_inicio?.slice(0, 5) || '--:--'} - {reserva.hora_fin?.slice(0, 5) || '--:--'}
+                      </small>
+                      {reserva.solicitante && (
+                        <small className="text-muted d-block">
+                          Solicitante: {reserva.solicitante.nombres} {reserva.solicitante.apellidos}
+                        </small>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-end">
+              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={cerrarDetalleReserva}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Componente de Calendario Mensual
-function CalendarioMensual({ mes, reservas, espacioId }) {
+function CalendarioMensual({ mes, reservas, espacioId, compacto = false, onVerDetalle }) {
   const primerDia = new Date(mes.getFullYear(), mes.getMonth(), 1);
   const ultimoDia = new Date(mes.getFullYear(), mes.getMonth() + 1, 0);
   const diasEnMes = ultimoDia.getDate();
   const primerDiaSemana = primerDia.getDay();
+  const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   const dias = [];
   const hoy = new Date();
@@ -514,7 +586,13 @@ function CalendarioMensual({ mes, reservas, espacioId }) {
 
   // Días vacíos al inicio
   for (let i = 0; i < primerDiaSemana; i++) {
-    dias.push(<div key={`empty-${i}`} style={{ padding: '1rem' }}></div>);
+    dias.push(
+      <div
+        key={`empty-${i}`}
+        className="calendario-dia calendario-dia-vacio"
+        aria-hidden="true"
+      ></div>
+    );
   }
 
   // Días del mes
@@ -527,54 +605,103 @@ function CalendarioMensual({ mes, reservas, espacioId }) {
       r.fecha_reserva === fechaStr && r.espacio_id === espacioId
     );
 
+    const estadoDia = esPasado ? 'pasado' : reservasDelDia.length > 0 ? 'reservado' : 'disponible';
+    const diaClassName = [
+      'calendario-dia',
+      esPasado ? 'calendario-dia-pasado' : '',
+      estadoDia === 'reservado' ? 'calendario-dia-ocupado' : '',
+      estadoDia === 'disponible' ? 'calendario-dia-libre' : '',
+      compacto ? 'calendario-dia-compacto' : ''
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    let contenidoEstado;
+    if (esPasado) {
+      contenidoEstado = compacto ? (
+        <div className="calendario-status-pill status-pasado" aria-label="Fecha pasada">
+          —
+        </div>
+      ) : null;
+    } else if (reservasDelDia.length > 0) {
+      contenidoEstado = compacto ? (
+        <div className="calendario-status-pill status-reservado" aria-label="Reservado">
+          🔒
+        </div>
+      ) : (
+        reservasDelDia.map((reserva, idx) => (
+          <div
+            key={idx}
+            className="calendario-tag calendario-tag-reservado"
+            title="Reservado - No disponible"
+          >
+            {reserva.bloque_horario === 'manana' && '🔒 Mañana'}
+            {reserva.bloque_horario === 'tarde' && '🔒 Tarde'}
+            {reserva.bloque_horario === 'noche' && '🔒 Noche'}
+            {reserva.bloque_horario === 'dia_completo' && '🔒 Día Completo'}
+          </div>
+        ))
+      );
+    } else {
+      contenidoEstado = compacto ? (
+        <div className="calendario-status-pill status-disponible" aria-label="Disponible">
+          ✓
+        </div>
+      ) : (
+        <div className="calendario-disponible">
+          ✓ Disponible
+        </div>
+      );
+    }
+
+    const puedeVerDetalle = estadoDia === 'reservado' && typeof onVerDetalle === 'function';
+    const fechaISO = fecha.toISOString();
+    const fechaLegible = fecha.toLocaleDateString('es-CL', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+
+    const handleDiaClick = () => {
+      if (puedeVerDetalle) {
+        onVerDetalle({ fechaISO, reservasDetalle: reservasDelDia });
+      }
+    };
+
     dias.push(
       <div
         key={dia}
-        style={{
-          padding: '1rem',
-          border: '1px solid #dee2e6',
-          minHeight: '120px',
-          backgroundColor: esPasado ? '#e2e3e5' : '#fff'
-        }}
+        className={`${diaClassName} ${puedeVerDetalle ? 'calendario-dia-clickable' : ''}`}
+        onClick={puedeVerDetalle ? handleDiaClick : undefined}
+        onKeyDown={
+          puedeVerDetalle
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleDiaClick();
+                }
+              }
+            : undefined
+        }
+        role={puedeVerDetalle ? 'button' : undefined}
+        tabIndex={puedeVerDetalle ? 0 : undefined}
+        aria-label={
+          puedeVerDetalle
+            ? `Reservado el ${fechaLegible}, selecciona para ver detalles`
+            : undefined
+        }
       >
-        <div className="fw-bold mb-2">{dia}</div>
-        {!esPasado && reservasDelDia.length > 0 ? (
-          reservasDelDia.map((reserva, idx) => (
-            <div
-              key={idx}
-              className="small mb-1 p-1"
-              style={{
-                backgroundColor: '#dc3545',
-                color: 'white',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                fontWeight: '600'
-              }}
-              title="Reservado - No disponible"
-            >
-              {reserva.bloque_horario === 'manana' && '🔒 Mañana'}
-              {reserva.bloque_horario === 'tarde' && '🔒 Tarde'}
-              {reserva.bloque_horario === 'noche' && '🔒 Noche'}
-              {reserva.bloque_horario === 'dia_completo' && '🔒 Día Completo'}
-            </div>
-          ))
-        ) : !esPasado && (
-          <div
-            className="small text-muted text-center mt-2"
-            style={{ fontSize: '0.7rem' }}
-          >
-            ✓ Disponible
-          </div>
-        )}
+        <div className="calendario-dia-num">{dia}</div>
+        {contenidoEstado}
       </div>
     );
   }
 
   return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0 }}>
-        {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(dia => (
-          <div key={dia} className="text-center fw-bold p-2 bg-light border">
+    <div className="calendario-wrapper">
+      <div className={`calendario-grid ${compacto ? 'calendario-grid-compacto' : ''}`} role="grid">
+        {diasSemana.map(dia => (
+          <div key={dia} className="calendario-header" role="columnheader">
             {dia}
           </div>
         ))}

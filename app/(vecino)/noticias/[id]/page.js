@@ -298,7 +298,7 @@ export default function NoticiaDetallePage() {
               <h5 className="mb-3 text-center fw-bold" style={{ color: '#154765' }}>
                 ¿Qué te pareció esta noticia?
               </h5>
-              <div className="d-flex justify-content-center gap-3 mb-4">
+              <div className="reacciones-buttons mb-4">
                 <button
                   className={`btn-reaccion ${miReaccion === 'me_gusta' ? 'activo me-gusta' : ''}`}
                   onClick={() => handleReaccion('me_gusta')}
@@ -317,7 +317,11 @@ export default function NoticiaDetallePage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    transform: miReaccion === 'me_gusta' ? 'scale(1.05)' : 'scale(1)'
+                    transform: miReaccion === 'me_gusta' ? 'scale(1.05)' : 'scale(1)',
+                    flex: '1 1 240px',
+                    maxWidth: '340px',
+                    width: '100%',
+                    justifyContent: 'center'
                   }}
                 >
                   <span style={{ fontSize: '1.5rem' }}>👍</span>
@@ -351,7 +355,11 @@ export default function NoticiaDetallePage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    transform: miReaccion === 'no_me_gusta' ? 'scale(1.05)' : 'scale(1)'
+                    transform: miReaccion === 'no_me_gusta' ? 'scale(1.05)' : 'scale(1)',
+                    flex: '1 1 240px',
+                    maxWidth: '340px',
+                    width: '100%',
+                    justifyContent: 'center'
                   }}
                 >
                   <span style={{ fontSize: '1.5rem' }}>👎</span>
@@ -547,29 +555,85 @@ export default function NoticiaDetallePage() {
         }
 
         /* Responsividad para reacciones */
+        .reacciones-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 1.25rem;
+          flex-wrap: wrap;
+        }
+
+        .reacciones-buttons .btn-reaccion {
+          width: 100%;
+          justify-content: center;
+        }
+
         @media (max-width: 768px) {
+          .reacciones-buttons {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
           .btn-reaccion {
-            padding: 0.75rem 1.5rem !important;
-            fontSize: 1rem !important;
+            padding: 0.85rem 1.25rem !important;
+            font-size: 1rem !important;
+            border-radius: 32px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .btn-reaccion {
+            font-size: 0.95rem !important;
+            gap: 0.4rem !important;
+          }
+
+          .btn-reaccion span:first-child {
+            font-size: 1.3rem !important;
+          }
+
+          .btn-reaccion .badge {
+            font-size: 0.8rem !important;
           }
         }
 
         /* Estilos para contenido HTML rico */
-        .noticia-contenido p {
+        :global(.noticia-contenido) {
+          width: 100%;
+        }
+
+        :global(.noticia-contenido p) {
           margin-bottom: 1rem;
           line-height: 1.8;
         }
 
-        .noticia-contenido img {
-          max-width: 100%;
-          height: auto;
-          border-radius: 8px;
-          margin: 1.5rem 0;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          display: block;
+        :global(.noticia-contenido p:has(img)) {
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
-        .noticia-contenido h1 {
+        :global(.noticia-contenido img),
+        :global(.noticia-contenido p img) {
+          width: 100% !important;
+          max-width: 680px;
+          height: auto !important;
+          border-radius: 16px;
+          margin: 1.25rem auto;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+          display: block;
+          object-fit: cover;
+        }
+
+        :global(.noticia-contenido img[data-align='left']) {
+          margin-left: 0;
+          margin-right: auto;
+        }
+
+        :global(.noticia-contenido img[data-align='right']) {
+          margin-right: 0;
+          margin-left: auto;
+        }
+
+        :global(.noticia-contenido h1) {
           font-size: 2em;
           font-weight: 700;
           margin-top: 2rem;
@@ -577,7 +641,7 @@ export default function NoticiaDetallePage() {
           color: #154765;
         }
 
-        .noticia-contenido h2 {
+        :global(.noticia-contenido h2) {
           font-size: 1.5em;
           font-weight: 600;
           margin-top: 1.5rem;
@@ -585,7 +649,7 @@ export default function NoticiaDetallePage() {
           color: #154765;
         }
 
-        .noticia-contenido h3 {
+        :global(.noticia-contenido h3) {
           font-size: 1.25em;
           font-weight: 600;
           margin-top: 1.25rem;
@@ -593,40 +657,47 @@ export default function NoticiaDetallePage() {
           color: #154765;
         }
 
-        .noticia-contenido ul,
-        .noticia-contenido ol {
+        :global(.noticia-contenido ul),
+        :global(.noticia-contenido ol) {
           padding-left: 2rem;
           margin-bottom: 1rem;
         }
 
-        .noticia-contenido li {
+        :global(.noticia-contenido li) {
           margin-bottom: 0.5rem;
           line-height: 1.6;
         }
 
-        .noticia-contenido a {
+        :global(.noticia-contenido a) {
           color: #2563eb;
           text-decoration: underline;
         }
 
-        .noticia-contenido a:hover {
+        :global(.noticia-contenido a:hover) {
           color: #1d4ed8;
         }
 
-        .noticia-contenido strong {
+        :global(.noticia-contenido strong) {
           font-weight: 700;
         }
 
-        .noticia-contenido em {
+        :global(.noticia-contenido em) {
           font-style: italic;
         }
 
-        .noticia-contenido u {
+        :global(.noticia-contenido u) {
           text-decoration: underline;
         }
 
-        .noticia-contenido s {
+        :global(.noticia-contenido s) {
           text-decoration: line-through;
+        }
+
+        @media (max-width: 768px) {
+          :global(.noticia-contenido img) {
+            max-width: 100%;
+            margin: 1rem 0;
+          }
         }
       `}</style>
     </div>

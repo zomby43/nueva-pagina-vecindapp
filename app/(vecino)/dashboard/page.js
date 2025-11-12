@@ -614,19 +614,9 @@ export default function UserDashboard() {
                           {aviso.titulo}
                         </h4>
                         {aviso.destacado && (
-                          <span style={{
-                            background: '#fbbf24',
-                            color: '#78350f',
-                            padding: '0.125rem 0.5rem',
-                            borderRadius: '12px',
-                            fontSize: '0.7rem',
-                            fontWeight: 600,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem'
-                          }}>
-                            <i className="bi bi-star-fill"></i>
-                            Destacado
+                          <span className="aviso-destacado-badge">
+                            <i className="bi bi-star-fill" aria-hidden="true"></i>
+                            <span className="aviso-destacado-label">Destacado</span>
                           </span>
                         )}
                       </div>

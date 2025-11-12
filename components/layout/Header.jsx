@@ -121,43 +121,27 @@ export default function Header({
         boxShadow: '0 2px 10px rgba(21, 71, 101, 0.08)',
         position: 'sticky',
         top: 0,
-        zIndex: 1000,
-        padding: '1rem 0'
+        zIndex: 1000
       }}
     >
-      <div className="header-container" style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        padding: '0 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '2rem'
-      }}>
-        {/* Hamburger menu button - only visible on mobile when user is logged in */}
-        {displayUser && onToggleSidebar && (
-          <button
-            className="sidebar-toggle-btn d-lg-none"
-            onClick={onToggleSidebar}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '0.5rem',
-              cursor: 'pointer',
-              color: '#154765',
-              fontSize: '1.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            aria-label="Toggle sidebar"
-          >
-            <i className="bi bi-list"></i>
-          </button>
+      <div className="header-container">
+        {/* Icono de perfil en mobile (lado izquierdo) */}
+        {displayUser && displayProfile && (
+          <div className="mobile-user-action mobile-user-action-left d-lg-none">
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              aria-expanded={mobileMenuOpen ? 'true' : 'false'}
+              aria-controls="mobile-user-menu"
+              onClick={toggleMobileMenu}
+            >
+              <i className={`bi ${mobileMenuOpen ? 'bi-x-lg' : 'bi-person-circle'}`}></i>
+            </button>
+          </div>
         )}
 
         {/* Sección izquierda: Logo y nombre */}
-        <div className="header-left" style={{ flexShrink: 0 }}>
+        <div className="header-left">
           <Link href={displayUser ? getRolDashboard(displayProfile?.rol) : '/'} className="logo-container">
             <img src="/logo.png" alt="VecindApp Logo" className="logo-image" />
             <div className="brand-info">
@@ -189,17 +173,6 @@ export default function Header({
                   Cerrar Sesión
                 </button>
               </div>
-              <div className="mobile-user-action d-lg-none">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm"
-                  aria-expanded={mobileMenuOpen ? 'true' : 'false'}
-                  aria-controls="mobile-user-menu"
-                  onClick={toggleMobileMenu}
-                >
-                  <i className={`bi ${mobileMenuOpen ? 'bi-x-lg' : 'bi-person-circle'}`}></i>
-                </button>
-              </div>
             </>
           ) : (
             <div className="auth-buttons">
@@ -220,6 +193,17 @@ export default function Header({
                 Registrarse
               </button>
             </div>
+          )}
+
+          {/* Hamburger menu button - ahora alineado a la derecha en mobile */}
+          {displayUser && onToggleSidebar && (
+            <button
+              className="sidebar-toggle-btn d-lg-none mobile-sidebar-toggle"
+              onClick={onToggleSidebar}
+              aria-label="Toggle sidebar"
+            >
+              <i className="bi bi-list"></i>
+            </button>
           )}
         </div>
       </div>
