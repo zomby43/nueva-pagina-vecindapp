@@ -252,28 +252,28 @@ export default function ReservasPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="mb-4">
-        <h1 className="display-6 fw-bold mb-3"><i className="bi bi-house-door me-2"></i>Reservar Espacios</h1>
-        <p className="lead text-muted">
+      <div className="mb-4 vecino-page-header">
+        <h1 className="fw-bold mb-3"><i className="bi bi-house-door me-2"></i>Reservar Espacios</h1>
+        <p className="text-muted vecino-text-base">
           Solicita la reserva de espacios comunes de la junta de vecinos
         </p>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-4">
+        <div className="alert alert-danger mb-4 vecino-alert">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {/* Selector de Espacios */}
-      <div className="card shadow-sm border-0 mb-4">
+      <div className="card shadow-sm border-0 mb-4 vecino-card">
         <div className="card-body p-4">
-          <h5 className="card-title mb-3">Selecciona un Espacio</h5>
+          <h5 className="card-title mb-3 vecino-text-base">Selecciona un Espacio</h5>
           <div className="row g-3">
             {espacios.map((espacio) => (
               <div key={espacio.id} className="col-md-4">
                 <div
-                  className={`card h-100 ${espacioSeleccionado === espacio.id ? 'border-primary' : ''}`}
+                  className={`card h-100 vecino-card ${espacioSeleccionado === espacio.id ? 'border-primary' : ''}`}
                   style={{
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -282,15 +282,15 @@ export default function ReservasPage() {
                   onClick={() => handleEspacioChange(espacio.id)}
                 >
                   <div className="card-body">
-                    <h6 className="card-title fw-bold">{espacio.nombre}</h6>
-                    <p className="card-text small text-muted mb-2">{espacio.descripcion}</p>
+                    <h6 className="card-title fw-bold vecino-text-base">{espacio.nombre}</h6>
+                    <p className="card-text text-muted mb-2 vecino-text-sm">{espacio.descripcion}</p>
                     {espacio.capacidad && (
-                      <small className="text-muted">
-                        👥 Capacidad: {espacio.capacidad} personas
-                      </small>
+                      <span className="text-muted vecino-text-sm">
+                        <i className="bi bi-people-fill me-1"></i>Capacidad: {espacio.capacidad} personas
+                      </span>
                     )}
                     {espacio.ubicacion && (
-                      <div><small className="text-muted">📍 {espacio.ubicacion}</small></div>
+                      <div><span className="text-muted vecino-text-sm"><i className="bi bi-geo-alt-fill me-1"></i>{espacio.ubicacion}</span></div>
                     )}
                   </div>
                 </div>
@@ -301,108 +301,116 @@ export default function ReservasPage() {
       </div>
 
       {/* Acciones Principales */}
-      <div className="d-flex gap-2 mb-4">
+      <div className="d-flex flex-column flex-md-row gap-3 mb-4 vecino-btn-group">
         <button
-          className="btn btn-primary btn-lg"
+          className="btn btn-primary vecino-btn"
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
         >
-          {mostrarFormulario ? '📅 Ver Calendario' : '➕ Nueva Solicitud'}
+          {mostrarFormulario ? <><i className="bi bi-calendar3 me-2"></i>Ver Calendario</> : <><i className="bi bi-plus-circle me-2"></i>Nueva Solicitud</>}
         </button>
-        <Link href="/reservas/mis-reservas" className="btn btn-outline-secondary btn-lg">
-          📋 Mis Reservas
+        <Link href="/reservas/mis-reservas" className="btn btn-outline-secondary vecino-btn">
+          <i className="bi bi-clipboard-check me-2"></i>Mis Reservas
         </Link>
       </div>
 
       {mostrarFormulario ? (
         /* Formulario de Solicitud */
-        <div className="card shadow-sm border-0">
+        <div className="card shadow-sm border-0 vecino-card">
           <div className="card-body p-4">
-            <h5 className="card-title mb-4">📝 Solicitar Reserva</h5>
+            <h5 className="card-title mb-4 vecino-text-base"><i className="bi bi-pencil-square me-2"></i>Solicitar Reserva</h5>
 
             {espacioActual && (
-              <div className="alert alert-info mb-4">
-                <strong>📌 {espacioActual.nombre}</strong>
+              <div className="alert alert-info mb-4 vecino-alert">
+                <strong><i className="bi bi-pin-fill me-1"></i>{espacioActual.nombre}</strong>
                 {espacioActual.observaciones && (
-                  <p className="mb-0 mt-2 small">{espacioActual.observaciones}</p>
+                  <p className="mb-0 mt-2 vecino-text-sm">{espacioActual.observaciones}</p>
                 )}
               </div>
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label htmlFor="fecha_reserva" className="form-label fw-semibold">
-                    Fecha de Reserva <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className="form-control form-control-lg"
-                    id="fecha_reserva"
-                    name="fecha_reserva"
-                    value={formData.fecha_reserva}
-                    onChange={handleInputChange}
-                    min={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label htmlFor="bloque_horario" className="form-label fw-semibold">
-                    Bloque Horario <span className="text-danger">*</span>
-                  </label>
-                  <select
-                    className="form-select form-select-lg"
-                    id="bloque_horario"
-                    name="bloque_horario"
-                    value={formData.bloque_horario}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="manana">Mañana (9:00 - 13:00)</option>
-                    <option value="tarde">Tarde (14:00 - 18:00)</option>
-                    <option value="noche">Noche (19:00 - 23:00)</option>
-                    <option value="dia_completo">Día Completo (9:00 - 23:00)</option>
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label htmlFor="num_asistentes" className="form-label fw-semibold">
-                    Número de Asistentes (opcional)
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control form-control-lg"
-                    id="num_asistentes"
-                    name="num_asistentes"
-                    value={formData.num_asistentes}
-                    onChange={handleInputChange}
-                    min="1"
-                    placeholder="Ej: 25"
-                  />
-                  {espacioActual?.capacidad && (
-                    <small className="text-muted">
-                      Capacidad máxima: {espacioActual.capacidad} personas
-                    </small>
-                  )}
+              <div className="row g-4">
+                <div className="col-12">
+                  <div className="vecino-form-group">
+                    <label htmlFor="fecha_reserva" className="form-label vecino-form-label">
+                      Fecha de Reserva <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control vecino-form-control"
+                      id="fecha_reserva"
+                      name="fecha_reserva"
+                      value={formData.fecha_reserva}
+                      onChange={handleInputChange}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="col-12">
-                  <label htmlFor="motivo" className="form-label fw-semibold">
-                    Motivo de la Reserva <span className="text-danger">*</span>
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="motivo"
-                    name="motivo"
-                    rows={4}
-                    value={formData.motivo}
-                    onChange={handleInputChange}
-                    placeholder="Describe detalladamente el motivo de tu solicitud (mínimo 10 caracteres)"
-                    required
-                  />
-                  <small className="text-muted">
-                    {formData.motivo.length}/500 caracteres
-                  </small>
+                  <div className="vecino-form-group">
+                    <label htmlFor="bloque_horario" className="form-label vecino-form-label">
+                      Bloque Horario <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select vecino-form-select"
+                      id="bloque_horario"
+                      name="bloque_horario"
+                      value={formData.bloque_horario}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="manana">Mañana (9:00 - 13:00)</option>
+                      <option value="tarde">Tarde (14:00 - 18:00)</option>
+                      <option value="noche">Noche (19:00 - 23:00)</option>
+                      <option value="dia_completo">Día Completo (9:00 - 23:00)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="vecino-form-group">
+                    <label htmlFor="num_asistentes" className="form-label vecino-form-label">
+                      Número de Asistentes (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      className="form-control vecino-form-control"
+                      id="num_asistentes"
+                      name="num_asistentes"
+                      value={formData.num_asistentes}
+                      onChange={handleInputChange}
+                      min="1"
+                      placeholder="Ej: 25"
+                    />
+                    {espacioActual?.capacidad && (
+                      <span className="text-muted vecino-text-sm">
+                        Capacidad máxima: {espacioActual.capacidad} personas
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="vecino-form-group">
+                    <label htmlFor="motivo" className="form-label vecino-form-label">
+                      Motivo de la Reserva <span className="text-danger">*</span>
+                    </label>
+                    <textarea
+                      className="form-control vecino-form-control"
+                      id="motivo"
+                      name="motivo"
+                      rows={4}
+                      value={formData.motivo}
+                      onChange={handleInputChange}
+                      placeholder="Describe detalladamente el motivo de tu solicitud (mínimo 10 caracteres)"
+                      required
+                    />
+                    <small className="text-muted">
+                      {formData.motivo.length}/500 caracteres
+                    </small>
+                  </div>
                 </div>
               </div>
 

@@ -131,14 +131,14 @@ export default function SolicitudesPage() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header vecino-page-header">
         <div className="page-header-content">
           <div>
             <h1><i className="bi bi-file-text me-2"></i>Mis Solicitudes</h1>
-            <p className="text-muted mb-0">Gestiona tus certificados y solicitudes</p>
+            <p className="text-muted mb-0 vecino-text-base">Gestiona tus certificados y solicitudes</p>
           </div>
-          <Link href="/solicitudes/nueva" className="btn btn-primary btn-new-request">
-            <span className="icon">➕</span>
+          <Link href="/solicitudes/nueva" className="btn btn-primary btn-new-request vecino-btn">
+            <i className="bi bi-plus-circle-fill me-2"></i>
             Nueva Solicitud
           </Link>
         </div>
@@ -188,14 +188,15 @@ export default function SolicitudesPage() {
 
         {/* Lista de solicitudes */}
         <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
+          <div className="card-header d-flex justify-content-between align-items-center solicitudes-header">
             <h5 className="mb-0">Historial de Solicitudes</h5>
             <button 
-              className="btn btn-sm btn-outline-primary"
+              className="btn btn-sm btn-outline-primary solicitudes-refresh-btn"
               onClick={fetchSolicitudes}
               disabled={loading}
             >
-              🔄 Actualizar
+              <i className="bi bi-arrow-clockwise me-2"></i>
+              Actualizar
             </button>
           </div>
           <div className="card-body">
@@ -210,7 +211,7 @@ export default function SolicitudesPage() {
               </div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover">
+                <table className="table table-hover vecino-table">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -234,26 +235,26 @@ export default function SolicitudesPage() {
                           <div>
                             <div className="fw-medium">{solicitud.motivo}</div>
                             {solicitud.observaciones && (
-                              <small className="text-muted">
-                                {solicitud.observaciones.length > 50 
+                              <span className="text-muted vecino-text-sm">
+                                {solicitud.observaciones.length > 50
                                   ? `${solicitud.observaciones.substring(0, 50)}...`
                                   : solicitud.observaciones
                                 }
-                              </small>
+                              </span>
                             )}
                           </div>
                         </td>
                         <td>
-                          <small>{formatearFecha(solicitud.fecha_solicitud)}</small>
+                          <span className="vecino-text-sm">{formatearFecha(solicitud.fecha_solicitud)}</span>
                         </td>
                         <td>
-                          <span className={`badge ${getEstadoBadge(solicitud.estado)}`}>
+                          <span className={`badge vecino-badge ${getEstadoBadge(solicitud.estado)}`}>
                             {getEstadoTexto(solicitud.estado)}
                           </span>
                         </td>
                         <td>
-                          <div className="btn-group btn-group-sm">
-                            <button 
+                          <div className="vecino-btn-group">
+                            <button
                               className="btn btn-outline-primary"
                               onClick={() => {
                                 // TODO: Implementar modal de detalles

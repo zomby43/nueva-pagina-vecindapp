@@ -154,140 +154,158 @@ export default function PerfilPage() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header vecino-page-header">
         <h1><i className="bi bi-person me-2"></i>Mi Perfil</h1>
-        <p className="text-muted">Gestiona tu información personal</p>
+        <p className="text-muted vecino-text-base">Gestiona tu información personal</p>
       </div>
 
       <div className="profile-content">
         <div className="row">
-          <div className="col-lg-8">
-            <div className="card">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Información Personal</h5>
+          <div className="col-lg-10 col-xl-8 mx-auto">
+            <div className="card vecino-card">
+              <div className="card-header d-flex justify-content-between align-items-center" style={{ padding: '1.5rem' }}>
+                <h5 className="mb-0 vecino-text-lg">Información Personal</h5>
                 <button
                   type="button"
-                  className={`btn ${editMode ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+                  className={`btn ${editMode ? 'btn-secondary' : 'btn-primary'} vecino-btn`}
                   onClick={() => setEditMode(!editMode)}
                   disabled={saving}
                 >
                   {editMode ? 'Cancelar' : 'Editar'}
                 </button>
               </div>
-              <div className="card-body">
+              <div className="card-body" style={{ padding: '2rem' }}>
                 {/* Mensajes de éxito/error */}
                 {success && (
-                  <div className="alert alert-success alert-dismissible fade show" role="alert">
+                  <div className="alert alert-success alert-dismissible fade show vecino-alert" role="alert">
                     {success}
                     <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
                   </div>
                 )}
                 {error && (
-                  <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                  <div className="alert alert-danger alert-dismissible fade show vecino-alert" role="alert">
                     {error}
                     <button type="button" className="btn-close" onClick={() => setError('')}></button>
                   </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label htmlFor="nombres" className="form-label">Nombres</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="nombres"
-                        name="nombres"
-                        value={userData.nombres}
-                        onChange={handleChange}
-                        disabled={!editMode}
-                      />
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <label htmlFor="apellidos" className="form-label">Apellidos</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="apellidos"
-                        name="apellidos"
-                        value={userData.apellidos}
-                        onChange={handleChange}
-                        disabled={!editMode}
-                      />
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <label htmlFor="rut" className="form-label">RUT</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="rut"
-                        name="rut"
-                        value={userData.rut}
-                        disabled={true}
-                      />
-                      <small className="text-muted">El RUT no se puede modificar</small>
-                    </div>
-                    
-                    <div className="col-md-6">
-                      <label htmlFor="telefono" className="form-label">Teléfono</label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        id="telefono"
-                        name="telefono"
-                        value={userData.telefono}
-                        onChange={handleChange}
-                        disabled={!editMode}
-                      />
-                    </div>
-                    
+                  <div className="row g-4">
                     <div className="col-12">
-                      <label htmlFor="email" className="form-label">Email</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={userData.email}
-                        onChange={handleChange}
-                        disabled={!editMode}
-                      />
+                      <div className="vecino-form-group">
+                        <label htmlFor="nombres" className="form-label vecino-form-label">Nombres</label>
+                        <input
+                          type="text"
+                          className="form-control vecino-form-control"
+                          id="nombres"
+                          name="nombres"
+                          value={userData.nombres}
+                          onChange={handleChange}
+                          disabled={!editMode}
+                        />
+                      </div>
                     </div>
-                    
+
                     <div className="col-12">
-                      <label htmlFor="direccion" className="form-label">Dirección</label>
-                      <textarea
-                        className="form-control"
-                        id="direccion"
-                        name="direccion"
-                        rows="3"
-                        value={userData.direccion}
-                        onChange={handleChange}
-                        disabled={!editMode}
-                      />
+                      <div className="vecino-form-group">
+                        <label htmlFor="apellidos" className="form-label vecino-form-label">Apellidos</label>
+                        <input
+                          type="text"
+                          className="form-control vecino-form-control"
+                          id="apellidos"
+                          name="apellidos"
+                          value={userData.apellidos}
+                          onChange={handleChange}
+                          disabled={!editMode}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="vecino-form-group">
+                        <label htmlFor="rut" className="form-label vecino-form-label">RUT</label>
+                        <input
+                          type="text"
+                          className="form-control vecino-form-control"
+                          id="rut"
+                          name="rut"
+                          value={userData.rut}
+                          disabled={true}
+                        />
+                        <span className="text-muted vecino-text-sm mt-2 d-block">El RUT no se puede modificar</span>
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="vecino-form-group">
+                        <label htmlFor="telefono" className="form-label vecino-form-label">Teléfono</label>
+                        <input
+                          type="tel"
+                          className="form-control vecino-form-control"
+                          id="telefono"
+                          name="telefono"
+                          value={userData.telefono}
+                          onChange={handleChange}
+                          disabled={!editMode}
+                          placeholder="+56 9 1234 5678"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="vecino-form-group">
+                        <label htmlFor="email" className="form-label vecino-form-label">Email</label>
+                        <input
+                          type="email"
+                          className="form-control vecino-form-control"
+                          id="email"
+                          name="email"
+                          value={userData.email}
+                          onChange={handleChange}
+                          disabled={!editMode}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-12">
+                      <div className="vecino-form-group">
+                        <label htmlFor="direccion" className="form-label vecino-form-label">Dirección</label>
+                        <textarea
+                          className="form-control vecino-form-control"
+                          id="direccion"
+                          name="direccion"
+                          rows="4"
+                          value={userData.direccion}
+                          onChange={handleChange}
+                          disabled={!editMode}
+                          placeholder="Ingrese su dirección completa"
+                        />
+                      </div>
                     </div>
                   </div>
-                  
+
                   {editMode && (
-                    <div className="d-flex gap-2 mt-3">
-                      <button type="submit" className="btn btn-success" disabled={saving}>
+                    <div className="d-flex gap-3 mt-4 vecino-btn-group">
+                      <button type="submit" className="btn btn-success vecino-btn" disabled={saving}>
                         {saving ? (
                           <>
                             <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                             Guardando...
                           </>
                         ) : (
-                          'Guardar Cambios'
+                          <>
+                            <i className="bi bi-check-circle me-2"></i>
+                            Guardar Cambios
+                          </>
                         )}
                       </button>
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-secondary vecino-btn"
                         onClick={() => setEditMode(false)}
                         disabled={saving}
                       >
+                        <i className="bi bi-x-circle me-2"></i>
                         Cancelar
                       </button>
                     </div>

@@ -307,8 +307,6 @@ export default function NoticiaDetallePage() {
                     background: miReaccion === 'me_gusta' ? '#10b981' : 'white',
                     color: miReaccion === 'me_gusta' ? 'white' : '#374151',
                     border: `2px solid ${miReaccion === 'me_gusta' ? '#10b981' : '#d1d5db'}`,
-                    padding: '1rem 2rem',
-                    borderRadius: '50px',
                     fontSize: '1.2rem',
                     fontWeight: '600',
                     cursor: loadingReaccion ? 'wait' : 'pointer',
@@ -345,8 +343,6 @@ export default function NoticiaDetallePage() {
                     background: miReaccion === 'no_me_gusta' ? '#ef4444' : 'white',
                     color: miReaccion === 'no_me_gusta' ? 'white' : '#374151',
                     border: `2px solid ${miReaccion === 'no_me_gusta' ? '#ef4444' : '#d1d5db'}`,
-                    padding: '1rem 2rem',
-                    borderRadius: '50px',
                     fontSize: '1.2rem',
                     fontWeight: '600',
                     cursor: loadingReaccion ? 'wait' : 'pointer',
@@ -391,13 +387,13 @@ export default function NoticiaDetallePage() {
             </div>
 
             {/* Footer */}
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="noticia-footer d-flex justify-content-between align-items-center">
               <div>
                 <small className="text-muted">
                   Publicado el {formatearFecha(noticia.fecha_publicacion)}
                 </small>
               </div>
-              <Link href="/noticias" className="btn btn-primary">
+              <Link href="/noticias" className="btn btn-primary noticia-ver-mas-btn">
                 Ver más noticias
               </Link>
             </div>
@@ -408,33 +404,36 @@ export default function NoticiaDetallePage() {
         <div className="card mt-3">
           <div className="card-body">
             <h6 className="card-title">Compartir esta noticia</h6>
-            <div className="d-flex gap-2">
+            <div className="d-flex flex-wrap gap-3">
               <button
-                className="btn btn-sm btn-outline-primary"
+                className="btn btn-sm btn-outline-primary noticia-share-btn"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
                   alert('Link copiado al portapapeles');
                 }}
               >
-                🔗 Copiar Link
+                <i className="bi bi-link-45deg"></i>
+                Copiar Link
               </button>
               <button
-                className="btn btn-sm btn-outline-success"
+                className="btn btn-sm btn-outline-success noticia-share-btn"
                 onClick={() => {
                   const text = `${noticia.titulo} - ${window.location.href}`;
                   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                 }}
               >
-                💬 WhatsApp
+                <i className="bi bi-whatsapp"></i>
+                WhatsApp
               </button>
               <button
-                className="btn btn-sm btn-outline-info"
+                className="btn btn-sm btn-outline-info noticia-share-btn"
                 onClick={() => {
                   const mailto = `mailto:?subject=${encodeURIComponent(noticia.titulo)}&body=${encodeURIComponent(window.location.href)}`;
                   window.location.href = mailto;
                 }}
               >
-                📧 Email
+                <i className="bi bi-envelope-fill"></i>
+                Email
               </button>
             </div>
           </div>
@@ -544,6 +543,11 @@ export default function NoticiaDetallePage() {
           opacity: 1;
         }
 
+        .btn-reaccion {
+          padding: 1rem 2rem;
+          border-radius: 50px;
+        }
+
         /* Efectos hover para botones de reacción */
         .btn-reaccion:not(:disabled):hover {
           transform: scale(1.08) !important;
@@ -574,24 +578,61 @@ export default function NoticiaDetallePage() {
           }
 
           .btn-reaccion {
-            padding: 0.85rem 1.25rem !important;
-            font-size: 1rem !important;
-            border-radius: 32px !important;
+            padding: 0.3rem 0.8rem !important;
+            font-size: 0.95rem !important;
+            border-radius: 18px !important;
+            min-height: auto !important;
+            gap: 0.35rem !important;
+            flex: none !important;
+            width: 100% !important;
           }
         }
 
         @media (max-width: 480px) {
           .btn-reaccion {
-            font-size: 0.95rem !important;
-            gap: 0.4rem !important;
+            font-size: 0.9rem !important;
+            gap: 0.3rem !important;
           }
 
-          .btn-reaccion span:first-child {
-            font-size: 1.3rem !important;
+        .btn-reaccion span:first-child {
+          font-size: 1.2rem !important;
+        }
+
+        .btn-reaccion .badge {
+          font-size: 0.8rem !important;
+        }
+      }
+
+        .noticia-share-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          border-radius: 999px;
+          padding: 0.65rem 1.25rem;
+          font-weight: 600;
+          color: #0f2b40;
+          background: rgba(67, 159, 164, 0.12);
+          border: 1px solid rgba(15, 43, 64, 0.15);
+        }
+
+        .noticia-share-btn i {
+          font-size: 1.1rem;
+        }
+
+        @media (max-width: 576px) {
+          .noticia-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
           }
 
-          .btn-reaccion .badge {
-            font-size: 0.8rem !important;
+          .noticia-ver-mas-btn {
+            width: 100%;
+          }
+
+          .noticia-share-btn {
+            width: 100%;
+            justify-content: center;
           }
         }
 

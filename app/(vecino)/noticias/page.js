@@ -139,44 +139,46 @@ export default function NoticiasPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-newspaper me-2"></i>Noticias de la Junta de Vecinos</h1>
-        <p className="lead text-muted">Mantente informado sobre las novedades de nuestra comunidad</p>
+      <div className="text-center mb-5 vecino-page-header">
+        <h1 className="fw-bold mb-3"><i className="bi bi-newspaper me-2"></i>Noticias de la Junta de Vecinos</h1>
+        <p className="text-muted vecino-text-base">Mantente informado sobre las novedades de nuestra comunidad</p>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-5">
+        <div className="alert alert-danger mb-5 vecino-alert">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {/* Filtro de categorías */}
-      <div className="card shadow-sm border-0 mb-5">
-        <div className="card-body p-4">
-          <div className="row align-items-center g-3">
-            <div className="col-md-8">
-              <label htmlFor="filtroCategoria" className="form-label fw-semibold mb-2">
-                Filtrar por categoría:
-              </label>
-              <select
-                id="filtroCategoria"
-                className="form-select form-select-lg"
-                value={filtroCategoria}
-                onChange={(e) => setFiltroCategoria(e.target.value)}
-              >
-                <option value="todas">Todas las categorías</option>
-                <option value="general">General</option>
-                <option value="eventos">Eventos</option>
-                <option value="obras">Obras</option>
-                <option value="seguridad">Seguridad</option>
-                <option value="medio_ambiente">Medio Ambiente</option>
-                <option value="cultura">Cultura</option>
-                <option value="deportes">Deportes</option>
-                <option value="otro">Otro</option>
-              </select>
+      <div className="card shadow-sm border-0 mb-5 vecino-card">
+        <div className="card-body">
+          <div className="row align-items-center g-4">
+            <div className="col-12">
+              <div className="vecino-form-group">
+                <label htmlFor="filtroCategoria" className="form-label vecino-form-label">
+                  Filtrar por categoría:
+                </label>
+                <select
+                  id="filtroCategoria"
+                  className="form-select vecino-form-select"
+                  value={filtroCategoria}
+                  onChange={(e) => setFiltroCategoria(e.target.value)}
+                >
+                  <option value="todas">Todas las categorías</option>
+                  <option value="general">General</option>
+                  <option value="eventos">Eventos</option>
+                  <option value="obras">Obras</option>
+                  <option value="seguridad">Seguridad</option>
+                  <option value="medio_ambiente">Medio Ambiente</option>
+                  <option value="cultura">Cultura</option>
+                  <option value="deportes">Deportes</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
             </div>
-            <div className="col-md-4 text-md-end">
-              <div className="badge bg-light text-dark fs-6 p-3">
+            <div className="col-12 text-center">
+              <div className="badge vecino-badge p-3" style={{ backgroundColor: '#154765', color: 'white', fontSize: '1.125rem' }}>
                 {noticiasFiltradas.length} {noticiasFiltradas.length === 1 ? 'noticia' : 'noticias'}
               </div>
             </div>
@@ -185,11 +187,13 @@ export default function NoticiasPage() {
       </div>
 
       {noticiasFiltradas.length === 0 ? (
-        <div className="card">
+        <div className="card vecino-card">
           <div className="card-body text-center py-5">
-            <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>📰</div>
-            <h5>No hay noticias disponibles</h5>
-            <p className="text-muted">
+            <div className="vecino-icon-lg mb-3" style={{ fontSize: '3rem' }}>
+              <i className="bi bi-newspaper"></i>
+            </div>
+            <h5 className="vecino-text-base">No hay noticias disponibles</h5>
+            <p className="text-muted vecino-text-base">
               {filtroCategoria === 'todas'
                 ? 'Aún no se han publicado noticias'
                 : `No hay noticias en la categoría "${getCategoriaTexto(filtroCategoria)}"`
@@ -202,8 +206,10 @@ export default function NoticiasPage() {
           {/* Noticias Destacadas */}
           {noticiasDestacadas.length > 0 && (
             <div className="mb-5">
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-warning text-dark me-2 px-3 py-2">⭐</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge me-2 px-3 py-2 vecino-badge" style={{ backgroundColor: '#f59e0b', color: '#ffffff' }}>
+                  <i className="bi bi-star-fill"></i>
+                </span>
                 <span>Noticias Destacadas</span>
               </h3>
               <div className="row g-4">
@@ -216,7 +222,7 @@ export default function NoticiasPage() {
                       'col-md-6 col-lg-4'
                     }`}
                   >
-                    <div className="card h-100 shadow border-warning noticia-card-destacada" style={{ borderWidth: '3px', transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
+                    <div className="card h-100 shadow border-warning noticia-card-destacada vecino-card" style={{ borderWidth: '3px', transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
                       {/* Imagen de portada */}
                       {noticia.imagen_url && (
                         <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -238,18 +244,20 @@ export default function NoticiasPage() {
                       )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
-                          <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2`}>
+                          <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2 vecino-badge`}>
                             {getCategoriaTexto(noticia.categoria)}
                           </span>
-                          <span className="badge bg-warning text-dark px-3 py-2">⭐ Destacada</span>
+                          <span className="badge px-3 py-2 vecino-badge" style={{ backgroundColor: '#f59e0b', color: '#ffffff', fontWeight: 'bold' }}>
+                            <i className="bi bi-star-fill me-1"></i>Destacada
+                          </span>
                         </div>
-                        <h5 className="card-title fw-bold mb-3">{noticia.titulo}</h5>
+                        <h5 className="card-title fw-bold mb-3 vecino-text-lg">{noticia.titulo}</h5>
                         {noticia.resumen && (
-                          <p className="card-text text-muted mb-3" style={{ fontSize: '0.95rem' }}>
+                          <p className="card-text text-muted mb-3 vecino-text-base">
                             {noticia.resumen}
                           </p>
                         )}
-                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                        <p className="card-text mb-4 flex-grow-1 vecino-text-base" style={{ whiteSpace: 'pre-line' }}>
                           {(() => {
                             const plainText = extractPlainText(noticia.contenido);
                             return plainText.length > 150
@@ -259,12 +267,12 @@ export default function NoticiasPage() {
                         </p>
                         {/* Reacciones preview */}
                         {reaccionesStats[noticia.id] && reaccionesStats[noticia.id].total > 0 && (
-                          <div className="mb-3 d-flex gap-3" style={{ fontSize: '0.9rem' }}>
+                          <div className="mb-3 d-flex gap-3 noticia-meta-text">
                             <span className="d-flex align-items-center gap-1" style={{ color: '#10b981' }}>
-                              👍 <strong>{reaccionesStats[noticia.id].meGusta}</strong>
+                              <i className="bi bi-hand-thumbs-up-fill"></i> <strong>{reaccionesStats[noticia.id].meGusta}</strong>
                             </span>
                             <span className="d-flex align-items-center gap-1" style={{ color: '#ef4444' }}>
-                              👎 <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
+                              <i className="bi bi-hand-thumbs-down-fill"></i> <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
                             </span>
                             <span className="text-muted">
                               · {reaccionesStats[noticia.id].total} {reaccionesStats[noticia.id].total === 1 ? 'reacción' : 'reacciones'}
@@ -272,12 +280,19 @@ export default function NoticiasPage() {
                           </div>
                         )}
                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                          <small className="text-muted">
-                            📅 {formatearFecha(noticia.fecha_publicacion)}
-                          </small>
+                          <span className="text-muted vecino-text-sm">
+                            <i className="bi bi-calendar3 me-1"></i>{formatearFecha(noticia.fecha_publicacion)}
+                          </span>
                           <Link
                             href={`/noticias/${noticia.id}`}
-                            className="btn btn-primary"
+                            className="btn noticia-read-more"
+                            style={{
+                              backgroundColor: '#0d2b40',
+                              color: '#ffffff',
+                              borderRadius: '999px',
+                              border: 'none',
+                              padding: '0.6rem 1.4rem'
+                            }}
                           >
                             Leer más
                           </Link>
@@ -293,14 +308,16 @@ export default function NoticiasPage() {
           {/* Noticias Regulares */}
           {noticiasRegulares.length > 0 && (
             <div>
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-primary me-2 px-3 py-2">📰</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-primary me-2 px-3 py-2 vecino-badge">
+                  <i className="bi bi-list-ul"></i>
+                </span>
                 <span>Todas las Noticias</span>
               </h3>
               <div className="row g-4">
                 {noticiasRegulares.map((noticia) => (
                   <div key={noticia.id} className="col-12 col-lg-6">
-                    <div className="card h-100 shadow-sm border-0 noticia-card-regular" style={{ transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
+                    <div className="card h-100 shadow-sm border-0 noticia-card-regular vecino-card" style={{ transition: 'transform 0.2s, box-shadow 0.2s', padding: 0, overflow: 'hidden' }}>
                       {/* Imagen de portada */}
                       {noticia.imagen_url && (
                         <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -322,17 +339,17 @@ export default function NoticiasPage() {
                       )}
                       <div className="card-body d-flex flex-column p-4">
                         <div className="mb-3">
-                          <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2`}>
+                          <span className={`badge ${getCategoriaBadge(noticia.categoria)} px-3 py-2 vecino-badge`}>
                             {getCategoriaTexto(noticia.categoria)}
                           </span>
                         </div>
-                        <h5 className="card-title fw-bold mb-3">{noticia.titulo}</h5>
+                        <h5 className="card-title fw-bold mb-3 vecino-text-base">{noticia.titulo}</h5>
                         {noticia.resumen && (
-                          <p className="card-text text-muted mb-3" style={{ fontSize: '0.95rem' }}>
+                          <p className="card-text text-muted mb-3 vecino-text-base">
                             {noticia.resumen}
                           </p>
                         )}
-                        <p className="card-text mb-4 flex-grow-1" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                        <p className="card-text mb-4 flex-grow-1 vecino-text-base" style={{ whiteSpace: 'pre-line' }}>
                           {(() => {
                             const plainText = extractPlainText(noticia.contenido);
                             return plainText.length > 120
@@ -342,12 +359,12 @@ export default function NoticiasPage() {
                         </p>
                         {/* Reacciones preview */}
                         {reaccionesStats[noticia.id] && reaccionesStats[noticia.id].total > 0 && (
-                          <div className="mb-3 d-flex gap-3" style={{ fontSize: '0.9rem' }}>
+                          <div className="mb-3 d-flex gap-3 noticia-meta-text">
                             <span className="d-flex align-items-center gap-1" style={{ color: '#10b981' }}>
-                              👍 <strong>{reaccionesStats[noticia.id].meGusta}</strong>
+                              <i className="bi bi-hand-thumbs-up-fill"></i> <strong>{reaccionesStats[noticia.id].meGusta}</strong>
                             </span>
                             <span className="d-flex align-items-center gap-1" style={{ color: '#ef4444' }}>
-                              👎 <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
+                              <i className="bi bi-hand-thumbs-down-fill"></i> <strong>{reaccionesStats[noticia.id].noMeGusta}</strong>
                             </span>
                             <span className="text-muted">
                               · {reaccionesStats[noticia.id].total} {reaccionesStats[noticia.id].total === 1 ? 'reacción' : 'reacciones'}
@@ -355,12 +372,19 @@ export default function NoticiasPage() {
                           </div>
                         )}
                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                          <small className="text-muted">
-                            📅 {formatearFecha(noticia.fecha_publicacion)}
-                          </small>
+                          <span className="text-muted vecino-text-sm">
+                            <i className="bi bi-calendar3 me-1"></i>{formatearFecha(noticia.fecha_publicacion)}
+                          </span>
                           <Link
                             href={`/noticias/${noticia.id}`}
-                            className="btn btn-outline-primary"
+                            className="btn noticia-read-more-outline"
+                            style={{
+                              backgroundColor: '#0d2b40',
+                              color: '#ffffff',
+                              borderRadius: '999px',
+                              border: 'none',
+                              padding: '0.6rem 1.4rem'
+                            }}
                           >
                             Leer más
                           </Link>
@@ -402,6 +426,33 @@ export default function NoticiasPage() {
         .card:hover .badge {
           transform: scale(1.05);
           transition: transform 0.2s ease;
+        }
+
+        .noticia-read-more {
+          background: #0d2b40 !important;
+          color: #fff !important;
+          border: none !important;
+          padding: 0.6rem 1.4rem;
+          border-radius: 999px;
+        }
+
+        .noticia-read-more-outline {
+          background: #0d2b40 !important;
+          color: #fff !important;
+          border: none !important;
+          padding: 0.6rem 1.4rem;
+          border-radius: 999px;
+        }
+
+        .noticia-read-more:hover,
+        .noticia-read-more-outline:hover {
+          background: #0a2231 !important;
+          color: #fff !important;
+        }
+
+        .noticia-meta-text {
+          font-size: 0.95rem;
+          line-height: 1.5;
         }
       `}</style>
     </div>

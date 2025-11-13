@@ -95,16 +95,16 @@ export default function MapaPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="mb-4">
+      <div className="mb-4 vecino-page-header">
         <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
           <div>
-            <h1 className="display-6 fw-bold mb-2">
+            <h1 className="fw-bold mb-2">
               <i className="bi bi-map me-2"></i>Mapa de la Comunidad
             </h1>
-            <p className="lead text-muted mb-0">Visualiza tu ubicación y conoce tu comunidad</p>
+            <p className="text-muted mb-0 vecino-text-base">Visualiza tu ubicación y conoce tu comunidad</p>
           </div>
           <button
-            className="btn btn-outline-primary"
+            className="btn btn-outline-primary vecino-btn"
             onClick={() => setShowFilters(!showFilters)}
           >
             <i className="bi bi-funnel me-2"></i>
@@ -115,23 +115,23 @@ export default function MapaPage() {
 
       {/* Filtros colapsables */}
       {showFilters && (
-        <div className="card shadow-sm border-0 mb-4">
+        <div className="card shadow-sm border-0 mb-4 vecino-card">
           <div className="card-body">
-            <h6 className="fw-bold mb-3">Filtrar por categoría:</h6>
-            <div className="d-flex flex-wrap gap-2">
-              <button className="btn btn-sm btn-primary">
+            <h6 className="fw-bold mb-3 vecino-text-base">Filtrar por categoría:</h6>
+            <div className="d-flex flex-wrap gap-3 vecino-btn-group">
+              <button className="btn btn-primary vecino-btn">
                 <i className="bi bi-check-circle me-1"></i>Todos
               </button>
-              <button className="btn btn-sm btn-outline-secondary">
+              <button className="btn btn-outline-secondary vecino-btn">
                 <i className="bi bi-building me-1"></i>Gobierno
               </button>
-              <button className="btn btn-sm btn-outline-success">
+              <button className="btn btn-outline-success vecino-btn">
                 <i className="bi bi-hospital me-1"></i>Salud
               </button>
-              <button className="btn btn-sm btn-outline-warning">
+              <button className="btn btn-outline-warning vecino-btn">
                 <i className="bi bi-mortarboard me-1"></i>Educación
               </button>
-              <button className="btn btn-sm btn-outline-danger">
+              <button className="btn btn-outline-danger vecino-btn">
                 <i className="bi bi-shield-check me-1"></i>Seguridad
               </button>
             </div>

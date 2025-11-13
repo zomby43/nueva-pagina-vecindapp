@@ -52,15 +52,15 @@ export default function AvisosVecinosPage() {
 
   const getTipoIcon = (tipo) => {
     const iconos = {
-      informativo: 'ℹ️',
-      urgente: '🚨',
-      mantenimiento: '🔧',
-      evento: '📅',
-      corte_servicio: '⚠️',
-      seguridad: '🔒',
-      otro: '📌'
+      informativo: 'bi-info-circle-fill',
+      urgente: 'bi-exclamation-triangle-fill',
+      mantenimiento: 'bi-tools',
+      evento: 'bi-calendar-event-fill',
+      corte_servicio: 'bi-exclamation-octagon-fill',
+      seguridad: 'bi-shield-lock-fill',
+      otro: 'bi-pin-angle-fill'
     };
-    return iconos[tipo] || '📌';
+    return iconos[tipo] || 'bi-pin-angle-fill';
   };
 
   const getPrioridadColor = (prioridad) => {
@@ -104,43 +104,45 @@ export default function AvisosVecinosPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-megaphone me-2"></i>Avisos de la Junta de Vecinos</h1>
-        <p className="lead text-muted">Mantente informado sobre avisos importantes y urgentes</p>
+      <div className="text-center mb-5 vecino-page-header">
+        <h1 className="fw-bold mb-3"><i className="bi bi-megaphone me-2"></i>Avisos de la Junta de Vecinos</h1>
+        <p className="text-muted vecino-text-base">Mantente informado sobre avisos importantes y urgentes</p>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-5">
+        <div className="alert alert-danger mb-5 vecino-alert">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {/* Filtro */}
-      <div className="card shadow-sm border-0 mb-5">
-        <div className="card-body p-4">
-          <div className="row align-items-center g-3">
-            <div className="col-md-8">
-              <label htmlFor="filtroTipo" className="form-label fw-semibold mb-2">
-                Filtrar por tipo:
-              </label>
-              <select
-                id="filtroTipo"
-                className="form-select form-select-lg"
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
-              >
-                <option value="todos">Todos los tipos</option>
-                <option value="informativo">Informativo</option>
-                <option value="urgente">Urgente</option>
-                <option value="mantenimiento">Mantenimiento</option>
-                <option value="evento">Evento</option>
-                <option value="corte_servicio">Corte de Servicio</option>
-                <option value="seguridad">Seguridad</option>
-                <option value="otro">Otro</option>
-              </select>
+      <div className="card shadow-sm border-0 mb-5 vecino-card">
+        <div className="card-body">
+          <div className="row align-items-center g-4">
+            <div className="col-12">
+              <div className="vecino-form-group">
+                <label htmlFor="filtroTipo" className="form-label vecino-form-label">
+                  Filtrar por tipo de aviso:
+                </label>
+                <select
+                  id="filtroTipo"
+                  className="form-select vecino-form-select"
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                >
+                  <option value="todos">Todos los tipos</option>
+                  <option value="informativo">Informativo</option>
+                  <option value="urgente">Urgente</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="evento">Evento</option>
+                  <option value="corte_servicio">Corte de Servicio</option>
+                  <option value="seguridad">Seguridad</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
             </div>
-            <div className="col-md-4 text-md-end">
-              <div className="badge bg-light text-dark fs-6 p-3">
+            <div className="col-12 text-center">
+              <div className="badge vecino-badge p-3" style={{ backgroundColor: '#154765', color: 'white', fontSize: '1.125rem' }}>
                 {avisosFiltrados.length} {avisosFiltrados.length === 1 ? 'aviso' : 'avisos'}
               </div>
             </div>
@@ -166,32 +168,32 @@ export default function AvisosVecinosPage() {
           {/* Avisos Destacados/Críticos */}
           {avisosDestacados.length > 0 && (
             <div className="mb-5">
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-danger me-2 px-3 py-2">🚨</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-danger me-2 px-3 py-2 vecino-badge">🚨</span>
                 <span>Avisos Urgentes e Importantes</span>
               </h3>
               <div className="row g-4">
                 {avisosDestacados.map((aviso) => (
                   <div key={aviso.id} className="col-12">
                     <div
-                      className="card shadow border-0"
+                      className="card shadow border-0 vecino-card"
                       style={{
                         borderLeft: `6px solid ${getPrioridadColor(aviso.prioridad)}`,
                         background: aviso.prioridad === 'critica' ? 'rgba(220, 38, 38, 0.05)' : 'white'
                       }}
                     >
-                      <div className="card-body p-4">
+                      <div className="card-body">
                         <div className="d-flex align-items-start gap-3 mb-3">
-                          <div style={{ fontSize: '3rem', flexShrink: 0 }}>
-                            {getTipoIcon(aviso.tipo)}
+                          <div className="vecino-icon-lg" style={{ flexShrink: 0, color: getPrioridadColor(aviso.prioridad) }}>
+                            <i className={`bi ${getTipoIcon(aviso.tipo)}`}></i>
                           </div>
                           <div className="flex-grow-1">
-                            <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                              <span className="badge bg-secondary">
+                            <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+                              <span className="badge bg-secondary vecino-badge">
                                 {getTipoTexto(aviso.tipo)}
                               </span>
                               <span
-                                className="badge"
+                                className="badge vecino-badge"
                                 style={{
                                   backgroundColor: getPrioridadColor(aviso.prioridad),
                                   color: 'white'
@@ -200,10 +202,10 @@ export default function AvisosVecinosPage() {
                                 {aviso.prioridad.toUpperCase()}
                               </span>
                               {aviso.destacado && (
-                                <span className="badge bg-warning text-dark">⭐ Destacado</span>
+                                <span className="badge vecino-badge" style={{ backgroundColor: '#f59e0b', color: '#ffffff', fontWeight: 'bold' }}>⭐ Destacado</span>
                               )}
                             </div>
-                            <h4 className="card-title fw-bold mb-3">{aviso.titulo}</h4>
+                            <h4 className="card-title fw-bold mb-3 vecino-text-lg">{aviso.titulo}</h4>
                             {aviso.imagen_url && (
                               <div className="mb-3">
                                 <img
@@ -214,12 +216,12 @@ export default function AvisosVecinosPage() {
                                 />
                               </div>
                             )}
-                            <p className="card-text mb-3" style={{ fontSize: '1.05rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>
+                            <p className="card-text mb-3 vecino-text-base" style={{ whiteSpace: 'pre-line' }}>
                               {aviso.mensaje}
                             </p>
-                            <small className="text-muted">
+                            <span className="text-muted vecino-text-sm">
                               📅 Publicado el {formatearFecha(aviso.created_at)}
-                            </small>
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -233,31 +235,33 @@ export default function AvisosVecinosPage() {
           {/* Avisos Regulares */}
           {avisosRegulares.length > 0 && (
             <div>
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-primary me-2 px-3 py-2">📋</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-primary me-2 px-3 py-2 vecino-badge">
+                  <i className="bi bi-list-ul"></i>
+                </span>
                 <span>Otros Avisos</span>
               </h3>
               <div className="row g-4">
                 {avisosRegulares.map((aviso) => (
                   <div key={aviso.id} className="col-12 col-lg-6">
                     <div
-                      className="card h-100 shadow-sm border-0"
+                      className="card h-100 shadow-sm border-0 vecino-card"
                       style={{
                         borderLeft: `4px solid ${getPrioridadColor(aviso.prioridad)}`
                       }}
                     >
-                      <div className="card-body p-4">
+                      <div className="card-body">
                         <div className="d-flex align-items-start gap-3 mb-3">
-                          <div style={{ fontSize: '2rem', flexShrink: 0 }}>
-                            {getTipoIcon(aviso.tipo)}
+                          <div className="vecino-icon" style={{ flexShrink: 0, color: getPrioridadColor(aviso.prioridad) }}>
+                            <i className={`bi ${getTipoIcon(aviso.tipo)}`}></i>
                           </div>
                           <div className="flex-grow-1">
-                            <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                              <span className="badge bg-secondary">
+                            <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+                              <span className="badge bg-secondary vecino-badge">
                                 {getTipoTexto(aviso.tipo)}
                               </span>
                               <span
-                                className="badge"
+                                className="badge vecino-badge"
                                 style={{
                                   backgroundColor: getPrioridadColor(aviso.prioridad),
                                   color: 'white'
@@ -266,7 +270,7 @@ export default function AvisosVecinosPage() {
                                 {aviso.prioridad.charAt(0).toUpperCase() + aviso.prioridad.slice(1)}
                               </span>
                             </div>
-                            <h5 className="card-title fw-bold mb-2">{aviso.titulo}</h5>
+                            <h5 className="card-title fw-bold mb-3 vecino-text-base">{aviso.titulo}</h5>
                             {aviso.imagen_url && (
                               <div className="mb-3">
                                 <img
@@ -277,14 +281,15 @@ export default function AvisosVecinosPage() {
                                 />
                               </div>
                             )}
-                            <p className="card-text mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                            <p className="card-text mb-3 vecino-text-base" style={{ whiteSpace: 'pre-line' }}>
                               {aviso.mensaje.length > 200
                                 ? `${aviso.mensaje.substring(0, 200)}...`
                                 : aviso.mensaje}
                             </p>
-                            <small className="text-muted">
-                              📅 {formatearFecha(aviso.created_at)}
-                            </small>
+                            <span className="text-muted vecino-text-sm">
+                              <i className="bi bi-calendar3 me-1"></i>
+                              {formatearFecha(aviso.created_at)}
+                            </span>
                           </div>
                         </div>
                       </div>

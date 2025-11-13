@@ -817,26 +817,26 @@ html {
 }
 
 @media (max-width: 991px) {
-  /* Header MUY compacto en tablets y móviles */
+  /* Header más grande y accesible en tablets y móviles */
   .main-header {
-    padding: 0.25rem 0 !important;
+    padding: 0.75rem 0 !important;
   }
 
   .header-container {
-    padding: 0 0.6rem !important;
-    gap: 0.4rem !important;
+    padding: 0 1rem !important;
+    gap: 0.75rem !important;
   }
 
   .logo-container {
-    gap: 0.4rem !important;
+    gap: 0.75rem !important;
   }
 
   .logo-image {
-    height: 28px !important;
+    height: 38px !important;
   }
 
   .brand-info {
-    line-height: 1.1 !important;
+    line-height: 1.2 !important;
   }
 
   .brand-tagline {
@@ -844,8 +844,8 @@ html {
   }
 
   .brand-name {
-    font-size: 0.95rem !important;
-    line-height: 1.1 !important;
+    font-size: 1.125rem !important;
+    line-height: 1.2 !important;
     margin: 0 !important;
   }
 
@@ -864,13 +864,13 @@ html {
   }
 
   .sidebar-toggle-btn {
-    padding: 0.25rem !important;
-    font-size: 1.2rem !important;
+    padding: 0.5rem !important;
+    font-size: 1.5rem !important;
   }
 
   .mobile-user-action .btn {
-    padding: 0.25rem 0.4rem !important;
-    font-size: 1.2rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 1.5rem !important;
   }
 }
 
@@ -922,7 +922,7 @@ html {
 .sidebar {
   background: var(--panel);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: 0 2px 8px rgba(21, 71, 101, 0.06);
   display: flex;
   flex-direction: column;
@@ -948,12 +948,13 @@ html {
 .sidebar .nav-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.85rem;
   color: var(--text);
   text-decoration: none;
   border-radius: 12px;
   transition: all 0.2s;
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .sidebar .nav-link:hover {
@@ -1017,31 +1018,22 @@ html {
   background: var(--bg);
 }
 
-.layout-container {
-  max-width: 1400px;
-  margin: 2rem auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
-  flex: 1;
-  width: 100%;
-}
-
 .main-content {
   min-height: 600px;
   width: 100%;
   overflow-x: hidden;
 }
 
+.layout-container,
 .container {
   max-width: 1400px;
   margin: 2rem auto;
   padding: 0 2rem;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 220px 1fr;
   gap: 2rem;
   flex: 1;
+  width: 100%;
 }
 
 aside {
@@ -2743,6 +2735,15 @@ input[type="file"] {
     gap: 1rem;
   }
 
+  .page-container {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .main-content {
+    padding: 0px;
+  }
+
   .map-container {
     height: 400px;
   }
@@ -2771,7 +2772,12 @@ input[type="file"] {
   }
 
   .page-container {
-    padding: 1.5rem 1rem;
+    padding: 1.2rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .main-content {
+    padding: 0;
   }
 
   /* Note: layout-container padding/margin controlled by useMediaQuery hook */
@@ -3024,43 +3030,43 @@ input[type="file"] {
     display: none;
   }
 
-  /* Header más compacto en mobile */
+  /* Header más grande y accesible en mobile */
   .main-header {
-    padding: 0.3rem 0 !important;
+    padding: 0.75rem 0 !important;
   }
 
   .header-container {
-    padding: 0 0.6rem !important;
-    gap: 0.4rem !important;
+    padding: 0 1rem !important;
+    gap: 0.75rem !important;
   }
 
   .logo-container {
-    gap: 0.4rem !important;
+    gap: 0.75rem !important;
   }
 
-  /* Logo y marca más pequeños */
+  /* Logo y marca más grandes para mejor visibilidad */
   .logo-image {
-    height: 28px !important;
+    height: 38px !important;
   }
 
   .brand-name {
-    font-size: 0.9rem !important;
+    font-size: 1.125rem !important;
   }
 
   .brand-tagline {
-    font-size: 0.55rem !important;
+    font-size: 0.75rem !important;
   }
 
-  /* Botón hamburguesa más compacto */
+  /* Botón hamburguesa más grande para fácil toque */
   .sidebar-toggle-btn {
-    padding: 0.2rem !important;
-    font-size: 1.2rem !important;
+    padding: 0.5rem !important;
+    font-size: 1.5rem !important;
   }
 
-  /* Botón de usuario más compacto */
+  /* Botón de usuario más grande */
   .mobile-user-action .btn {
-    padding: 0.2rem 0.4rem !important;
-    font-size: 1.2rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 1.5rem !important;
   }
 
   /* User info more compact */
@@ -3096,40 +3102,40 @@ input[type="file"] {
     width: calc(100% + 1rem) !important;
   }
 
-  /* Header aún más compacto en pantallas muy pequeñas */
+  /* Header grande y accesible incluso en pantallas muy pequeñas */
   .main-header {
-    padding: 0.25rem 0 !important;
+    padding: 0.65rem 0 !important;
   }
 
   .header-container {
-    padding: 0 0.5rem !important;
-    gap: 0.35rem !important;
+    padding: 0 0.85rem !important;
+    gap: 0.6rem !important;
   }
 
   .logo-container {
-    gap: 0.35rem !important;
+    gap: 0.6rem !important;
   }
 
   .logo-image {
-    height: 26px !important;
+    height: 34px !important;
   }
 
   .brand-name {
-    font-size: 0.85rem !important;
+    font-size: 1rem !important;
   }
 
   .brand-tagline {
-    font-size: 0.5rem !important;
+    font-size: 0.7rem !important;
   }
 
   .sidebar-toggle-btn {
-    padding: 0.15rem !important;
-    font-size: 1.1rem !important;
+    padding: 0.45rem !important;
+    font-size: 1.4rem !important;
   }
 
   .mobile-user-action .btn {
-    padding: 0.15rem 0.35rem !important;
-    font-size: 1.1rem !important;
+    padding: 0.45rem 0.65rem !important;
+    font-size: 1.4rem !important;
   }
 
   .dashboard-header h1 {
@@ -3561,7 +3567,128 @@ input[type="file"] {
   min-width: 120px;
 }
 
+.widget-heading {
+  color: #0f2f4b;
+}
+
+.widget-card-title {
+  color: #0c2b40;
+}
+
+.widget-card-text {
+  color: #184d5b;
+}
+
+.noticia-read-more,
+.noticia-read-more-outline {
+  background: #0d2b40 !important;
+  background-color: #0d2b40 !important;
+  border-color: #0d2b40 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 0.6rem 1.4rem !important;
+  border-radius: 999px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.noticia-read-more:hover,
+.noticia-read-more-outline:hover {
+  background: #0a2231 !important;
+  background-color: #0a2231 !important;
+  border-color: #0a2231 !important;
+  color: #ffffff !important;
+}
+
+.noticia-meta-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #1a5060;
+}
+
+.dashboard-container .directiva-card {
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .dashboard-container .directiva-card {
+    max-width: 420px;
+  }
+}
+
 @media (max-width: 576px) {
+  .vecindapp body {
+    font-size: 16.5px;
+    line-height: 1.7;
+  }
+
+  .page-header h1,
+  .dashboard-header h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .dashboard-section h2,
+  .panel-card h3,
+  .card h5 {
+    font-size: 1.15rem !important;
+  }
+
+  .panel-card,
+  .dashboard-section .card {
+    padding: 1.25rem !important;
+  }
+
+  .panel-card p,
+  .panel-card li,
+  .dashboard-section p {
+    font-size: 1rem !important;
+    line-height: 1.65;
+  }
+
+  .dashboard-container {
+    padding: 1rem !important;
+  }
+
+  .dashboard-container .card {
+    border-radius: 14px !important;
+  }
+
+  .dashboard-container .card-body {
+    padding: 1.25rem !important;
+  }
+
+  .dashboard-container .row.g-3 {
+    gap: 1rem !important;
+  }
+
+  .dashboard-container h2.h4,
+  .dashboard-container h3.h6 {
+    font-size: 1.3rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .dashboard-container ul.list-unstyled li {
+    font-size: 1.02rem !important;
+    padding-bottom: 0.35rem;
+  }
+
+  .dashboard-container .directiva-card {
+    max-width: none;
+    width: 100%;
+  }
+
+  .dashboard-container .directiva-card .bg-white {
+    padding: 1.5rem !important;
+  }
+
+  .dashboard-container .badge {
+    font-size: 0.85rem !important;
+    padding: 0.3rem 0.75rem !important;
+  }
+
   .calendario-toolbar {
     flex-direction: column;
     align-items: stretch !important;
@@ -3579,6 +3706,39 @@ input[type="file"] {
 
   .calendario-toolbar-actions .btn {
     flex: 1 1 calc(33.33% - 0.5rem);
+  }
+
+  .avisos-widget h2,
+  .proyectos-widget h2 {
+    font-size: 1.45rem !important;
+    color: #0f2f4b !important;
+  }
+
+  .avisos-widget h4,
+  .proyectos-widget h4 {
+    font-size: 1.15rem !important;
+    color: #0c2b40 !important;
+  }
+
+  .avisos-widget p,
+  .proyectos-widget p {
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+    color: #184d5b !important;
+  }
+
+  .avisos-widget .small,
+  .avisos-widget .text-muted,
+  .proyectos-widget .small,
+  .proyectos-widget .text-muted {
+    font-size: 0.95rem !important;
+    color: #6c808f !important;
+  }
+
+  .proyectos-widget .badge,
+  .avisos-widget .badge {
+    font-size: 0.9rem !important;
+    padding: 0.35rem 0.85rem !important;
   }
 }
 
@@ -4154,5 +4314,375 @@ input[type="file"] {
     height: 36px;
     font-size: 12px;
     border-width: 2px;
+  }
+}
+
+/* ========================================
+   ACCESIBILIDAD MEJORADA - ÁREA VECINO
+   Mejoras para adultos mayores
+   ======================================== */
+
+/* Textos más grandes para mejor legibilidad */
+.vecino-text-base {
+  font-size: 1.125rem !important;
+  line-height: 1.8 !important;
+}
+
+.vecino-text-sm {
+  font-size: 1rem !important;
+  line-height: 1.8 !important;
+}
+
+.vecino-text-lg {
+  font-size: 1.25rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Botones más grandes y accesibles */
+.vecino-btn {
+  min-height: 44px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1.125rem !important;
+  font-weight: 500 !important;
+}
+
+.vecino-btn i {
+  font-size: 1.3rem !important;
+}
+
+/* Cards más espaciados */
+.vecino-card {
+  padding: 2rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.vecino-card .card-title {
+  font-size: 1.75rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.vecino-card .card-text {
+  font-size: 1.125rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Formularios accesibles */
+.vecino-form-label {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.vecino-form-control {
+  min-height: 48px !important;
+  font-size: 1.125rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.vecino-form-select {
+  min-height: 48px !important;
+  font-size: 1.125rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.vecino-form-group {
+  margin-bottom: 1.5rem !important;
+}
+
+/* Tablas más legibles */
+.vecino-table {
+  font-size: 1rem !important;
+}
+
+.vecino-table th {
+  font-size: 1.125rem !important;
+  padding: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.vecino-table td {
+  font-size: 1rem !important;
+  padding: 1rem !important;
+  line-height: 1.8 !important;
+}
+
+.vecino-table .btn {
+  min-height: 40px !important;
+  padding: 0.6rem 1.25rem !important;
+  font-size: 1rem !important;
+}
+
+/* Badges más grandes */
+.vecino-badge {
+  font-size: 1rem !important;
+  padding: 0.5rem 1rem !important;
+}
+
+/* Iconos más grandes */
+.vecino-icon {
+  font-size: 1.5rem !important;
+}
+
+.vecino-icon-lg {
+  font-size: 2rem !important;
+}
+
+/* Sidebar mejorado para vecinos */
+.layout-container .sidebar {
+    font-size: 1.05rem !important;
+  }
+
+.layout-container .sidebar a {
+  padding: 0.85rem 1rem !important;
+  font-size: 1rem !important;
+}
+
+.layout-container .sidebar a i {
+  font-size: 1.25em !important;
+  min-width: 1.5em !important;
+}
+
+.layout-container .sidebar .nav-link {
+  margin-bottom: 0.35rem !important;
+}
+
+/* Stat cards más grandes */
+.vecino-stat-card {
+  padding: 2rem !important;
+}
+
+.vecino-stat-card .stat-number {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+}
+
+.vecino-stat-card .stat-label {
+  font-size: 1.125rem !important;
+  margin-top: 0.75rem !important;
+}
+
+.vecino-stat-card .stat-icon {
+  font-size: 2.5rem !important;
+}
+
+/* Espaciado mejorado entre botones */
+.vecino-btn-group {
+  gap: 1rem !important;
+  flex-wrap: wrap !important;
+}
+
+.vecino-btn-group .btn {
+  min-height: 44px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1.125rem !important;
+}
+
+/* Headers de página más legibles */
+.vecino-page-header h1 {
+  font-size: 2rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.vecino-page-header p {
+  font-size: 1.25rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Links más visibles */
+.vecino-link {
+  font-size: 1.125rem !important;
+  text-decoration: underline !important;
+  padding: 0.5rem !important;
+  display: inline-block !important;
+}
+
+/* Metadatos más legibles */
+.vecino-meta {
+  font-size: 1rem !important;
+  color: #6c757d !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Alertas más grandes */
+.vecino-alert {
+  font-size: 1.125rem !important;
+  padding: 1.25rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Modal headers más grandes */
+.vecino-modal .modal-title {
+  font-size: 1.75rem !important;
+}
+
+.vecino-modal .modal-body {
+  font-size: 1.125rem !important;
+  line-height: 1.8 !important;
+}
+
+.vecino-modal .btn {
+  min-height: 44px !important;
+  font-size: 1.125rem !important;
+}
+
+/* Mejoras para móvil específicas de vecino */
+@media (max-width: 991px) {
+  .layout-container .sidebar {
+    font-size: 1rem !important;
+  }
+
+  .layout-container .sidebar a {
+    padding: 0.85rem 1rem !important;
+    font-size: 1rem !important;
+  }
+
+  .layout-container .sidebar a i {
+    font-size: 1.3em !important;
+    min-width: 1.5em !important;
+  }
+
+  /* Contenedor principal de páginas vecino más ancho en móvil */
+.vecino-dashboard-container,
+[style*="padding: 2rem"][style*="background: #f4f8f9"] {
+  padding: 1.75rem 1.25rem !important;
+  margin: 0 !important;
+  border-radius: 20px !important;
+}
+
+  .vecino-btn {
+    min-height: 48px !important;
+    padding: 0.875rem 1.75rem !important;
+    font-size: 1.25rem !important;
+  }
+
+  .vecino-form-control,
+  .vecino-form-select {
+    min-height: 52px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .vecino-text-base {
+    font-size: 1.25rem !important;
+  }
+
+.vecino-card {
+  padding: 0.1rem !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+  .vecino-table th,
+  .vecino-table td {
+    font-size: 1.125rem !important;
+    padding: 1.25rem 0.75rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header.vecino-page-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .page-header.vecino-page-header .page-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .page-header.vecino-page-header .btn-new-request {
+    width: 100%;
+    justify-content: center;
+    font-size: 1.15rem;
+    padding: 0.9rem 1.2rem;
+    border-radius: 14px;
+  }
+
+  .solicitudes-content .stat-card {
+    padding: 1.25rem;
+  }
+
+  .solicitudes-content .stat-number {
+    font-size: 2.2rem;
+  }
+
+  .solicitudes-content .stat-label {
+    font-size: 1rem;
+    color: #1a5968;
+  }
+
+  .solicitudes-content .row > [class*='col-'] {
+    margin-bottom: 1rem;
+  }
+
+  .solicitudes-content .table {
+    font-size: 0.95rem;
+  }
+
+  .solicitudes-content .table th {
+    font-size: 1rem;
+  }
+
+  .solicitudes-content .table td {
+    font-size: 0.95rem;
+  }
+
+  .card-header.solicitudes-header {
+    padding: 1.25rem;
+  }
+
+  .solicitudes-refresh-btn {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Contenedor principal aún más compacto en móviles pequeños */
+  .vecino-dashboard-container,
+  [style*="padding: 2rem"][style*="background: #f4f8f9"] {
+    padding: 1.35rem 0.85rem !important;
+    margin: 0 !important;
+    border-radius: 16px !important;
+  }
+
+  .vecino-btn {
+    width: 100% !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .vecino-card .card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem;
+  }
+
+  .vecino-card .card-header .vecino-btn {
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    align-self: stretch;
+  }
+
+  .vecino-btn-group {
+    flex-direction: column !important;
+  }
+
+  .vecino-btn-group .btn {
+    width: 100% !important;
+  }
+
+  .vecino-table {
+    font-size: 0.95rem !important;
+  }
+
+  .vecino-table th {
+    font-size: 1rem !important;
+    padding: 0.875rem 0.5rem !important;
+  }
+
+  .vecino-table td {
+    font-size: 0.95rem !important;
+    padding: 0.875rem 0.5rem !important;
   }
 }

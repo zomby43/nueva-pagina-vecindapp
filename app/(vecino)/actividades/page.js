@@ -84,33 +84,33 @@ export default function ActividadesPage() {
 
   const getCategoriaIcon = (categoria) => {
     const iconos = {
-      deportiva: '⚽',
-      cultural: '🎨',
-      educativa: '📚',
-      social: '🤝',
-      ambiental: '🌱',
-      salud: '❤️',
-      recreativa: '🎉',
-      otro: '📌'
+      deportiva: 'bi-trophy-fill',
+      cultural: 'bi-palette-fill',
+      educativa: 'bi-book-fill',
+      social: 'bi-people-fill',
+      ambiental: 'bi-tree-fill',
+      salud: 'bi-heart-pulse-fill',
+      recreativa: 'bi-balloon-fill',
+      otro: 'bi-pin-fill'
     };
-    return iconos[categoria] || '📌';
+    return iconos[categoria] || 'bi-pin-fill';
   };
 
   const getEstadoBadge = (estado) => {
     const badges = {
-      publicada: { bg: '#0dcaf0', text: 'white', label: '📢 Publicada' },
-      en_curso: { bg: '#198754', text: 'white', label: '🔄 En Curso' }
+      publicada: { bg: '#0dcaf0', text: 'white', label: 'Publicada', icon: 'bi-megaphone-fill' },
+      en_curso: { bg: '#198754', text: 'white', label: 'En Curso', icon: 'bi-arrow-repeat' }
     };
-    return badges[estado] || { bg: '#6c757d', text: 'white', label: estado };
+    return badges[estado] || { bg: '#6c757d', text: 'white', label: estado, icon: 'bi-circle-fill' };
   };
 
   const getTipoIcon = (tipo) => {
     const iconos = {
-      presencial: '📍',
-      virtual: '💻',
-      hibrida: '🔄'
+      presencial: 'bi-geo-alt-fill',
+      virtual: 'bi-laptop-fill',
+      hibrida: 'bi-arrow-left-right'
     };
-    return iconos[tipo] || '📍';
+    return iconos[tipo] || 'bi-geo-alt-fill';
   };
 
   const getTipoTexto = (tipo) => {
@@ -145,13 +145,13 @@ export default function ActividadesPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-calendar-event me-2"></i>Actividades Vecinales</h1>
-        <p className="lead text-muted">Participa en las actividades de nuestra comunidad</p>
+      <div className="text-center mb-5 vecino-page-header">
+        <h1 className="fw-bold mb-3"><i className="bi bi-calendar-event me-2"></i>Actividades Vecinales</h1>
+        <p className="text-muted vecino-text-base">Participa en las actividades de nuestra comunidad</p>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-5">
+        <div className="alert alert-danger mb-5 vecino-alert">
           <strong>Error:</strong> {error}
         </div>
       )}
@@ -159,72 +159,76 @@ export default function ActividadesPage() {
       {/* Estadísticas rápidas */}
       <div className="row g-3 mb-5">
         <div className="col-md-4">
-          <div className="card border-0 shadow-sm text-center">
+          <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
-              <div className="fs-1 fw-bold text-primary">{actividadesFiltradas.length}</div>
-              <small className="text-muted">Total Actividades</small>
+              <div className="vecino-text-lg fw-bold text-primary" style={{ fontSize: '2.5rem' }}>{actividadesFiltradas.length}</div>
+              <span className="text-muted vecino-text-sm">Total Actividades</span>
             </div>
           </div>
         </div>
         <div className="col-md-4">
-          <div className="card border-0 shadow-sm text-center">
+          <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
-              <div className="fs-1 fw-bold" style={{ color: '#0dcaf0' }}>{actividadesPublicadas.length}</div>
-              <small className="text-muted">Publicadas</small>
+              <div className="vecino-text-lg fw-bold" style={{ color: '#0dcaf0', fontSize: '2.5rem' }}>{actividadesPublicadas.length}</div>
+              <span className="text-muted vecino-text-sm">Publicadas</span>
             </div>
           </div>
         </div>
         <div className="col-md-4">
-          <div className="card border-0 shadow-sm text-center">
+          <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
-              <div className="fs-1 fw-bold text-success">{actividadesEnCurso.length}</div>
-              <small className="text-muted">En Curso</small>
+              <div className="vecino-text-lg fw-bold text-success" style={{ fontSize: '2.5rem' }}>{actividadesEnCurso.length}</div>
+              <span className="text-muted vecino-text-sm">En Curso</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filtros y Búsqueda */}
-      <div className="card shadow-sm border-0 mb-5">
-        <div className="card-body p-4">
-          <div className="row align-items-center g-3">
-            <div className="col-md-4">
-              <label htmlFor="busqueda" className="form-label fw-semibold mb-2">
-                🔍 Buscar:
-              </label>
-              <input
-                type="text"
-                id="busqueda"
-                className="form-control form-control-lg"
-                placeholder="Buscar actividad..."
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-              />
+      <div className="card shadow-sm border-0 mb-5 vecino-card">
+        <div className="card-body">
+          <div className="row align-items-center g-4">
+            <div className="col-12 col-md-6">
+              <div className="vecino-form-group">
+                <label htmlFor="busqueda" className="form-label vecino-form-label">
+                  <i className="bi bi-search me-2"></i>Buscar:
+                </label>
+                <input
+                  type="text"
+                  id="busqueda"
+                  className="form-control vecino-form-control"
+                  placeholder="Buscar actividad..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="col-md-4">
-              <label htmlFor="filtroCategoria" className="form-label fw-semibold mb-2">
-                📂 Categoría:
-              </label>
-              <select
-                id="filtroCategoria"
-                className="form-select form-select-lg"
-                value={filtroCategoria}
-                onChange={(e) => setFiltroCategoria(e.target.value)}
-              >
-                <option value="todas">Todas las categorías</option>
-                <option value="deportiva">⚽ Deportiva</option>
-                <option value="cultural">🎨 Cultural</option>
-                <option value="educativa">📚 Educativa</option>
-                <option value="social">🤝 Social</option>
-                <option value="ambiental">🌱 Ambiental</option>
-                <option value="salud">❤️ Salud</option>
-                <option value="recreativa">🎉 Recreativa</option>
-                <option value="otro">📌 Otro</option>
-              </select>
+            <div className="col-12 col-md-6">
+              <div className="vecino-form-group">
+                <label htmlFor="filtroCategoria" className="form-label vecino-form-label">
+                  <i className="bi bi-folder me-2"></i>Categoría:
+                </label>
+                <select
+                  id="filtroCategoria"
+                  className="form-select vecino-form-select"
+                  value={filtroCategoria}
+                  onChange={(e) => setFiltroCategoria(e.target.value)}
+                >
+                  <option value="todas">Todas las categorías</option>
+                  <option value="deportiva">Deportiva</option>
+                  <option value="cultural">Cultural</option>
+                  <option value="educativa">Educativa</option>
+                  <option value="social">Social</option>
+                  <option value="ambiental">Ambiental</option>
+                  <option value="salud">Salud</option>
+                  <option value="recreativa">Recreativa</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
             </div>
-            <div className="col-md-4 text-md-end mt-auto">
-              <Link href="/actividades/mis-inscripciones" className="btn btn-primary btn-lg">
-                📋 Mis Inscripciones
+            <div className="col-12 text-center">
+              <Link href="/actividades/mis-inscripciones" className="btn btn-primary vecino-btn">
+                <i className="bi bi-clipboard-check me-2"></i>Mis Inscripciones
               </Link>
             </div>
           </div>
@@ -233,11 +237,13 @@ export default function ActividadesPage() {
 
       {/* Lista de Actividades */}
       {actividadesFiltradas.length === 0 ? (
-        <div className="card border-0 shadow-sm text-center py-5">
+        <div className="card border-0 shadow-sm text-center py-5 vecino-card">
           <div className="card-body">
-            <div className="fs-1 mb-3">🔍</div>
-            <h3>No hay actividades disponibles</h3>
-            <p className="text-muted">
+            <div className="vecino-icon-lg mb-3" style={{ fontSize: '3rem' }}>
+              <i className="bi bi-search"></i>
+            </div>
+            <h3 className="vecino-text-base">No hay actividades disponibles</h3>
+            <p className="text-muted vecino-text-base">
               {busqueda || filtroCategoria !== 'todas'
                 ? 'Intenta cambiar los filtros de búsqueda'
                 : 'Por el momento no hay actividades publicadas'}
@@ -256,7 +262,7 @@ export default function ActividadesPage() {
             return (
               <div key={actividad.id} className="col-lg-6">
                 <div
-                  className="card h-100 shadow border-0"
+                  className="card h-100 shadow border-0 vecino-card"
                   style={{
                     borderLeft: `6px solid ${categoriaColor}`,
                     transition: 'transform 0.2s, box-shadow 0.2s'
@@ -274,53 +280,51 @@ export default function ActividadesPage() {
                     {/* Header con categoría y estado */}
                     <div className="d-flex justify-content-between align-items-start mb-3">
                       <span
-                        className="badge"
+                        className="badge vecino-badge"
                         style={{
                           backgroundColor: categoriaColor,
                           color: 'white',
-                          fontSize: '0.85rem',
                           padding: '0.5rem 1rem'
                         }}
                       >
-                        {getCategoriaIcon(actividad.categoria)} {getCategoriaTexto(actividad.categoria)}
+                        <i className={`bi ${getCategoriaIcon(actividad.categoria)} me-1`}></i>{getCategoriaTexto(actividad.categoria)}
                       </span>
                       <span
-                        className="badge"
+                        className="badge vecino-badge"
                         style={{
                           backgroundColor: estadoBadge.bg,
-                          color: estadoBadge.text,
-                          fontSize: '0.8rem'
+                          color: estadoBadge.text
                         }}
                       >
-                        {estadoBadge.label}
+                        <i className={`bi ${estadoBadge.icon} me-1`}></i>{estadoBadge.label}
                       </span>
                     </div>
 
                     {/* Título */}
-                    <h3 className="card-title fw-bold mb-3" style={{ fontSize: '1.4rem' }}>
+                    <h3 className="card-title fw-bold mb-3 vecino-text-lg">
                       {actividad.titulo}
                     </h3>
 
                     {/* Descripción */}
-                    <p className="card-text text-muted mb-4" style={{ fontSize: '0.95rem' }}>
+                    <p className="card-text text-muted mb-4 vecino-text-base">
                       {actividad.descripcion.length > 120
                         ? actividad.descripcion.substring(0, 120) + '...'
                         : actividad.descripcion}
                     </p>
 
                     {/* Información de la actividad */}
-                    <div className="mb-4" style={{ fontSize: '0.9rem' }}>
+                    <div className="mb-4 vecino-text-sm">
                       <div className="d-flex align-items-center mb-2">
-                        <span className="me-2">📅</span>
+                        <i className="bi bi-calendar3 me-2"></i>
                         <span><strong>Inicio:</strong> {formatearFecha(actividad.fecha_inicio)}</span>
                       </div>
                       <div className="d-flex align-items-center mb-2">
-                        <span className="me-2">{getTipoIcon(actividad.tipo)}</span>
+                        <i className={`bi ${getTipoIcon(actividad.tipo)} me-2`}></i>
                         <span><strong>Modalidad:</strong> {getTipoTexto(actividad.tipo)}</span>
                       </div>
                       {actividad.ubicacion && (
                         <div className="d-flex align-items-center mb-2">
-                          <span className="me-2">📍</span>
+                          <i className="bi bi-geo-alt-fill me-2"></i>
                           <span><strong>Lugar:</strong> {actividad.ubicacion}</span>
                         </div>
                       )}
@@ -329,12 +333,12 @@ export default function ActividadesPage() {
                     {/* Cupos disponibles */}
                     <div className="mb-3">
                       <div className="d-flex justify-content-between align-items-center mb-2">
-                        <small className="text-muted">Cupos</small>
-                        <small className="fw-semibold">
+                        <span className="text-muted vecino-text-sm">Cupos</span>
+                        <span className="fw-semibold vecino-text-sm">
                           {cuposDisponibles} de {cupoMaximo} disponibles
-                        </small>
+                        </span>
                       </div>
-                      <div className="progress" style={{ height: '8px' }}>
+                      <div className="progress" style={{ height: '10px' }}>
                         <div
                           className={`progress-bar ${porcentajeOcupacion >= 90 ? 'bg-danger' : porcentajeOcupacion >= 70 ? 'bg-warning' : 'bg-success'}`}
                           role="progressbar"
@@ -345,20 +349,20 @@ export default function ActividadesPage() {
 
                     {/* Costo */}
                     {!actividad.es_gratuita && actividad.costo > 0 && (
-                      <div className="alert alert-warning py-2 mb-3" style={{ fontSize: '0.9rem' }}>
-                        💰 <strong>Costo:</strong> ${actividad.costo.toLocaleString('es-CL')}
+                      <div className="alert alert-warning py-2 mb-3 vecino-text-sm">
+                        <i className="bi bi-cash-coin me-1"></i><strong>Costo:</strong> ${actividad.costo.toLocaleString('es-CL')}
                       </div>
                     )}
                     {actividad.es_gratuita && (
-                      <div className="alert alert-success py-2 mb-3" style={{ fontSize: '0.9rem' }}>
-                        ✅ <strong>Actividad gratuita</strong>
+                      <div className="alert alert-success py-2 mb-3 vecino-text-sm">
+                        <i className="bi bi-check-circle-fill me-1"></i><strong>Actividad gratuita</strong>
                       </div>
                     )}
 
                     {/* Botón ver detalle */}
                     <Link
                       href={`/actividades/${actividad.id}`}
-                      className="btn btn-primary w-100"
+                      className="btn btn-primary w-100 vecino-btn"
                       style={{ backgroundColor: categoriaColor, border: 'none' }}
                     >
                       Ver Detalles e Inscribirse

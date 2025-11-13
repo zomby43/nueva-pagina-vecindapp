@@ -79,11 +79,11 @@ export default function ProyectosPage() {
 
   const getEstadoIcon = (estado) => {
     const iconos = {
-      aprobado: '✅',
-      en_ejecucion: '🚧',
-      completado: '🎉'
+      aprobado: 'bi-check-circle-fill',
+      en_ejecucion: 'bi-cone-striped',
+      completado: 'bi-trophy-fill'
     };
-    return iconos[estado] || '📋';
+    return iconos[estado] || 'bi-clipboard-fill';
   };
 
   const proyectosFiltrados = proyectos.filter(proyecto => {
@@ -108,55 +108,61 @@ export default function ProyectosPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '2rem', background: '#f4f8f9', borderRadius: '16px' }}>
-      <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold mb-3"><i className="bi bi-building me-2"></i>Proyectos Vecinales</h1>
-        <p className="lead text-muted">Conoce los proyectos que están transformando nuestra comunidad</p>
+      <div className="text-center mb-5 vecino-page-header">
+        <h1 className="fw-bold mb-3"><i className="bi bi-building me-2"></i>Proyectos Vecinales</h1>
+        <p className="text-muted vecino-text-base">Conoce los proyectos que están transformando nuestra comunidad</p>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-5">
+        <div className="alert alert-danger mb-5 vecino-alert">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {/* Filtro y Acciones */}
-      <div className="card shadow-sm border-0 mb-5">
-        <div className="card-body p-4">
-          <div className="row align-items-center g-3">
-            <div className="col-md-6">
-              <label htmlFor="filtroEstado" className="form-label fw-semibold mb-2">
-                Filtrar por estado:
-              </label>
-              <select
-                id="filtroEstado"
-                className="form-select form-select-lg"
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value)}
-              >
-                <option value="todos">Todos los estados</option>
-                <option value="en_ejecucion">En Ejecución</option>
-                <option value="aprobado">Aprobados</option>
-                <option value="completado">Completados</option>
-              </select>
+      <div className="card shadow-sm border-0 mb-5 vecino-card">
+        <div className="card-body">
+          <div className="row align-items-center g-4">
+            <div className="col-12">
+              <div className="vecino-form-group">
+                <label htmlFor="filtroEstado" className="form-label vecino-form-label">
+                  Filtrar por estado:
+                </label>
+                <select
+                  id="filtroEstado"
+                  className="form-select vecino-form-select"
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                >
+                  <option value="todos">Todos los estados</option>
+                  <option value="en_ejecucion">En Ejecución</option>
+                  <option value="aprobado">Aprobados</option>
+                  <option value="completado">Completados</option>
+                </select>
+              </div>
             </div>
-            <div className="col-md-6 text-md-end">
-              <Link href="/proyectos/postular" className="btn btn-primary btn-lg">
-                ➕ Postular Proyecto
-              </Link>
-              <Link href="/proyectos/mis-postulaciones" className="btn btn-outline-primary btn-lg ms-2">
-                📋 Mis Postulaciones
-              </Link>
+            <div className="col-12">
+              <div className="d-flex flex-column flex-md-row gap-3 justify-content-center vecino-btn-group">
+                <Link href="/proyectos/postular" className="btn btn-primary vecino-btn">
+                  <i className="bi bi-plus-circle me-2"></i>Postular Proyecto
+                </Link>
+                <Link href="/proyectos/mis-postulaciones" className="btn btn-outline-primary vecino-btn">
+                  <i className="bi bi-clipboard-check me-2"></i>Mis Postulaciones
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {proyectosFiltrados.length === 0 ? (
-        <div className="card">
+        <div className="card vecino-card">
           <div className="card-body text-center py-5">
-            <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>🏗️</div>
-            <h5>No hay proyectos disponibles</h5>
-            <p className="text-muted">
+            <div className="vecino-icon-lg mb-3" style={{ fontSize: '3rem' }}>
+              <i className="bi bi-building"></i>
+            </div>
+            <h5 className="vecino-text-base">No hay proyectos disponibles</h5>
+            <p className="text-muted vecino-text-base">
               {filtroEstado === 'todos'
                 ? 'No hay proyectos registrados aún'
                 : `No hay proyectos en estado "${getEstadoTexto(filtroEstado)}"`
@@ -169,49 +175,53 @@ export default function ProyectosPage() {
           {/* Proyectos en Ejecución */}
           {proyectosEnEjecucion.length > 0 && (
             <div className="mb-5">
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-info me-2 px-3 py-2">🚧</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-info me-2 px-3 py-2 vecino-badge">
+                  <i className="bi bi-cone-striped"></i>
+                </span>
                 <span>Proyectos en Ejecución</span>
               </h3>
               <div className="row g-4">
                 {proyectosEnEjecucion.map((proyecto) => (
                   <div key={proyecto.id} className="col-12 col-lg-6">
                     <div
-                      className="card h-100 shadow border-info"
+                      className="card h-100 shadow border-info vecino-card"
                       style={{ borderWidth: '3px', borderLeft: '6px solid #0dcaf0' }}
                     >
                       <div className="card-body p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
-                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2`}>
-                            {getEstadoIcon(proyecto.estado)} {getEstadoTexto(proyecto.estado)}
+                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2 vecino-badge`}>
+                            <i className={`bi ${getEstadoIcon(proyecto.estado)} me-1`}></i>{getEstadoTexto(proyecto.estado)}
                           </span>
-                          <span className="badge bg-light text-dark px-3 py-2">
+                          <span className="badge px-3 py-2 vecino-badge" style={{ backgroundColor: '#154765', color: 'white' }}>
                             {formatearPresupuesto(proyecto.presupuesto)}
                           </span>
                         </div>
-                        <h5 className="card-title fw-bold mb-3">{proyecto.titulo}</h5>
-                        <p className="card-text text-muted mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>
+                        <h5 className="card-title fw-bold mb-3 vecino-text-lg">{proyecto.titulo}</h5>
+                        <p className="card-text text-muted mb-3 vecino-text-base">
                           {proyecto.descripcion.length > 150
                             ? `${proyecto.descripcion.substring(0, 150)}...`
                             : proyecto.descripcion}
                         </p>
                         <div className="mb-3">
-                          <small className="text-muted d-block mb-1">
-                            👥 Beneficia a <strong>{proyecto.num_beneficiarios}</strong> vecinos
-                          </small>
+                          <span className="text-muted d-block mb-1 vecino-text-sm">
+                            <i className="bi bi-people-fill me-1"></i>Beneficia a <strong>{proyecto.num_beneficiarios}</strong> vecinos
+                          </span>
                           {proyecto.ubicacion && (
-                            <small className="text-muted d-block">
-                              📍 {proyecto.ubicacion}
-                            </small>
+                            <span className="text-muted d-block vecino-text-sm">
+                              <i className="bi bi-geo-alt-fill me-1"></i>{proyecto.ubicacion}
+                            </span>
                           )}
                         </div>
-                        <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                          <small className="text-muted">
-                            📅 {formatearFecha(proyecto.fecha_inicio_estimada)} - {formatearFecha(proyecto.fecha_fin_estimada)}
-                          </small>
+                        <div className="mt-auto pt-3 border-top">
+                          <div className="mb-3">
+                            <span className="text-muted vecino-text-sm d-block">
+                              <i className="bi bi-calendar3 me-1"></i>{formatearFecha(proyecto.fecha_inicio_estimada)} - {formatearFecha(proyecto.fecha_fin_estimada)}
+                            </span>
+                          </div>
                           <Link
                             href={`/proyectos/${proyecto.id}`}
-                            className="btn btn-primary"
+                            className="btn btn-primary vecino-btn w-100"
                           >
                             Ver Detalles
                           </Link>
@@ -227,41 +237,45 @@ export default function ProyectosPage() {
           {/* Proyectos Aprobados */}
           {proyectosAprobados.length > 0 && (
             <div className="mb-5">
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-success me-2 px-3 py-2">✅</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-success me-2 px-3 py-2 vecino-badge">
+                  <i className="bi bi-check-circle-fill"></i>
+                </span>
                 <span>Proyectos Aprobados</span>
               </h3>
               <div className="row g-4">
                 {proyectosAprobados.map((proyecto) => (
                   <div key={proyecto.id} className="col-12 col-lg-6">
-                    <div className="card h-100 shadow-sm border-0">
+                    <div className="card h-100 shadow-sm border-0 vecino-card">
                       <div className="card-body p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
-                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2`}>
-                            {getEstadoIcon(proyecto.estado)} {getEstadoTexto(proyecto.estado)}
+                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2 vecino-badge`}>
+                            <i className={`bi ${getEstadoIcon(proyecto.estado)} me-1`}></i>{getEstadoTexto(proyecto.estado)}
                           </span>
-                          <span className="badge bg-light text-dark px-3 py-2">
+                          <span className="badge px-3 py-2 vecino-badge" style={{ backgroundColor: '#154765', color: 'white' }}>
                             {formatearPresupuesto(proyecto.presupuesto)}
                           </span>
                         </div>
-                        <h5 className="card-title fw-bold mb-3">{proyecto.titulo}</h5>
-                        <p className="card-text text-muted mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>
+                        <h5 className="card-title fw-bold mb-3 vecino-text-base">{proyecto.titulo}</h5>
+                        <p className="card-text text-muted mb-3 vecino-text-base">
                           {proyecto.descripcion.length > 120
                             ? `${proyecto.descripcion.substring(0, 120)}...`
                             : proyecto.descripcion}
                         </p>
                         <div className="mb-3">
-                          <small className="text-muted d-block mb-1">
-                            👥 Beneficia a <strong>{proyecto.num_beneficiarios}</strong> vecinos
-                          </small>
+                          <span className="text-muted d-block mb-1 vecino-text-sm">
+                            <i className="bi bi-people-fill me-1"></i>Beneficia a <strong>{proyecto.num_beneficiarios}</strong> vecinos
+                          </span>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                          <small className="text-muted">
-                            📅 Inicio: {formatearFecha(proyecto.fecha_inicio_estimada)}
-                          </small>
+                        <div className="mt-auto pt-3 border-top">
+                          <div className="mb-3">
+                            <span className="text-muted vecino-text-sm d-block">
+                              <i className="bi bi-calendar3 me-1"></i>Inicio: {formatearFecha(proyecto.fecha_inicio_estimada)}
+                            </span>
+                          </div>
                           <Link
                             href={`/proyectos/${proyecto.id}`}
-                            className="btn btn-outline-primary"
+                            className="btn btn-outline-primary vecino-btn w-100"
                           >
                             Ver Detalles
                           </Link>
@@ -277,41 +291,45 @@ export default function ProyectosPage() {
           {/* Proyectos Completados */}
           {proyectosCompletados.length > 0 && (
             <div>
-              <h3 className="mb-4 d-flex align-items-center">
-                <span className="badge bg-secondary me-2 px-3 py-2">🎉</span>
+              <h3 className="mb-4 d-flex align-items-center vecino-text-lg">
+                <span className="badge bg-secondary me-2 px-3 py-2 vecino-badge">
+                  <i className="bi bi-trophy-fill"></i>
+                </span>
                 <span>Proyectos Completados</span>
               </h3>
               <div className="row g-4">
                 {proyectosCompletados.map((proyecto) => (
                   <div key={proyecto.id} className="col-12 col-lg-6">
-                    <div className="card h-100 shadow-sm border-0">
+                    <div className="card h-100 shadow-sm border-0 vecino-card">
                       <div className="card-body p-4">
                         <div className="d-flex justify-content-between align-items-start mb-3">
-                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2`}>
-                            {getEstadoIcon(proyecto.estado)} {getEstadoTexto(proyecto.estado)}
+                          <span className={`badge ${getEstadoBadge(proyecto.estado)} px-3 py-2 vecino-badge`}>
+                            <i className={`bi ${getEstadoIcon(proyecto.estado)} me-1`}></i>{getEstadoTexto(proyecto.estado)}
                           </span>
-                          <span className="badge bg-light text-dark px-3 py-2">
+                          <span className="badge px-3 py-2 vecino-badge" style={{ backgroundColor: '#154765', color: 'white' }}>
                             {formatearPresupuesto(proyecto.presupuesto)}
                           </span>
                         </div>
-                        <h5 className="card-title fw-bold mb-3">{proyecto.titulo}</h5>
-                        <p className="card-text text-muted mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>
+                        <h5 className="card-title fw-bold mb-3 vecino-text-base">{proyecto.titulo}</h5>
+                        <p className="card-text text-muted mb-3 vecino-text-base">
                           {proyecto.descripcion.length > 120
                             ? `${proyecto.descripcion.substring(0, 120)}...`
                             : proyecto.descripcion}
                         </p>
                         <div className="mb-3">
-                          <small className="text-muted d-block">
-                            👥 Benefició a <strong>{proyecto.num_beneficiarios}</strong> vecinos
-                          </small>
+                          <span className="text-muted d-block vecino-text-sm">
+                            <i className="bi bi-people-fill me-1"></i>Benefició a <strong>{proyecto.num_beneficiarios}</strong> vecinos
+                          </span>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                          <small className="text-muted">
-                            ✅ Completado
-                          </small>
+                        <div className="mt-auto pt-3 border-top">
+                          <div className="mb-3">
+                            <span className="text-muted vecino-text-sm d-block">
+                              <i className="bi bi-check-circle-fill me-1"></i>Completado
+                            </span>
+                          </div>
                           <Link
                             href={`/proyectos/${proyecto.id}`}
-                            className="btn btn-outline-secondary"
+                            className="btn btn-outline-secondary vecino-btn w-100"
                           >
                             Ver Detalles
                           </Link>

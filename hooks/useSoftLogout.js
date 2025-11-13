@@ -41,10 +41,14 @@ export const useSoftLogout = () => {
         console.log('🍪 Tokens de Supabase limpiados');
       }
 
-      // 3. Navegación limpia usando el router de Next
+      // 3. Navegación con recarga completa para asegurar que los estilos se carguen
       console.log('🔄 Redirigiendo al landing...');
-      router.replace('/');
-      router.refresh();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.replace('/');
+        router.refresh();
+      }
 
     } catch (error) {
       console.error('❌ Error en logout:', error);

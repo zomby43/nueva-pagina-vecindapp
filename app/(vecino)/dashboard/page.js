@@ -269,13 +269,13 @@ export default function UserDashboard() {
       padding: '2rem',
       boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)'
     }}>
-      <div className="dashboard-header" style={{
+      <div className="dashboard-header vecino-page-header" style={{
         marginBottom: '2rem',
         paddingBottom: '1rem',
         borderBottom: '2px solid #bfd3d9'
       }}>
-        <h1 style={{ color: '#154765', fontSize: '2rem', fontWeight: 700, margin: 0 }}>Dashboard</h1>
-      <p className="dashboard-subtitle" style={{ color: '#439fa4', fontSize: '1rem', margin: '0.5rem 0 0 0' }}>
+        <h1 style={{ color: '#154765', fontWeight: 700, margin: 0 }}>Dashboard</h1>
+        <p className="dashboard-subtitle vecino-text-base" style={{ color: '#439fa4', margin: '0.5rem 0 0 0' }}>
           Bienvenido a tu panel de control
         </p>
       </div>
@@ -322,7 +322,7 @@ export default function UserDashboard() {
               )}
             </div>
 
-            <div className="flex-grow-1" style={{ maxWidth: '380px' }}>
+            <div className="flex-grow-1 directiva-card">
               <div className="bg-white border rounded-3 p-3 h-100" style={{ borderColor: '#bfd3d9' }}>
                 <h3 className="h6 text-uppercase text-muted fw-bold mb-2">Directiva y contacto</h3>
                 {contactosDirectiva.length === 0 ? (
@@ -366,14 +366,6 @@ export default function UserDashboard() {
                   </ul>
                 )}
 
-                {configuracion?.nombre_presidente && (
-                  <div className="mt-3 p-3 bg-light rounded">
-                    <strong>Presidencia:</strong>
-                    <div className="small text-muted">
-                      {configuracion.nombre_presidente} ({configuracion.cargo_presidente || 'Presidencia'})
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -387,21 +379,19 @@ export default function UserDashboard() {
         gap: '1.5rem',
         marginBottom: '2rem'
       }}>
-        <div className="stat-card" style={{
+        <div className="stat-card vecino-stat-card" style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '1rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #439fa4'
         }}>
-          <div className="stat-icon" style={{
-            fontSize: '1.5rem',
+          <div className="stat-icon vecino-icon-lg" style={{
             flexShrink: 0,
-            width: '3.25rem',
-            height: '3.25rem',
+            width: '3.5rem',
+            height: '3.5rem',
             borderRadius: '50%',
             background: 'rgba(67, 159, 164, 0.12)',
             color: '#2d7a7f',
@@ -412,30 +402,28 @@ export default function UserDashboard() {
             <i className="bi bi-clipboard-data"></i>
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
+            <h3 className="stat-label vecino-text-sm" style={{ color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Total Solicitudes
             </h3>
-            <p className="stat-number" style={{ fontSize: '2rem', fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
+            <p className="stat-number" style={{ fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
               {stats.totalSolicitudes}
             </p>
           </div>
         </div>
 
-        <div className="stat-card stat-pending" style={{
+        <div className="stat-card stat-pending vecino-stat-card" style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '1rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #fbbf24'
         }}>
-          <div className="stat-icon" style={{
-            fontSize: '1.5rem',
+          <div className="stat-icon vecino-icon-lg" style={{
             flexShrink: 0,
-            width: '3.25rem',
-            height: '3.25rem',
+            width: '3.5rem',
+            height: '3.5rem',
             borderRadius: '50%',
             background: 'rgba(251, 191, 36, 0.15)',
             color: '#c27803',
@@ -446,30 +434,28 @@ export default function UserDashboard() {
             <i className="bi bi-hourglass-split"></i>
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
+            <h3 className="stat-label vecino-text-sm" style={{ color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               En Proceso
             </h3>
-            <p className="stat-number" style={{ fontSize: '2rem', fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
+            <p className="stat-number" style={{ fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
               {stats.enProceso}
             </p>
           </div>
         </div>
 
-        <div className="stat-card stat-completed" style={{
+        <div className="stat-card stat-completed vecino-stat-card" style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '1rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #34d399'
         }}>
-          <div className="stat-icon" style={{
-            fontSize: '1.5rem',
+          <div className="stat-icon vecino-icon-lg" style={{
             flexShrink: 0,
-            width: '3.25rem',
-            height: '3.25rem',
+            width: '3.5rem',
+            height: '3.5rem',
             borderRadius: '50%',
             background: 'rgba(52, 211, 153, 0.15)',
             color: '#0b8a66',
@@ -480,30 +466,28 @@ export default function UserDashboard() {
             <i className="bi bi-check2-circle"></i>
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
+            <h3 className="stat-label vecino-text-sm" style={{ color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Completadas
             </h3>
-            <p className="stat-number" style={{ fontSize: '2rem', fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
+            <p className="stat-number" style={{ fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
               {stats.completadas}
             </p>
           </div>
         </div>
 
-        <div className="stat-card stat-waiting" style={{
+        <div className="stat-card stat-waiting vecino-stat-card" style={{
           background: 'white',
           borderRadius: '16px',
-          padding: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '1rem',
           boxShadow: '0 2px 8px rgba(21, 71, 101, 0.06)',
           borderLeft: '4px solid #fb7185'
         }}>
-          <div className="stat-icon" style={{
-            fontSize: '1.5rem',
+          <div className="stat-icon vecino-icon-lg" style={{
             flexShrink: 0,
-            width: '3.25rem',
-            height: '3.25rem',
+            width: '3.5rem',
+            height: '3.5rem',
             borderRadius: '50%',
             background: 'rgba(251, 113, 133, 0.15)',
             color: '#cc2f52',
@@ -514,10 +498,10 @@ export default function UserDashboard() {
             <i className="bi bi-clock-history"></i>
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '0.875rem', color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
+            <h3 className="stat-label vecino-text-sm" style={{ color: '#439fa4', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>
               Pendientes
             </h3>
-            <p className="stat-number" style={{ fontSize: '2rem', fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
+            <p className="stat-number" style={{ fontWeight: 700, color: '#154765', margin: '0.25rem 0 0 0' }}>
               {stats.pendientes}
             </p>
           </div>
@@ -534,13 +518,13 @@ export default function UserDashboard() {
           border: '2px solid #fbbf24'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ color: '#154765', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h2 className="widget-heading" style={{ color: '#0f2f4b', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <i className="bi bi-megaphone"></i> Avisos Importantes
             </h2>
             <Link href="/avisos" style={{
-              color: '#439fa4',
+              color: '#1b6a70',
               textDecoration: 'none',
-              fontSize: '0.875rem',
+              fontSize: '0.95rem',
               fontWeight: 600
             }}>
               Ver todos →
@@ -609,8 +593,8 @@ export default function UserDashboard() {
                       {getTipoIcon(aviso.tipo)}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                        <h4 style={{ color: '#154765', fontSize: '1rem', margin: 0, fontWeight: 600 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                        <h4 style={{ color: '#0c2b40', fontSize: '1.05rem', margin: 0, fontWeight: 600 }}>
                           {aviso.titulo}
                         </h4>
                         {aviso.destacado && (
@@ -620,13 +604,13 @@ export default function UserDashboard() {
                           </span>
                         )}
                       </div>
-                      <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.5rem', lineHeight: '1.4' }}>
+                      <p style={{ color: '#184d5b', fontSize: '0.95rem', marginBottom: '0.45rem', lineHeight: '1.55' }}>
                         {aviso.mensaje.length > 120 ? `${aviso.mensaje.substring(0, 120)}...` : aviso.mensaje}
                       </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#627386', fontSize: '0.85rem' }}>
                         <span style={{
                           color: getPrioridadColor(aviso.prioridad),
-                          fontSize: '0.75rem',
+                          fontSize: '0.85rem',
                           fontWeight: 600,
                           textTransform: 'uppercase',
                           display: 'inline-flex',
@@ -636,10 +620,10 @@ export default function UserDashboard() {
                           <i className={`bi ${getPrioridadIcon(aviso.prioridad)}`}></i>
                           {getPrioridadLabel(aviso.prioridad)}
                         </span>
-                        <span style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>
+                        <span style={{ color: '#8da1b1', fontSize: '0.8rem' }}>
                           •
                         </span>
-                        <span style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>
+                        <span style={{ color: '#8da1b1', fontSize: '0.82rem' }}>
                           {formatearFecha(aviso.created_at)}
                         </span>
                       </div>
@@ -772,10 +756,10 @@ export default function UserDashboard() {
                             {badge.label}
                           </span>
                         </div>
-                        <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.5rem', lineHeight: '1.4' }}>
+                        <p style={{ color: '#1a5968', fontSize: '0.95rem', marginBottom: '0.5rem', lineHeight: '1.5' }}>
                           {proyecto.descripcion.length > 100 ? `${proyecto.descripcion.substring(0, 100)}...` : proyecto.descripcion}
                         </p>
-                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#bfd3d9' }}>
+                        <div style={{ display: 'flex', gap: '1.2rem', fontSize: '0.92rem', color: '#4a6576' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                             <i className="bi bi-cash-stack"></i>
                             {formatearPresupuesto(proyecto.presupuesto)}
@@ -823,7 +807,7 @@ export default function UserDashboard() {
         borderRadius: '16px',
         marginBottom: '2rem'
       }}>
-        <h2 style={{ color: '#154765', fontSize: '1.5rem', marginBottom: '1.5rem' }}>Actividad Reciente</h2>
+        <h2 style={{ color: '#0f2f4b', fontSize: '1.5rem', marginBottom: '1.5rem' }}>Actividad Reciente</h2>
         <div className="activity-list" style={{
           display: 'flex',
           flexDirection: 'column',
@@ -832,9 +816,10 @@ export default function UserDashboard() {
           <div className="activity-item" style={{
             display: 'flex',
             gap: '1rem',
-            padding: '1rem',
-            background: '#f4f8f9',
-            borderRadius: '12px'
+            padding: '1.15rem',
+            background: '#f1f7f8',
+            borderRadius: '14px',
+            borderLeft: '4px solid #4ab0b5'
           }}>
             <div className="activity-icon" style={{
               fontSize: '2rem',
@@ -847,18 +832,19 @@ export default function UserDashboard() {
               <i className="bi bi-journal-text"></i>
             </div>
             <div className="activity-content">
-              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 actualizada</h4>
-              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estado cambió a "En Proceso"</p>
-              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 2 horas</span>
+              <h4 style={{ color: '#0d2b40', fontSize: '1.05rem', marginBottom: '0.2rem' }}>Solicitud #SOL-001234 actualizada</h4>
+              <p style={{ color: '#206272', fontSize: '0.95rem', marginBottom: '0.25rem', lineHeight: '1.5' }}>Estado cambió a "En Proceso"</p>
+              <span className="activity-time" style={{ color: '#7a8fa3', fontSize: '0.8rem' }}>Hace 2 horas</span>
             </div>
           </div>
 
           <div className="activity-item" style={{
             display: 'flex',
             gap: '1rem',
-            padding: '1rem',
-            background: '#f4f8f9',
-            borderRadius: '12px'
+            padding: '1.15rem',
+            background: '#f1f7f8',
+            borderRadius: '14px',
+            borderLeft: '4px solid #34d399'
           }}>
             <div className="activity-icon" style={{
               fontSize: '2rem',
@@ -871,18 +857,19 @@ export default function UserDashboard() {
               <i className="bi bi-check-circle-fill"></i>
             </div>
             <div className="activity-content">
-              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001220 completada</h4>
-              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Certificado de residencia listo para descarga</p>
-              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 1 día</span>
+              <h4 style={{ color: '#0d2b40', fontSize: '1.05rem', marginBottom: '0.2rem' }}>Solicitud #SOL-001220 completada</h4>
+              <p style={{ color: '#206272', fontSize: '0.95rem', marginBottom: '0.25rem', lineHeight: '1.5' }}>Certificado de residencia listo para descarga</p>
+              <span className="activity-time" style={{ color: '#7a8fa3', fontSize: '0.8rem' }}>Hace 1 día</span>
             </div>
           </div>
 
           <div className="activity-item" style={{
             display: 'flex',
             gap: '1rem',
-            padding: '1rem',
-            background: '#f4f8f9',
-            borderRadius: '12px'
+            padding: '1.15rem',
+            background: '#f1f7f8',
+            borderRadius: '14px',
+            borderLeft: '4px solid #439fa4'
           }}>
             <div className="activity-icon" style={{
               fontSize: '2rem',
@@ -895,9 +882,9 @@ export default function UserDashboard() {
               <i className="bi bi-clipboard2-check"></i>
             </div>
             <div className="activity-content">
-              <h4 style={{ color: '#154765', fontSize: '1rem', marginBottom: '0.25rem' }}>Nueva solicitud creada</h4>
-              <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Solicitud #SOL-001234 registrada</p>
-              <span className="activity-time" style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>Hace 3 días</span>
+              <h4 style={{ color: '#0d2b40', fontSize: '1.05rem', marginBottom: '0.2rem' }}>Nueva solicitud creada</h4>
+              <p style={{ color: '#206272', fontSize: '0.95rem', marginBottom: '0.25rem', lineHeight: '1.5' }}>Solicitud #SOL-001234 registrada</p>
+              <span className="activity-time" style={{ color: '#7a8fa3', fontSize: '0.8rem' }}>Hace 3 días</span>
             </div>
           </div>
         </div>
@@ -1040,11 +1027,11 @@ export default function UserDashboard() {
                       {noticia.titulo}
                     </h4>
                     {noticia.resumen && (
-                      <p style={{ color: '#439fa4', fontSize: '0.875rem', marginBottom: '0.25rem', lineHeight: '1.4' }}>
+                      <p style={{ color: '#2d393aff', fontSize: '0.9rem', marginBottom: '0.25rem', lineHeight: '1.4' }}>
                         {noticia.resumen.length > 80 ? `${noticia.resumen.substring(0, 80)}...` : noticia.resumen}
                       </p>
                     )}
-                    <span style={{ color: '#bfd3d9', fontSize: '0.75rem' }}>
+                    <span style={{ color: '#656c6eff', fontSize: '0.9rem', fontWeight: 600}}>
                       {formatearFecha(noticia.fecha_publicacion)}
                     </span>
                   </div>
