@@ -361,24 +361,78 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section section--muted">
+      <section className="section section--muted" id="faq">
         <div className="section__container">
           <div className="section__header">
-            <h2 className="section__title">Explora tu Vecindario</h2>
-            <p className="section__subtitle">Visualiza tu ubicación y conoce tu comunidad</p>
+            <h2 className="section__title">Preguntas Frecuentes</h2>
+            <p className="section__subtitle">Respuestas rápidas sobre VecindApp</p>
           </div>
-          <div className="map-card">
-            <img
-              src="https://providencia.cl/provi/site/artic/20191112/imag/foto_0000000120191112153536/unidades_vecinales.png"
-              alt="Mapa de Unidades Vecinales"
-            />
-            <div className="map-card__callout">
-              <p className="card-text">
-                <strong>¿Sabías que...?</strong> Cada Junta de Vecinos representa una Unidad Vecinal específica
-              </p>
-              <p className="map-card__note">
-                Identifica tu unidad vecinal y conecta con tus vecinos más cercanos
-              </p>
+          <div className="faq">
+            <div className="faq-list" role="list" aria-label="Preguntas frecuentes">
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Qué es VecindApp?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    VecindApp es una plataforma que digitaliza la gestión de tu Junta de Vecinos: certificados, avisos, proyectos, actividades y más.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Cómo creo mi cuenta?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Haz clic en "Registrarse", completa tus datos y sube tu comprobante de domicilio. La directiva revisará tu solicitud y te notificaremos por correo.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Cuánto tarda la aprobación?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Generalmente entre 24 y 48 horas, dependiendo del proceso de validación de tu Junta de Vecinos.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Puedo solicitar certificados en línea?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Sí. Puedes solicitar certificados de residencia y antigüedad 100% en línea y hacer seguimiento de su estado en tiempo real.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Qué costo tiene VecindApp?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Para los vecinos, registrarse y usar la plataforma es gratis. Algunas Juntas pueden definir valores por emisión de certificados según su reglamento.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Cómo protegen mis datos?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Utilizamos autenticación segura y buenas prácticas de protección de datos. Tus documentos solo son visibles para ti y la directiva autorizada.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">¿Qué hago si olvidé mi contraseña?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Ve a "Iniciar Sesión" y utiliza la opción de recuperación. Te enviaremos un enlace para restablecer tu contraseña.
+                  </p>
+                </div>
+              </details>
+              <details className="faq-item" role="listitem">
+                <summary className="faq-question">Soy parte de una directiva, ¿cómo me sumo?</summary>
+                <div className="faq-answer">
+                  <p className="card-text">
+                    Crea una cuenta y contáctanos a <a href="mailto:contacto@vecindapp.cl">contacto@vecindapp.cl</a> para habilitar tu Junta y roles administrativos.
+                  </p>
+                </div>
+              </details>
             </div>
           </div>
         </div>

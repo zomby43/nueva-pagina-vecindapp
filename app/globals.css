@@ -632,6 +632,77 @@ html {
   margin: 0;
 }
 
+/* ========================================
+   FAQ (Landing)
+   ======================================== */
+.faq {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.faq-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.faq-item {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(21, 71, 101, 0.06);
+  border-left: 4px solid #439fa4;
+  overflow: hidden;
+}
+
+.faq-item[open] {
+  border-left-color: #34d399;
+  box-shadow: 0 8px 16px rgba(21, 71, 101, 0.12);
+}
+
+.faq-question {
+  display: block;
+  padding: 1.25rem 3rem 1.25rem 1.25rem;
+  cursor: pointer;
+  font-weight: 700;
+  color: #154765;
+  outline: none;
+  list-style: none;
+  position: relative;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '▸';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(0deg);
+  transition: transform 0.2s ease;
+  color: #439fa4;
+  font-size: 1rem;
+}
+
+.faq-item[open] summary::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.faq-item:focus-within {
+  box-shadow: 0 0 0 3px rgba(67, 159, 164, 0.2), 0 2px 8px rgba(21, 71, 101, 0.12);
+}
+
+.faq-answer {
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  color: #439fa4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-item summary::after {
+    transition: none;
+  }
+}
+
 .cta-final {
   padding: 5rem 2rem;
   text-align: center;
