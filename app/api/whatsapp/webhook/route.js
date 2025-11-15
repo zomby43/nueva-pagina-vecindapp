@@ -20,14 +20,25 @@ export async function GET(request) {
   return new Response('Error de verificación', { status: 403 });
 }
 
-function buildHelpMessage(rut) {
-  const rutExample = rut || '12345678-9';
-  return `👋 ¡Hola! Para vincular tu cuenta VecindApp responde con:
+function buildHelpMessage() {
+  return `👋 ¡Hola! Bienvenido a VecindApp.
 
-VINCULAR ${rutExample}
+*Comandos disponibles:*
 
-Si deseas dejar de recibir avisos, escribe:
-DESVINCULAR`;
+📱 *VINCULAR [RUT]* - Vincular tu cuenta
+   Ejemplo: VINCULAR 12345678-9
+
+📰 *NOTICIAS* - Ver últimas noticias
+
+📢 *AVISOS* - Ver avisos activos
+
+👤 *PERFIL* - Ver tu información
+
+🔕 *DESVINCULAR* - Dejar de recibir notificaciones
+
+❓ *AYUDA* - Ver este mensaje
+
+_Nota: Los comandos no distinguen mayúsculas/minúsculas_`;
 }
 
 async function handleVincularCommand(from, rutInput) {
@@ -112,6 +123,96 @@ async function handleDesvincular(from) {
   await sendWhatsAppText(from, '✅ Dejaste de recibir notificaciones por WhatsApp.');
 }
 
+async function handleNoticias(from) {
+  const supabase = createClient();
+
+  const { data: noticias, error } = await supabase
+    .from('noticias')
+    .select('titulo, resumen, categoria, fecha_publicacion')
+    .eq('estado', 'publicado')
+    .order('fecha_publicacion', { ascending: false })
+    .limit(3);
+
+  if (error || !noticias || noticias.length === 0) {
+    await sendWhatsAppText(from, '📰 No hay noticias publicadas en este momento.');
+    return;
+  }
+
+  let mensaje = '*📰 Últimas Noticias*\n\n';
+
+  noticias.forEach((noticia, index) => {
+    const fecha = new Date(noticia.fecha_publicacion).toLocaleDateString('es-CL');
+    mensaje += `${index + 1}. *${noticia.titulo}*\n`;
+    mensaje += `📂 ${noticia.categoria} | 📅 ${fecha}\n`;
+    if (noticia.resumen) {
+      mensaje += `${noticia.resumen.substring(0, 100)}...\n`;
+    }
+    mensaje += `\n`;
+  });
+
+  mensaje += '_Visita la plataforma web para ver más detalles_';
+  await sendWhatsAppText(from, mensaje);
+}
+
+async function handleAvisos(from) {
+  const supabase = createClient();
+
+  const { data: avisos, error } = await supabase
+    .from('avisos')
+    .select('titulo, mensaje, tipo, prioridad, fecha_inicio')
+    .eq('estado', 'activo')
+    .order('prioridad', { ascending: false })
+    .order('fecha_inicio', { ascending: false })
+    .limit(5);
+
+  if (error || !avisos || avisos.length === 0) {
+    await sendWhatsAppText(from, '📢 No hay avisos activos en este momento.');
+    return;
+  }
+
+  let mensaje = '*📢 Avisos Activos*\n\n';
+
+  avisos.forEach((aviso, index) => {
+    const fecha = new Date(aviso.fecha_inicio).toLocaleDateString('es-CL');
+    const emoji = aviso.prioridad === 'alta' ? '🔴' : aviso.prioridad === 'media' ? '🟡' : '🟢';
+    mensaje += `${emoji} *${aviso.titulo}*\n`;
+    mensaje += `${aviso.mensaje.substring(0, 80)}...\n`;
+    mensaje += `📅 ${fecha}\n\n`;
+  });
+
+  mensaje += '_Visita la plataforma web para más información_';
+  await sendWhatsAppText(from, mensaje);
+}
+
+async function handlePerfil(from) {
+  const supabase = createClient();
+
+  const { data: usuario, error } = await supabase
+    .from('usuarios')
+    .select('nombres, apellidos, rut, email, direccion, rol, estado, preferencia_notificacion')
+    .eq('whatsapp_phone', from)
+    .single();
+
+  if (error || !usuario) {
+    await sendWhatsAppText(
+      from,
+      '❌ No tienes una cuenta vinculada.\n\nUsa VINCULAR para conectar tu cuenta.'
+    );
+    return;
+  }
+
+  const mensaje = `*👤 Tu Perfil*
+
+*Nombre:* ${usuario.nombres} ${usuario.apellidos}
+*RUT:* ${usuario.rut}
+*Email:* ${usuario.email}
+*Dirección:* ${usuario.direccion || 'No especificada'}
+*Estado:* ${usuario.estado}
+*Notificaciones:* ${formatPreferenceLabel(usuario.preferencia_notificacion)}`;
+
+  await sendWhatsAppText(from, mensaje);
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -136,12 +237,39 @@ export async function POST(request) {
           const [command, ...rest] = textBody.split(/\s+/);
           const upper = command?.toUpperCase();
 
-          if (upper === 'VINCULAR') {
-            await handleVincularCommand(from, rest.join(' '));
-          } else if (upper === 'DESVINCULAR') {
-            await handleDesvincular(from);
-          } else {
-            await sendWhatsAppText(from, buildHelpMessage(rest[0]));
+          switch (upper) {
+            case 'VINCULAR':
+              await handleVincularCommand(from, rest.join(' '));
+              break;
+
+            case 'DESVINCULAR':
+              await handleDesvincular(from);
+              break;
+
+            case 'NOTICIAS':
+              await handleNoticias(from);
+              break;
+
+            case 'AVISOS':
+              await handleAvisos(from);
+              break;
+
+            case 'PERFIL':
+              await handlePerfil(from);
+              break;
+
+            case 'AYUDA':
+            case 'HELP':
+            case 'HOLA':
+            case 'START':
+              await sendWhatsAppText(from, buildHelpMessage());
+              break;
+
+            default:
+              await sendWhatsAppText(
+                from,
+                `No entendí el comando "${command}". Usa *AYUDA* para ver los comandos disponibles.`
+              );
           }
         }
       }
