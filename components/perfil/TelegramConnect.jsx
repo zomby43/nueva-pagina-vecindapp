@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import { removeChannelFromPreference } from '@/lib/notifications/preferences';
 
 export default function TelegramConnect() {
   const { userProfile } = useAuth();
@@ -23,11 +24,16 @@ export default function TelegramConnect() {
     try {
       const supabase = createClient();
 
+      const newPreference = removeChannelFromPreference(
+        userProfile.preferencia_notificacion,
+        'telegram'
+      );
+
       const { error } = await supabase
         .from('usuarios')
         .update({
           telegram_chat_id: null,
-          preferencia_notificacion: 'email'
+          preferencia_notificacion: newPreference
         })
         .eq('id', userProfile.id);
 

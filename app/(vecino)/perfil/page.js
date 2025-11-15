@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import TelegramConnect from '@/components/perfil/TelegramConnect';
+import WhatsAppConnect from '@/components/perfil/WhatsAppConnect';
 
 // === Helpers para abrir comprobantes desde Supabase ===
 const DEFAULT_BUCKET = 'documentos';
@@ -396,6 +397,7 @@ export default function PerfilPage() {
             {/* Componente de Telegram */}
             <div className="mt-3">
               <TelegramConnect />
+              <WhatsAppConnect />
             </div>
           </div>
         </div>
