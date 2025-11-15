@@ -78,7 +78,9 @@ nueva-pagina-vecindapp/
 │   │   ├── proyectos/               # Gestionar proyectos
 │   │   ├── reservas/                # Administrar reservas
 │   │   ├── avisos/                  # Publicar avisos
-│   │   └── directiva/               # Gestionar directiva
+│   │   ├── directiva/               # Gestionar directiva
+│   │   ├── espacios/                # Gestionar espacios comunitarios
+│   │   └── configuracion/           # Configuración de secretaría
 │   ├── 📁 admin/                    # Panel de administración
 │   │   ├── dashboard/               # Dashboard con métricas
 │   │   ├── usuarios/                # Gestión de usuarios
@@ -180,8 +182,15 @@ EMAIL_SERVICE_ENABLED=false  # true para activar envío real
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=tu-site-key
 TURNSTILE_SECRET_KEY=tu-secret-key
 
+# Para desarrollo, puedes usar las claves de prueba:
+# NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+# TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
 # URL del sitio
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# Service Role Key (solo para backend - MANTENER PRIVADA)
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
 ```
 
 ### 4. Configurar Base de Datos en Supabase
@@ -246,6 +255,8 @@ Para una guía paso a paso completa, consulta:
 - ✅ Aprobar/rechazar reservas
 - ✅ Publicar avisos
 - ✅ Gestionar información de la directiva
+- ✅ Gestionar espacios comunitarios (quincho, salón, etc.)
+- ✅ Configuración de secretaría
 - ⚠️ Sesión con timeout de 10 minutos de inactividad
 
 ### Administrador
@@ -292,10 +303,11 @@ Para una guía paso a paso completa, consulta:
 ### Sistema de Noticias
 
 - [x] Publicación de noticias con imágenes
-- [x] Editor de texto enriquecido (Quill)
+- [x] Editor de texto enriquecido V2 (Quill) con inserción de imágenes en el contenido
 - [x] Sistema de reacciones (Me gusta, Me encanta, etc.)
 - [x] Contador de reacciones en tiempo real
 - [x] Vista detallada de noticias
+- [x] Notificación por email al publicar noticias
 - [x] Gestión completa desde panel de secretaría
 
 ### Actividades Comunitarias
@@ -338,6 +350,7 @@ Para una guía paso a paso completa, consulta:
 ### Panel Administrativo
 
 - [x] Dashboard con métricas globales
+- [x] Contadores en tiempo real (solicitudes, vecinos activos, etc.)
 - [x] Gestión completa de usuarios
 - [x] Edición de roles y estados
 - [x] Sistema de logs del sistema
@@ -360,9 +373,21 @@ Para una guía paso a paso completa, consulta:
 
 ### Avisos
 
-- [x] Publicación de avisos importantes
+- [x] Publicación de avisos importantes con imágenes
 - [x] Listado de avisos activos
+- [x] Notificación por email al publicar avisos
 - [x] Gestión desde secretaría
+
+### Optimizaciones y UX
+
+- [x] Diseño 100% responsive (móvil, tablet, desktop)
+- [x] Botón "Scroll to Top" para navegación rápida
+- [x] Optimización de CSS y variables personalizadas
+- [x] Compresión automática de imágenes subidas
+- [x] Headers anti-cache para seguridad
+- [x] Visualización de comprobantes con URLs firmadas (signed URLs)
+- [x] Landing page optimizada
+- [x] Solución de problemas de caché en navegadores
 
 ---
 
@@ -583,3 +608,24 @@ Para problemas o preguntas:
 ---
 
 **Última actualización:** Noviembre 2025
+
+## Changelog Reciente
+
+### Últimas Funcionalidades Agregadas
+
+- ✅ Cloudflare Turnstile CAPTCHA en registro
+- ✅ Gestión de directivas en secretaría
+- ✅ Contador de solicitudes y vecinos en tiempo real
+- ✅ Editor de noticias V2 con soporte para insertar imágenes dentro del contenido
+- ✅ Sistema de reacciones (me gusta/no me gusta) en noticias
+- ✅ Notificaciones por email en noticias y avisos
+- ✅ Botón de scroll to top
+- ✅ Optimización de CSS y mejoras de responsividad
+- ✅ Visualización mejorada de comprobantes con signed URLs
+- ✅ Separación de botones Ver/Descargar para comprobantes
+- ✅ Secciones de administrador (logs, reportes, roles, configuración)
+- ✅ Gestión de espacios comunitarios
+
+---
+
+**Proyecto VecindApp** - Modernizando la gestión comunitaria
