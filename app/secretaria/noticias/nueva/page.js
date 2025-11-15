@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
-import * as emailHelpers from '@/lib/emails/sendEmail';
 
 // Importar RichTextEditor dinámicamente para evitar problemas de SSR
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
@@ -94,45 +93,38 @@ export default function NuevaNoticiaPage() {
         }
       }
 
-      // Si se publicó directamente, enviar correos a los vecinos
+      // Si se publicó directamente, enviar notificaciones via API route
       console.log('🔍 DEBUG - formData.estado:', formData.estado);
       console.log('🔍 DEBUG - data exists:', !!data);
       console.log('🔍 DEBUG - data.id:', data?.id);
 
       if (formData.estado === 'publicado' && data) {
         try {
-          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
-          const enviarCorreoNuevaNoticiaFn =
-            emailHelpers.enviarCorreoNuevaNoticia ||
-            emailHelpers.default?.enviarCorreoNuevaNoticia;
+          console.log('📧 Enviando notificaciones via API route...');
 
-          if (typeof enviarCorreoNuevaNoticiaFn !== 'function') {
-            throw new Error('Helper enviarCorreoNuevaNoticia no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
-          }
-          console.log('📧 Enviando notificaciones por correo...');
-          console.log('📧 Parámetros:', {
-            titulo: data.titulo,
-            resumen: data.resumen || '',
-            categoria: data.categoria,
-            id: data.id
+          const response = await fetch('/api/noticias/publicar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ noticiaId: data.id })
           });
 
-          const result = await enviarCorreoNuevaNoticiaFn(
-            data.titulo,
-            data.resumen || '',
-            data.categoria,
-            data.id
-          );
+          const result = await response.json();
 
-          console.log('✅ Correos enviados exitosamente');
+          if (!response.ok) {
+            throw new Error(result.error || 'Error al enviar notificaciones');
+          }
+
+          console.log('✅ Notificaciones enviadas exitosamente');
           console.log('✅ Resultado:', result);
         } catch (emailError) {
-          console.error('⚠️ Error enviando correos:', emailError);
+          console.error('⚠️ Error enviando notificaciones:', emailError);
           console.error('⚠️ Detalles del error:', emailError.message, emailError.stack);
-          alert(`La noticia se guardó, pero hubo un problema enviando los correos: ${emailError.message}`);
+          alert(`La noticia se guardó, pero hubo un problema enviando las notificaciones: ${emailError.message}`);
         }
       } else {
-        console.log('ℹ️ No se envían correos porque:', {
+        console.log('ℹ️ No se envían notificaciones porque:', {
           estado_es_publicado: formData.estado === 'publicado',
           data_existe: !!data
         });

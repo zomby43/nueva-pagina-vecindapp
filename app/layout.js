@@ -6,6 +6,8 @@ import ScrollToTopButton from '@/components/common/ScrollToTopButton';
 import HelpChatWidget from '@/components/chat/HelpChatWidget';
 // Importar forceLogout para registrarlo globalmente
 import '@/lib/forceLogout';
+// Importar init de Telegram para inicializar bot
+import '@/lib/telegram/init';
 
 export const metadata = {
   title: "VecindApp - Plataforma Vecinal",

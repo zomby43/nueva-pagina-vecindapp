@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function AvisosSecretariaPage() {
   const [avisos, setAvisos] = useState([]);
@@ -57,26 +56,27 @@ export default function AvisosSecretariaPage() {
 
       alert(`Aviso ${nuevoEstado === 'activo' ? 'activado' : nuevoEstado === 'inactivo' ? 'desactivado' : 'archivado'} exitosamente`);
 
+      // Si se activa un aviso que no estaba activo, enviar notificaciones via API
       if (nuevoEstado === 'activo' && avisoActual?.estado !== 'activo') {
         try {
-          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
-          const enviarCorreoNuevoAvisoFn =
-            emailHelpers.enviarCorreoNuevoAviso ||
-            emailHelpers.default?.enviarCorreoNuevoAviso;
+          const response = await fetch('/api/avisos/publicar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ avisoId })
+          });
 
-          if (typeof enviarCorreoNuevoAvisoFn !== 'function') {
-            throw new Error('Helper enviarCorreoNuevoAviso no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Error al enviar notificaciones');
           }
-          await enviarCorreoNuevoAvisoFn(
-            avisoActual?.titulo || 'Aviso',
-            avisoActual?.mensaje || '',
-            avisoActual?.tipo || 'informativo',
-            avisoActual?.prioridad || 'media',
-            avisoId
-          );
+
+          console.log('✅ Notificaciones de aviso enviadas:', data);
         } catch (emailError) {
-          console.error('⚠️ Error al enviar correos de aviso activado:', emailError);
-          alert(`No se pudieron enviar los correos del aviso: ${emailError.message}`);
+          console.error('⚠️ Error al enviar notificaciones de aviso:', emailError);
+          alert(`Aviso activado pero no se pudieron enviar las notificaciones: ${emailError.message}`);
         }
       }
 

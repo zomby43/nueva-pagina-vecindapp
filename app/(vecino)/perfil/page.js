@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import TelegramConnect from '@/components/perfil/TelegramConnect';
 
 // === Helpers para abrir comprobantes desde Supabase ===
 const DEFAULT_BUCKET = 'documentos';
@@ -359,10 +360,11 @@ export default function PerfilPage() {
                   {userProfile?.comprobante_url ? (
                     <button
                       type="button"
-                      className="btn btn-outline-primary btn-sm"
+                      className="btn btn-outline-primary btn-sm d-inline-flex align-items-center"
                       onClick={() => verComprobante(userProfile.comprobante_url)}
                     >
-                      👁️ Ver documento
+                      <i className="bi bi-file-earmark-text me-2"></i>
+                      Ver documento
                     </button>
                   ) : (
                     <span className="text-muted">No disponible</span>
@@ -371,21 +373,29 @@ export default function PerfilPage() {
               </div>
             </div>
             
-            <div className="card mt-3">
-              <div className="card-header">
-                <h5 className="mb-0">Acciones</h5>
+            <div className="card mt-3 vecino-card">
+              <div className="card-header" style={{ padding: '1.25rem' }}>
+                <h5 className="mb-0 vecino-text-lg"><i className="bi bi-gear-fill me-2"></i>Acciones</h5>
               </div>
-              <div className="card-body">
-                <button className="btn btn-outline-primary w-100 mb-2">
+              <div className="card-body" style={{ padding: '1.5rem' }}>
+                <button className="btn btn-outline-primary w-100 mb-3 d-flex align-items-center justify-content-center vecino-btn" style={{ padding: '0.75rem' }}>
+                  <i className="bi bi-key-fill me-2"></i>
                   Cambiar Contraseña
                 </button>
-                <button className="btn btn-outline-secondary w-100 mb-2">
+                <button className="btn btn-outline-secondary w-100 mb-3 d-flex align-items-center justify-content-center vecino-btn" style={{ padding: '0.75rem' }}>
+                  <i className="bi bi-download me-2"></i>
                   Descargar Datos
                 </button>
-                <button className="btn btn-outline-danger w-100">
+                <button className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center vecino-btn" style={{ padding: '0.75rem' }}>
+                  <i className="bi bi-trash-fill me-2"></i>
                   Eliminar Cuenta
                 </button>
               </div>
+            </div>
+
+            {/* Componente de Telegram */}
+            <div className="mt-3">
+              <TelegramConnect />
             </div>
           </div>
         </div>

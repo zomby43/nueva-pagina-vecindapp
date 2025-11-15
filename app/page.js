@@ -139,69 +139,94 @@ export default function Home() {
     <div className="home-page">
       <section className="hero">
         <div className="hero__container">
-          <div className="hero__logo-wrapper">
+          <div className="hero__content">
+            <div className="hero__brand">
+              <img
+                src="/vencinapp.svg"
+                alt="VecindApp Logo"
+                className="hero__brand-logo"
+              />
+              <div className="hero__brand-text">
+                <p className="hero__brand-label">Gestión vecinal digital</p>
+                <h1 className="hero__title">VecindApp</h1>
+              </div>
+            </div>
+            <p className="hero__subtitle">
+              La plataforma digital que conecta a tu Junta de Vecinos con la comunidad
+            </p>
+            <p className="hero__description">
+              Gestiona certificados, proyectos y comunicación vecinal en un solo lugar
+            </p>
+            <div className="hero-stats">
+              <div
+                className="hero-stat"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label={loading ? 'Cargando vecinos activos' : `${formatNumber(metrics.vecinosActivos)} vecinos activos`}
+              >
+                <div className="hero-stat__number">
+                  {loading ? '…' : formatNumber(metrics.vecinosActivos)}
+                </div>
+                <div className="hero-stat__label">Vecinos Activos</div>
+              </div>
+              <div
+                className="hero-stat"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label={loading ? 'Cargando solicitudes procesadas' : `${formatNumber(metrics.solicitudesProcesadas)} solicitudes procesadas`}
+              >
+                <div className="hero-stat__number">
+                  {loading ? '…' : formatNumber(metrics.solicitudesProcesadas)}
+                </div>
+                <div className="hero-stat__label">Solicitudes Procesadas</div>
+              </div>
+              <div
+                className="hero-stat"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label={loading ? 'Cargando certificados emitidos este mes' : `${formatNumber(metrics.certificadosMes)} certificados emitidos este mes`}
+              >
+                <div className="hero-stat__number">
+                  {loading ? '…' : formatNumber(metrics.certificadosMes)}
+                </div>
+                <div className="hero-stat__label">Certificados este mes</div>
+              </div>
+              <div className="hero-stat" aria-hidden="true">
+                <div className="hero-stat__number">24/7</div>
+                <div className="hero-stat__label">Disponibilidad</div>
+              </div>
+            </div>
+            <div className="hero-cta">
+              <button className="hero-btn hero-btn--primary" onClick={() => navigateTo('/login')}>
+                Iniciar Sesión
+              </button>
+              <button className="hero-btn hero-btn--outline" onClick={() => navigateTo('/register')}>
+                Registrarse Gratis
+              </button>
+            </div>
+          </div>
+          <div className="hero__visual" aria-hidden="true">
             <img
-              src="/vencinapp.svg"
-              alt="VecindApp Logo"
-              className="hero__logo"
+              src="/vencinapp2.png"
+              alt="Calle residencial con casas chilenas"
+              className="hero__photo hero__photo--main"
             />
-          </div>
-          <h1 className="hero__title">VecindApp</h1>
-          <p className="hero__subtitle">
-            La plataforma digital que conecta a tu Junta de Vecinos con la comunidad
-          </p>
-          <p className="hero__description">
-            Gestiona certificados, proyectos y comunicación vecinal en un solo lugar
-          </p>
-          <div className="hero-stats">
-            <div
-              className="hero-stat"
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              aria-label={loading ? 'Cargando vecinos activos' : `${formatNumber(metrics.vecinosActivos)} vecinos activos`}
-            >
-              <div className="hero-stat__number">
-                {loading ? '…' : formatNumber(metrics.vecinosActivos)}
-              </div>
-              <div className="hero-stat__label">Vecinos Activos</div>
+            <img
+              src="/vencinapp1.png"
+              alt="Barrio con vecinos y vehículos"
+              className="hero__photo hero__photo--secondary hero__photo--top"
+            />
+            <img
+              src="/vencinapp3.png"
+              alt="Pasaje de viviendas vecinales"
+              className="hero__photo hero__photo--secondary hero__photo--bottom"
+            />
+            <div className="hero__visual-badge">
+              Juntas de vecinos en línea
             </div>
-            <div
-              className="hero-stat"
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              aria-label={loading ? 'Cargando solicitudes procesadas' : `${formatNumber(metrics.solicitudesProcesadas)} solicitudes procesadas`}
-            >
-              <div className="hero-stat__number">
-                {loading ? '…' : formatNumber(metrics.solicitudesProcesadas)}
-              </div>
-              <div className="hero-stat__label">Solicitudes Procesadas</div>
-            </div>
-            <div
-              className="hero-stat"
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              aria-label={loading ? 'Cargando certificados emitidos este mes' : `${formatNumber(metrics.certificadosMes)} certificados emitidos este mes`}
-            >
-              <div className="hero-stat__number">
-                {loading ? '…' : formatNumber(metrics.certificadosMes)}
-              </div>
-              <div className="hero-stat__label">Certificados este mes</div>
-            </div>
-            <div className="hero-stat" aria-hidden="true">
-              <div className="hero-stat__number">24/7</div>
-              <div className="hero-stat__label">Disponibilidad</div>
-            </div>
-          </div>
-          <div className="hero-cta">
-            <button className="hero-btn hero-btn--primary" onClick={() => navigateTo('/login')}>
-              Iniciar Sesión
-            </button>
-            <button className="hero-btn hero-btn--outline" onClick={() => navigateTo('/register')}>
-              Registrarse Gratis
-            </button>
           </div>
         </div>
         <div className="hero__orb hero__orb--top" aria-hidden="true" />

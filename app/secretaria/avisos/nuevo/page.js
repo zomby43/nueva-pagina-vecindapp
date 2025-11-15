@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage } from '@/lib/storage/imageHelpers';
-import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function NuevoAvisoPage() {
   const router = useRouter();

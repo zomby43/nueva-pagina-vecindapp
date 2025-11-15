@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import ImageUploader from '@/components/noticias/ImageUploader';
 import { uploadNoticiaImage, deleteNoticiaImage } from '@/lib/storage/imageHelpers';
-import * as emailHelpers from '@/lib/emails/sendEmail';
 
 // Importar RichTextEditor dinámicamente para evitar problemas de SSR
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
-import * as emailHelpers from '@/lib/emails/sendEmail';
 
 export default function SecretariaNoticiasPage() {
   const { user, userProfile } = useAuth();
@@ -57,60 +56,59 @@ export default function SecretariaNoticiasPage() {
     const noticiaActual = noticias.find(n => n.id === noticiaId);
 
     try {
-      const supabase = createClient();
-
-      const updateData = {
-        estado: nuevoEstado
-      };
-
-      // Si se publica, agregar fecha de publicación
-      if (nuevoEstado === 'publicado') {
-        updateData.fecha_publicacion = new Date().toISOString();
-      }
-
-      const { error } = await supabase
-        .from('noticias')
-        .update(updateData)
-        .eq('id', noticiaId);
-
-      if (error) throw error;
-
-      // Actualizar lista local
-      setNoticias(prev =>
-        prev.map(n =>
-          n.id === noticiaId
-            ? { ...n, estado: nuevoEstado, fecha_publicacion: nuevoEstado === 'publicado' ? new Date().toISOString() : n.fecha_publicacion }
-            : n
-        )
-      );
-
-      alert(`Noticia ${nuevoEstado === 'publicado' ? 'publicada' : nuevoEstado === 'archivado' ? 'archivada' : 'guardada como borrador'} exitosamente`);
-
+      // Si es publicación y la noticia no estaba publicada antes, usar API route
       if (nuevoEstado === 'publicado' && noticiaActual?.estado !== 'publicado') {
-        try {
-          console.log('📧 Helpers de email disponibles:', Object.keys(emailHelpers));
-          const enviarCorreoNuevaNoticiaFn =
-            emailHelpers.enviarCorreoNuevaNoticia ||
-            emailHelpers.default?.enviarCorreoNuevaNoticia;
+        const response = await fetch('/api/noticias/publicar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ noticiaId })
+        });
 
-          if (typeof enviarCorreoNuevaNoticiaFn !== 'function') {
-            throw new Error('Helper enviarCorreoNuevaNoticia no disponible. Exportaciones actuales: ' + JSON.stringify(Object.keys(emailHelpers)));
-          }
-          await enviarCorreoNuevaNoticiaFn(
-            noticiaActual?.titulo || 'Noticia sin título',
-            noticiaActual?.resumen || '',
-            noticiaActual?.categoria || 'general',
-            noticiaId
-          );
-        } catch (emailError) {
-          console.error('⚠️ Error al enviar correos de noticia publicada:', emailError);
-          alert(`No se pudieron enviar los correos de la noticia: ${emailError.message}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al publicar la noticia');
         }
+
+        // Actualizar lista local
+        setNoticias(prev =>
+          prev.map(n =>
+            n.id === noticiaId
+              ? { ...n, estado: 'publicado', fecha_publicacion: new Date().toISOString() }
+              : n
+          )
+        );
+
+        alert('Noticia publicada exitosamente y notificaciones enviadas');
+
+      } else {
+        // Para otros cambios de estado, usar Supabase directamente
+        const supabase = createClient();
+
+        const updateData = { estado: nuevoEstado };
+
+        const { error } = await supabase
+          .from('noticias')
+          .update(updateData)
+          .eq('id', noticiaId);
+
+        if (error) throw error;
+
+        // Actualizar lista local
+        setNoticias(prev =>
+          prev.map(n =>
+            n.id === noticiaId ? { ...n, estado: nuevoEstado } : n
+          )
+        );
+
+        alert(`Noticia ${nuevoEstado === 'archivado' ? 'archivada' : 'guardada como borrador'} exitosamente`);
       }
 
     } catch (error) {
       console.error('Error updating noticia:', error);
-      alert('Error al cambiar el estado de la noticia');
+      alert('Error al cambiar el estado de la noticia: ' + error.message);
     }
   };
 
