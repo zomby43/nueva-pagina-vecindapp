@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { enviarCorreoSolicitudReserva } from '@/lib/emails/sendEmail';
 import { useIsSmallMobile } from '@/hooks/useMediaQuery';
+import { parseDateLocal, formatDateLocal } from '@/lib/dateUtils';
 
 const BLOQUES_HORARIOS = {
   manana: { inicio: '09:00', fin: '13:00', label: 'Mañana (09:00 - 13:00)' },
@@ -112,7 +113,7 @@ export default function ReservasPage() {
   };
 
   const verificarDisponibilidad = (fecha, bloque, espacioId) => {
-    const fechaStr = fecha.toISOString().split('T')[0];
+    const fechaStr = formatDateLocal(fecha);
     const reservaExistente = reservas.find(r =>
       r.espacio_id === espacioId &&
       r.fecha_reserva === fechaStr &&
@@ -144,7 +145,7 @@ export default function ReservasPage() {
       return false;
     }
 
-    const fechaSeleccionada = new Date(formData.fecha_reserva + 'T00:00:00');
+    const fechaSeleccionada = parseDateLocal(formData.fecha_reserva);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
@@ -169,7 +170,7 @@ export default function ReservasPage() {
     }
 
     // Verificar disponibilidad
-    const fechaReserva = new Date(formData.fecha_reserva + 'T00:00:00');
+    const fechaReserva = parseDateLocal(formData.fecha_reserva);
     if (!verificarDisponibilidad(fechaReserva, formData.bloque_horario, formData.espacio_id)) {
       alert('Este espacio ya está reservado para la fecha y horario seleccionado');
       return false;
@@ -527,11 +528,12 @@ export default function ReservasPage() {
               <div>
                 <p className="text-muted mb-1">Reservas para</p>
                 <h5 className="mb-0">
-                  {new Date(detalleReserva.fecha).toLocaleDateString('es-CL', {
+                  {parseDateLocal(detalleReserva.fecha.split('T')[0]).toLocaleDateString('es-CL', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',
-                    year: 'numeric'
+                    year: 'numeric',
+                    timeZone: 'America/Santiago'
                   })}
                 </h5>
               </div>
@@ -606,7 +608,7 @@ function CalendarioMensual({ mes, reservas, espacioId, compacto = false, onVerDe
   // Días del mes
   for (let dia = 1; dia <= diasEnMes; dia++) {
     const fecha = new Date(mes.getFullYear(), mes.getMonth(), dia);
-    const fechaStr = fecha.toISOString().split('T')[0];
+    const fechaStr = formatDateLocal(fecha);
     const esPasado = fecha < hoy;
 
     const reservasDelDia = reservas.filter(r =>

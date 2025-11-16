@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { formatearFechaLocal, formatearFechaHoraLocal } from '@/lib/dateUtils';
 
 export default function ReservasPendientesPage() {
   const { user } = useAuth();
@@ -118,24 +119,8 @@ export default function ReservasPendientesPage() {
     }
   };
 
-  const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CL', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatearFechaHora = (fecha) => {
-    return new Date(fecha).toLocaleString('es-CL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // Las funciones de formateo de fecha ahora se importan desde dateUtils
+  // para evitar problemas de timezone
 
   const getBloqueTexto = (bloque) => {
     const textos = {
@@ -239,7 +224,7 @@ export default function ReservasPendientesPage() {
                         <div className="mb-3">
                           <h6 className="fw-semibold mb-2">📅 Fecha y Horario:</h6>
                           <p className="mb-1">
-                            <strong>{formatearFecha(reserva.fecha_reserva)}</strong>
+                            <strong>{formatearFechaLocal(reserva.fecha_reserva)}</strong>
                           </p>
                           <p className="mb-0 text-muted">{getBloqueTexto(reserva.bloque_horario)}</p>
                         </div>
@@ -285,7 +270,7 @@ export default function ReservasPendientesPage() {
                                   </p>
                                 )}
                                 <p className="mb-0 text-muted small">
-                                  📅 Solicitado el {formatearFechaHora(reserva.created_at)}
+                                  📅 Solicitado el {formatearFechaHoraLocal(reserva.created_at)}
                                 </p>
                               </>
                             ) : (

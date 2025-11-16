@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { generarComprobanteReserva } from '@/lib/generarComprobanteReserva';
+import { formatearFechaLocal, formatearFechaHoraLocal } from '@/lib/dateUtils';
 
 export default function MisReservasPage() {
   const { user } = useAuth();
@@ -116,24 +117,8 @@ export default function MisReservasPage() {
     }
   };
 
-  const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CL', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatearFechaHora = (fecha) => {
-    return new Date(fecha).toLocaleString('es-CL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // Las funciones de formateo de fecha ahora se importan desde dateUtils
+  // para evitar problemas de timezone
 
   const getBloqueTexto = (bloque) => {
     const textos = {
@@ -318,7 +303,7 @@ export default function MisReservasPage() {
                       <div className="mb-3">
                         <h6 className="fw-semibold mb-2">📅 Fecha y Horario:</h6>
                         <p className="mb-1">
-                          <strong>{formatearFecha(reserva.fecha_reserva)}</strong>
+                          <strong>{formatearFechaLocal(reserva.fecha_reserva)}</strong>
                         </p>
                         <p className="mb-0 text-muted">
                           {getBloqueTexto(reserva.bloque_horario)}
@@ -349,7 +334,7 @@ export default function MisReservasPage() {
                       {reserva.estado === 'aprobada' && reserva.fecha_aprobacion && (
                         <div className="alert alert-success mb-3">
                           <small>
-                            ✅ Aprobada el {formatearFechaHora(reserva.fecha_aprobacion)}
+                            ✅ Aprobada el {formatearFechaHoraLocal(reserva.fecha_aprobacion)}
                             {reserva.aprobador && ` por ${reserva.aprobador.nombres} ${reserva.aprobador.apellidos}`}
                           </small>
                         </div>
@@ -378,13 +363,13 @@ export default function MisReservasPage() {
 
                           <div className="mb-2">
                             <small className="text-muted d-block">Fecha de solicitud</small>
-                            <small>{formatearFechaHora(reserva.created_at)}</small>
+                            <small>{formatearFechaHoraLocal(reserva.created_at)}</small>
                           </div>
 
                           {reserva.updated_at !== reserva.created_at && (
                             <div>
                               <small className="text-muted d-block">Última actualización</small>
-                              <small>{formatearFechaHora(reserva.updated_at)}</small>
+                              <small>{formatearFechaHoraLocal(reserva.updated_at)}</small>
                             </div>
                           )}
                         </div>
