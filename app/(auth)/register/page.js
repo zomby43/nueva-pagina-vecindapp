@@ -344,8 +344,9 @@ export default function RegisterPage() {
                   className="btn btn-outline-secondary"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
                 </button>
               </div>
             </div>
@@ -369,8 +370,9 @@ export default function RegisterPage() {
                   className="btn btn-outline-secondary"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={loading}
+                  aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                  <i className={showConfirmPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
                 </button>
               </div>
             </div>
@@ -395,11 +397,16 @@ export default function RegisterPage() {
                 disabled={loading}
               />
               <label htmlFor="archivo" style={{ cursor: 'pointer', margin: 0 }}>
-                <div className="upload-icon">📄</div>
+                <div className="upload-icon">
+                  <i className="bi bi-file-earmark-arrow-up" style={{ fontSize: '3rem' }}></i>
+                </div>
                 {formData.archivo ? (
                   <>
                     <p className="upload-text">Archivo seleccionado:</p>
-                    <p className="file-name">{formData.archivo.name}</p>
+                    <p className="file-name">
+                      <i className="bi bi-check-circle-fill text-success me-2"></i>
+                      {formData.archivo.name}
+                    </p>
                   </>
                 ) : (
                   <>

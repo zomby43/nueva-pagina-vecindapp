@@ -90,8 +90,9 @@ export default function LoginPage() {
                 className="btn btn-outline-secondary"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showPassword ? "👁️" : "👁️‍🗨️"}
+                <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
               </button>
             </div>
           </div>

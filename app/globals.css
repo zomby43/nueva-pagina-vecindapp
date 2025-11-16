@@ -1543,6 +1543,7 @@ main {
   padding: 0.75rem 1rem;
   color: var(--text);
   background: white;
+  font-size: 1rem;
 }
 
 .form-control:focus, .form-select:focus {
@@ -1554,6 +1555,37 @@ main {
   color: var(--text);
   font-weight: 600;
   margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Mejoras de accesibilidad para formularios de autenticación */
+.auth-form .form-control,
+.auth-form .form-select {
+  padding: 0.875rem 1.125rem;
+  font-size: 1.05rem;
+  min-height: 48px; /* Tamaño mínimo para accesibilidad */
+}
+
+.auth-form .form-label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.625rem;
+  display: block;
+}
+
+.auth-form .btn {
+  min-height: 48px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.auth-form .input-group .btn {
+  padding: 0.875rem 1.125rem;
+  min-width: 48px;
+}
+
+.auth-form .input-group .btn i {
+  font-size: 1.25rem;
 }
 
 textarea.form-control {
@@ -1830,16 +1862,19 @@ textarea.form-control {
 
 .auth-title {
   color: var(--text);
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   text-align: center;
+  line-height: 1.2;
 }
 
 .auth-subtitle {
   color: var(--sub);
   text-align: center;
   margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
 }
 
 .auth-form .form-group {
@@ -4089,15 +4124,19 @@ input[type="file"] {
 }
 
 .file-upload-area {
-  border: 2px dashed var(--muted);
+  border: 3px dashed var(--muted);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 2.5rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: var(--panel);
+  background: white;
   position: relative;
   overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .file-upload-area:hover {
@@ -4119,7 +4158,7 @@ input[type="file"] {
 }
 
 .upload-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   color: var(--accent);
   margin-bottom: 1rem;
   transition: transform 0.3s ease;
@@ -4131,9 +4170,10 @@ input[type="file"] {
 
 .upload-text {
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 
 .upload-subtext {
@@ -4175,6 +4215,15 @@ input[type="file"] {
   color: var(--text);
   font-weight: 600;
   margin-bottom: 0.25rem;
+  font-size: 1.05rem;
+  word-break: break-word;
+}
+
+.upload-hint {
+  color: var(--sub);
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .file-size {
