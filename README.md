@@ -100,29 +100,58 @@ nueva-pagina-vecindapp/
 │   └── globals.css                  # Estilos globales
 ├── 📁 components/                   # Componentes reutilizables
 │   ├── layout/                      # Headers, Sidebars, Footers
+│   │   ├── Header.jsx               # Header con autenticación
+│   │   ├── Sidebar.jsx              # Sidebar de vecinos
+│   │   ├── SecretariaSidebar.jsx    # Sidebar de secretaría
+│   │   ├── AdminSidebar.jsx         # Sidebar de administrador
+│   │   ├── AdminLayoutClient.jsx    # Layout cliente para admin
+│   │   └── UserLayout.js            # Layout genérico de usuario
 │   ├── common/                      # Componentes comunes
+│   │   └── ScrollToTopButton.jsx    # Botón flotante "volver arriba"
 │   ├── maps/                        # Componentes de mapas
+│   │   ├── MapComponentClient.jsx   # Mapa cliente con Leaflet
+│   │   ├── MapContainer.jsx         # Contenedor de mapas
+│   │   ├── MapaDetalle.jsx          # Mapa de detalle
+│   │   ├── MapaGeneral.jsx          # Mapa general de la comunidad
+│   │   └── VecinoMarker.jsx         # Marcadores de vecinos en mapa
 │   ├── noticias/                    # Componentes de noticias
+│   │   └── ImageUploader.jsx        # Subida de imágenes para noticias
 │   ├── proyectos/                   # Componentes de proyectos
+│   │   ├── ProjectDocumentsUploader.jsx  # Subida de documentos
+│   │   └── ProjectImagesUploader.jsx     # Subida de imágenes de proyectos
 │   └── ui/                          # Componentes de UI
+│       └── RichTextEditor.jsx       # Editor de texto enriquecido (Quill)
 ├── 📁 contexts/                     # Context API de React
 │   └── AuthContext.jsx              # Estado global de autenticación
 ├── 📁 hooks/                        # Custom Hooks
-│   └── useAuth.js                   # Hook de autenticación
+│   ├── useAuth.js                   # Hook de autenticación
+│   ├── useMediaQuery.js             # Hook para responsive design
+│   ├── useInactivityTimer.js        # Hook para timeout de sesión (secretaría)
+│   └── useSoftLogout.js             # Hook para cierre de sesión suave
 ├── 📁 lib/                          # Utilidades y helpers
 │   ├── supabase/                    # Clientes de Supabase
 │   │   ├── client.js                # Cliente browser
 │   │   ├── server.js                # Cliente server
 │   │   ├── middleware.js            # Cliente middleware
-│   │   └── admin.js                 # Cliente admin
+│   │   ├── admin.js                 # Cliente admin
+│   │   └── getConfiguracion.js      # Obtener configuración global
 │   ├── emails/                      # Sistema de correos
 │   │   ├── sendEmail.js             # Funciones de envío
-│   │   └── templates.js             # Plantillas HTML
+│   │   └── templates.js             # Plantillas HTML responsive
 │   ├── pdf/                         # Generación de PDFs
-│   │   └── generarCertificado.js    # Certificados
+│   │   └── generarCertificado.js    # Generación de certificados PDF
 │   ├── storage/                     # Gestión de archivos
+│   │   ├── imageHelpers.js          # Helpers para imágenes
+│   │   └── projectAttachments.js    # Archivos adjuntos de proyectos
 │   ├── logs/                        # Sistema de logs
-│   └── geocoding/                   # Geocodificación
+│   │   ├── getLogs.js               # Obtener logs del sistema
+│   │   └── createLog.js             # Crear logs de actividad
+│   ├── geocoding/                   # Geocodificación
+│   │   └── nominatim.js             # Geocodificación con Nominatim
+│   ├── reacciones/                  # Sistema de reacciones
+│   │   └── noticiasReacciones.js    # Reacciones en noticias
+│   ├── generarComprobanteReserva.js # Generación de comprobantes de reserva
+│   └── forceLogout.js               # Forzar cierre de sesión
 ├── 📁 public/                       # Archivos estáticos
 │   └── vencinapp.svg                # Logo de la aplicación
 ├── 📄 middleware.js                 # Middleware de Next.js (rutas protegidas)
@@ -131,10 +160,13 @@ nueva-pagina-vecindapp/
 ├── 📄 package.json                  # Dependencias del proyecto
 ├── 📄 supabase-schema.sql           # Schema de la base de datos
 ├── 📄 .env.local                    # Variables de entorno (local)
+├── 📄 .env.example                  # Template de variables de entorno
 ├── 📄 README.md                     # Este archivo
 ├── 📄 SETUP.md                      # Guía de configuración
 ├── 📄 EMAILS.md                     # Configuración de correos
-└── 📄 SENDGRID_SETUP.md             # Configuración de SendGrid
+├── 📄 SENDGRID_SETUP.md             # Configuración de SendGrid
+├── 📄 DELETE_USER.sql               # Script SQL para eliminar usuarios
+└── 📄 CHANGE_EMAIL.sql              # Script SQL para cambiar email de usuarios
 ```
 
 ---
@@ -391,6 +423,81 @@ Para una guía paso a paso completa, consulta:
 
 ---
 
+## Características Técnicas Avanzadas
+
+### Custom Hooks
+
+El proyecto incluye hooks personalizados para funcionalidades específicas:
+
+- **`useAuth.js`** - Manejo de autenticación y estado del usuario
+- **`useMediaQuery.js`** - Detección de breakpoints responsive (móvil, tablet, desktop)
+- **`useInactivityTimer.js`** - Timeout automático de sesión para secretaría (10 min)
+- **`useSoftLogout.js`** - Cierre de sesión suave sin pérdida de datos
+
+### Sistema de Logs
+
+Sistema completo de auditoría y logs:
+
+- **`getLogs.js`** - Obtener logs del sistema con filtros
+- **`createLog.js`** - Crear logs de actividad de usuarios
+- Registro de todas las acciones importantes (login, aprobaciones, cambios de rol, etc.)
+- Visualización desde panel de administrador
+
+### Geocodificación y Mapas
+
+Integración completa de mapas interactivos:
+
+- **Leaflet** para renderizado de mapas
+- **Nominatim** para geocodificación de direcciones
+- Marcadores personalizados para vecinos en el mapa
+- Mapa general de la comunidad
+- Componentes client-side para optimización de rendimiento
+
+### Sistema de Reacciones
+
+- Reacciones en noticias (me gusta, me encanta, me divierte, me entristece, me enoja)
+- Contador en tiempo real
+- Base de datos de reacciones por usuario
+- Interfaz visual con emojis
+
+### Gestión de Archivos
+
+Sistema robusto de subida y manejo de archivos:
+
+- **Comprobantes de residencia** (registro de usuarios)
+- **Imágenes de noticias** con compresión automática
+- **Imágenes de avisos**
+- **Documentos de proyectos** (PDFs, imágenes)
+- **Imágenes de proyectos** (galería)
+- Helpers para optimización de imágenes (`imageHelpers.js`)
+- Storage organizado por usuario y tipo de archivo
+
+### Generación de Documentos
+
+- **Certificados de residencia** en PDF con folio automático
+- **Certificados de antigüedad** en PDF
+- **Comprobantes de reserva** para espacios comunitarios
+- Biblioteca **jsPDF** + **jsPDF-AutoTable** para tablas
+- Diseño profesional con logos y firmas
+
+### Editor de Texto Enriquecido
+
+- **React Quill** V2 integrado
+- Inserción de imágenes dentro del contenido
+- Formateo de texto (negrita, cursiva, listas, etc.)
+- Vista previa en tiempo real
+- Usado en noticias y avisos
+
+### Optimizaciones de Rendimiento
+
+- **SWC Minify** para compilación optimizada
+- Formatos de imagen modernos (AVIF, WebP)
+- Headers de seguridad (`X-DNS-Prefetch-Control`, `X-Content-Type-Options`)
+- Componentes lazy loading
+- Client-side rendering estratégico para mapas y editores
+
+---
+
 ## Scripts Disponibles
 
 ```bash
@@ -471,25 +578,35 @@ El diseño utiliza una paleta moderna y profesional:
 
 ## API Routes
 
-### Autenticación
+### Autenticación (`/api/auth`)
 
-- `POST /api/auth/register` - Registro de usuarios
-- `POST /api/auth/login` - Inicio de sesión
-- `POST /api/auth/logout` - Cerrar sesión
-- `GET /api/auth/session` - Obtener sesión actual
+| Método | Ruta | Descripción | Parámetros |
+|--------|------|-------------|------------|
+| `POST` | `/api/auth/register` | Registro de nuevos usuarios | email, password, rut, nombres, apellidos, dirección, teléfono, comprobante |
+| `POST` | `/api/auth/login` | Inicio de sesión con email y contraseña | email, password |
+| `POST` | `/api/auth/login-simple` | Endpoint de testing para login | email, password |
+| `POST` | `/api/auth/logout` | Cerrar sesión del usuario actual | - |
+| `GET` | `/api/auth/session` | Obtener información de sesión actual | - |
 
-### Certificados
+### Certificados (`/api/certificados`)
 
-- `POST /api/certificados/emitir` - Generar certificado PDF
+| Método | Ruta | Descripción | Parámetros |
+|--------|------|-------------|------------|
+| `POST` | `/api/certificados/emitir` | Generar certificado PDF (residencia/antigüedad) | solicitudId, tipo, usuario |
 
-### Emails
+### Emails (`/api/emails`)
 
-- `POST /api/emails/send` - Enviar email individual
-- `POST /api/emails/send-bulk` - Envío masivo
+| Método | Ruta | Descripción | Parámetros |
+|--------|------|-------------|------------|
+| `POST` | `/api/emails/send` | Enviar email individual | to, subject, html, text |
+| `POST` | `/api/emails/send-bulk` | Envío masivo de correos (noticias, avisos) | recipients[], subject, html |
 
-### Seguridad
+### Seguridad (`/api`)
 
-- `POST /api/verify-turnstile` - Validar CAPTCHA
+| Método | Ruta | Descripción | Parámetros |
+|--------|------|-------------|------------|
+| `POST` | `/api/verify-turnstile` | Validar CAPTCHA de Cloudflare Turnstile | token |
+| `GET` | `/api/test` | Endpoint de testing general | - |
 
 ---
 
@@ -611,20 +728,53 @@ Para problemas o preguntas:
 
 ## Changelog Reciente
 
-### Últimas Funcionalidades Agregadas
+### Últimas Funcionalidades Agregadas (Noviembre 2025)
 
-- ✅ Cloudflare Turnstile CAPTCHA en registro
-- ✅ Gestión de directivas en secretaría
-- ✅ Contador de solicitudes y vecinos en tiempo real
-- ✅ Editor de noticias V2 con soporte para insertar imágenes dentro del contenido
-- ✅ Sistema de reacciones (me gusta/no me gusta) en noticias
-- ✅ Notificaciones por email en noticias y avisos
-- ✅ Botón de scroll to top
-- ✅ Optimización de CSS y mejoras de responsividad
-- ✅ Visualización mejorada de comprobantes con signed URLs
-- ✅ Separación de botones Ver/Descargar para comprobantes
-- ✅ Secciones de administrador (logs, reportes, roles, configuración)
-- ✅ Gestión de espacios comunitarios
+#### Seguridad y Autenticación
+- ✅ **Cloudflare Turnstile CAPTCHA** en registro (`/api/verify-turnstile`)
+- ✅ **Timeout automático de sesión** para secretaría (10 min de inactividad)
+- ✅ **Headers de seguridad** en Next.js config
+- ✅ **Signed URLs** para visualización segura de comprobantes
+
+#### Gestión Administrativa
+- ✅ **Gestión de directivas** en secretaría (`/secretaria/directiva`)
+- ✅ **Sistema de logs completo** con auditoría de acciones
+- ✅ **Contadores en tiempo real** de solicitudes y vecinos activos
+- ✅ **Gestión de espacios comunitarios** (quincho, salón, etc.)
+- ✅ **Panel de reportes** para administrador
+- ✅ **Gestión de roles** desde panel admin
+
+#### Comunicación y Contenido
+- ✅ **Editor de noticias V2** (React Quill) con inserción de imágenes en contenido
+- ✅ **Sistema de reacciones** en noticias (me gusta, me encanta, etc.)
+- ✅ **Notificaciones por email** automáticas en noticias y avisos
+- ✅ **Envío masivo de correos** (`/api/emails/send-bulk`)
+- ✅ **Subida de imágenes en avisos**
+
+#### UX y Rendimiento
+- ✅ **Botón Scroll to Top** flotante
+- ✅ **Diseño 100% responsive** con `useMediaQuery` hook
+- ✅ **Optimización de CSS** y variables globales
+- ✅ **Compresión automática de imágenes**
+- ✅ **Landing page** rediseñada y optimizada
+- ✅ **Solución de problemas de caché** con headers anti-cache
+
+#### Certificados y Documentos
+- ✅ **Folio automático** en certificados
+- ✅ **Generación de comprobantes** de reserva
+- ✅ **Separación de botones** Ver/Descargar para mejor UX
+
+#### Funcionalidades de Vecinos
+- ✅ **Mapa interactivo** con marcadores de vecinos
+- ✅ **Geocodificación de direcciones** (Nominatim)
+- ✅ **Inscripciones a actividades** mejoradas
+- ✅ **Sistema de postulaciones** a proyectos con adjuntos
+
+#### Herramientas y Utilidades
+- ✅ **Hooks personalizados**: `useMediaQuery`, `useInactivityTimer`, `useSoftLogout`
+- ✅ **Scripts SQL**: `DELETE_USER.sql`, `CHANGE_EMAIL.sql`
+- ✅ **Componentes reutilizables**: `ScrollToTopButton`, `RichTextEditor`, mapas
+- ✅ **Helpers de storage**: `imageHelpers.js`, `projectAttachments.js`
 
 ---
 
