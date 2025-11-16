@@ -27,7 +27,9 @@ VecindApp es una plataforma web integral diseñada para modernizar la gestión d
 - **🏠 Reservas de espacios** comunes con calendario y gestión de bloques horarios
 - **📢 Sistema de avisos** con prioridades y fechas de vigencia
 - **🗺️ Mapa interactivo** con clustering de marcadores y geocodificación
-- **📧 Notificaciones por email** automatizadas con plantillas profesionales
+- **📧 Notificaciones multi-canal** por email, Telegram y WhatsApp
+- **🤖 Bot de Telegram** con comandos interactivos y notificaciones push
+- **💬 Bot de WhatsApp** con Cloud API para avisos y noticias instantáneas
 - **👥 Gestión de directiva** con contactos y cargos
 - **📊 Panel administrativo** completo con logs, reportes y estadísticas
 - **🤖 Chatbot de ayuda** con IA integrada (OpenAI GPT-4o-mini)
@@ -51,7 +53,9 @@ VecindApp es una plataforma web integral diseñada para modernizar la gestión d
 | **Clustering** | react-leaflet-cluster | 2.1+ | Agrupación de marcadores |
 | **Editor** | Quill (react-quill) | 2.0+ | Editor WYSIWYG para noticias |
 | **PDF** | jsPDF + AutoTable | 3.0+ | Generación de certificados |
-| **Emails** | SendGrid | 8.1+ | Notificaciones automatizadas |
+| **Emails** | SendGrid | 8.1+ | Notificaciones por correo |
+| **Telegram** | node-telegram-bot-api | 0.66+ | Bot de notificaciones Telegram |
+| **WhatsApp** | Meta Cloud API | Latest | Bot de notificaciones WhatsApp |
 | **IA** | OpenAI API | 4.0+ | Chatbot de ayuda con GPT-4o-mini |
 | **Seguridad** | Cloudflare Turnstile | Latest | Protección anti-bots en registro |
 | **Geocoding** | Nominatim OSM | - | Obtención de coordenadas |
@@ -123,7 +127,17 @@ nueva-pagina-vecindapp/
 │   │   ├── auth/                    # Endpoints de autenticación
 │   │   ├── certificados/            # Generación de certificados PDF
 │   │   ├── emails/                  # Envío de correos
+│   │   ├── telegram/                # Webhook y endpoints del bot Telegram
+│   │   │   ├── webhook/             # Recepción de mensajes Telegram
+│   │   │   ├── init/                # Inicialización bot (desarrollo)
+│   │   │   └── reset/               # Reset y reconfiguración
+│   │   ├── whatsapp/                # Webhook y endpoints del bot WhatsApp
+│   │   │   ├── webhook/             # Recepción de mensajes WhatsApp
+│   │   │   ├── noticias/            # Envío de noticias
+│   │   │   └── avisos/              # Envío de avisos
 │   │   ├── chat/                    # Chatbot con OpenAI
+│   │   ├── noticias/publicar/       # Publicación y notificaciones
+│   │   ├── avisos/publicar/         # Publicación y notificaciones
 │   │   └── verify-turnstile/        # Validación de CAPTCHA
 │   ├── pendiente-aprobacion/        # Página de espera post-registro
 │   ├── layout.js                    # Layout raíz con AuthProvider
@@ -147,8 +161,18 @@ nueva-pagina-vecindapp/
 │   │   ├── middleware.js            # Cliente middleware
 │   │   └── admin.js                 # Cliente admin
 │   ├── emails/                      # Sistema de correos
-│   │   ├── sendEmail.js             # 13 funciones de envío
+│   │   ├── sendEmail.js             # Funciones de envío multi-canal
 │   │   └── templates.js             # Plantillas HTML responsive
+│   ├── telegram/                    # Bot de Telegram
+│   │   ├── client.js                # Cliente y API con fetch
+│   │   ├── handlers.js              # Manejadores de comandos
+│   │   ├── notifications.js         # Envío de notificaciones
+│   │   └── commands.js              # Registro de comandos (dev)
+│   ├── whatsapp/                    # Bot de WhatsApp
+│   │   ├── client.js                # Cliente Cloud API
+│   │   └── notifications.js         # Envío de notificaciones
+│   ├── notifications/               # Sistema unificado
+│   │   └── preferences.js           # Gestión de preferencias
 │   ├── pdf/                         # Generación de PDFs
 │   │   └── generarCertificado.js    # Certificados con marca de agua
 │   ├── storage/                     # Gestión de archivos
@@ -173,6 +197,10 @@ nueva-pagina-vecindapp/
 ├── 📄 README.md                     # Este archivo
 ├── 📄 SETUP-ENV.md                  # Guía de configuración de entorno
 ├── 📄 NOTIFICACIONES-EMAIL.md       # Configuración de correos
+├── 📄 TELEGRAM-SETUP.md             # Configuración bot Telegram
+├── 📄 TELEGRAM-PRODUCTION.md        # Deploy Telegram en producción
+├── 📄 TELEGRAM-VERCEL-DEBUG.md      # Debug Telegram en Vercel
+├── 📄 WHATSAPP-SETUP.md             # Configuración bot WhatsApp
 ├── 📄 TURNSTILE-SETUP.md            # Configuración de CAPTCHA
 └── 📄 INSTRUCCIONES-*.md            # Guías de funcionalidades específicas
 ```
@@ -187,6 +215,8 @@ nueva-pagina-vecindapp/
 - Cuenta en [SendGrid](https://sendgrid.com) (Opcional - para emails)
 - Cuenta en [Cloudflare](https://cloudflare.com) (Opcional - para Turnstile)
 - Cuenta en [OpenAI](https://platform.openai.com) (Opcional - para chatbot IA)
+- Bot de [Telegram](https://t.me/botfather) (Opcional - para notificaciones Telegram)
+- Cuenta en [Meta for Developers](https://developers.facebook.com) (Opcional - para WhatsApp Business)
 
 ---
 
@@ -221,10 +251,22 @@ EMAIL_SERVICE_ENABLED=false  # true para activar envío real
 
 # OpenAI (Opcional - para chatbot IA)
 OPENAI_API_KEY=sk-tu-api-key
+OPENAI_CHAT_MODEL=gpt-4o-mini
 
 # Cloudflare Turnstile (Opcional - para CAPTCHA)
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=tu-site-key
 TURNSTILE_SECRET_KEY=tu-secret-key
+
+# Telegram Bot (Opcional - para notificaciones)
+TELEGRAM_BOT_TOKEN=tu-bot-token
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=tu_bot_username
+
+# WhatsApp Business (Opcional - para notificaciones)
+WHATSAPP_ACCESS_TOKEN=tu-access-token
+WHATSAPP_PHONE_NUMBER_ID=tu-phone-id
+WHATSAPP_VERIFY_TOKEN=tu-verify-token
+WHATSAPP_API_VERSION=v18.0
+NEXT_PUBLIC_WHATSAPP_NUMBER=+56912345678
 
 # URL del sitio
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -255,6 +297,10 @@ Para guías paso a paso completas, consulta:
 
 - **[SETUP-ENV.md](./SETUP-ENV.md)** - Configuración completa de variables de entorno
 - **[NOTIFICACIONES-EMAIL.md](./NOTIFICACIONES-EMAIL.md)** - Sistema de correos con SendGrid
+- **[TELEGRAM-SETUP.md](./TELEGRAM-SETUP.md)** - Configuración del bot de Telegram
+- **[TELEGRAM-PRODUCTION.md](./TELEGRAM-PRODUCTION.md)** - Deploy de Telegram en Vercel
+- **[TELEGRAM-VERCEL-DEBUG.md](./TELEGRAM-VERCEL-DEBUG.md)** - Troubleshooting Telegram en producción
+- **[WHATSAPP-SETUP.md](./WHATSAPP-SETUP.md)** - Configuración del bot de WhatsApp
 - **[TURNSTILE-SETUP.md](./TURNSTILE-SETUP.md)** - Protección anti-spam con Cloudflare
 - **[INSTRUCCIONES-MAPA-VECINOS.md](./INSTRUCCIONES-MAPA-VECINOS.md)** - Configuración del mapa
 - **[INSTRUCCIONES-STORAGE-NOTICIAS.md](./INSTRUCCIONES-STORAGE-NOTICIAS.md)** - Storage de imágenes
@@ -450,21 +496,63 @@ Para guías paso a paso completas, consulta:
 - [x] Lugares de interés cercanos
 - [x] Integración con configuración de la organización
 
-### 📧 Sistema de Correos
+### 📧 Sistema de Notificaciones Multi-Canal
 
+#### Email (SendGrid)
 - [x] Integración completa con SendGrid
 - [x] 13 tipos de notificaciones diferentes
 - [x] Plantillas HTML responsive profesionales
-- [x] Notificación de aprobación de registro
-- [x] Notificación de rechazo de registro
-- [x] Notificación de aprobación de solicitud
-- [x] Notificación de rechazo de solicitud
-- [x] Notificación de aprobación de reserva
-- [x] Notificación de rechazo de reserva
-- [x] Modo desarrollo (logs en consola, sin envío real)
+- [x] Notificación de aprobación/rechazo de registro
+- [x] Notificación de aprobación/rechazo de solicitudes
+- [x] Notificación de aprobación/rechazo de reservas
+- [x] Notificación de nuevas noticias y avisos
+- [x] Modo desarrollo (logs en consola)
 - [x] Modo producción (envío real vía SendGrid)
 - [x] Gestión de errores y reintentos
-- [x] Variables de entorno configurables
+
+#### Bot de Telegram
+- [x] Integración con node-telegram-bot-api
+- [x] Modo polling para desarrollo (local)
+- [x] Modo webhook para producción (Vercel)
+- [x] Comandos interactivos:
+  - `/start` - Mensaje de bienvenida
+  - `/ayuda` - Lista de comandos disponibles
+  - `/vincular [RUT]` - Vincular cuenta de usuario
+  - `/perfil` - Ver información personal
+  - `/noticias` - Ver últimas 2 noticias
+  - `/avisos` - Ver avisos activos
+  - `/desvincular` - Desactivar notificaciones
+- [x] Notificaciones push automáticas:
+  - Nuevas noticias publicadas
+  - Nuevos avisos importantes
+  - Aprobación de reservas
+- [x] Sistema de preferencias de notificación
+- [x] Componente TelegramConnect para vincular
+- [x] Manejo de errores y timeouts
+- [x] Optimizado para funciones serverless
+
+#### Bot de WhatsApp (Cloud API)
+- [x] Integración con Meta Cloud API (WhatsApp Business)
+- [x] Webhook para recibir mensajes
+- [x] Comandos de texto:
+  - `VINCULAR [RUT]` - Vincular cuenta
+  - `NOTICIAS` - Ver últimas noticias
+  - `AVISOS` - Ver avisos activos
+  - `PERFIL` - Ver información personal
+  - `AYUDA` - Lista de comandos
+  - `DESVINCULAR` - Desactivar notificaciones
+- [x] Notificaciones push automáticas
+- [x] Mensajes formateados con Markdown
+- [x] Sistema de preferencias combinadas (email+telegram+whatsapp)
+- [x] Validación de números de WhatsApp
+- [x] Gestión de opt-in/opt-out
+
+#### Sistema Unificado
+- [x] Gestión centralizada de preferencias
+- [x] Soporte multi-canal (email, telegram, whatsapp, o combinaciones)
+- [x] Envío paralelo a canales configurados
+- [x] Estadísticas de envío por canal
+- [x] Rate limiting para evitar bloqueos
 
 ### 🤖 Chatbot con IA
 
@@ -542,6 +630,10 @@ Para guías paso a paso completas, consulta:
 - **estado** (pendiente_aprobacion | activo | rechazado | inactivo)
 - **comprobante_url** (TEXT)
 - **foto_url** (TEXT)
+- **telegram_chat_id** (TEXT) - ID de chat de Telegram
+- **whatsapp_phone** (TEXT) - Número de WhatsApp
+- **whatsapp_opt_in** (BOOLEAN) - Consentimiento WhatsApp
+- **preferencia_notificacion** (TEXT) - Canal preferido (email, telegram, whatsapp, combinaciones)
 - **created_at**, **updated_at** (TIMESTAMP)
 
 #### `solicitudes`
@@ -705,10 +797,19 @@ npm install          # Instalar dependencias
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 SENDGRID_API_KEY=...
 SENDGRID_FROM_EMAIL=...
 EMAIL_SERVICE_ENABLED=true
+TELEGRAM_BOT_TOKEN=...
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=...
+WHATSAPP_ACCESS_TOKEN=...
+WHATSAPP_PHONE_NUMBER_ID=...
+WHATSAPP_VERIFY_TOKEN=...
+WHATSAPP_API_VERSION=v18.0
+NEXT_PUBLIC_WHATSAPP_NUMBER=+56...
 OPENAI_API_KEY=...
+OPENAI_CHAT_MODEL=gpt-4o-mini
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
 TURNSTILE_SECRET_KEY=...
@@ -758,4 +859,4 @@ Proyecto desarrollado como parte del proyecto Capstone semestral.
 
 ---
 
-**Última actualización:** Diciembre 2024
+**Última actualización:** Noviembre 2024 - v2.0 (Sistema de notificaciones multi-canal)

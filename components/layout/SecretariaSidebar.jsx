@@ -209,6 +209,24 @@ export default function SecretariaSidebar({ isOpen = true, onClose }) {
 
       <div className="nav-divider"></div>
 
+      <div className="nav-section-title">Finanzas</div>
+      <Link
+        href="/secretaria/finanzas"
+        className={`nav-link ${pathname?.startsWith('/secretaria/finanzas') && pathname !== '/secretaria/finanzas/transacciones' ? 'active' : ''}`}
+        onClick={handleLinkClick}
+      >
+        <i className="bi bi-cash-stack me-2"></i>Dashboard Financiero
+      </Link>
+      <Link
+        href="/secretaria/finanzas/transacciones"
+        className={`nav-link ${pathname?.startsWith('/secretaria/finanzas/transacciones') ? 'active' : ''}`}
+        onClick={handleLinkClick}
+      >
+        <i className="bi bi-list-ul me-2"></i>Transacciones
+      </Link>
+
+      <div className="nav-divider"></div>
+
       <div className="nav-section-title">Configuración</div>
       <Link
         href="/secretaria/configuracion"

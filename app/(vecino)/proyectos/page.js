@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import BalanceWidget from '@/components/finanzas/BalanceWidget';
 
 export default function ProyectosPage() {
   const [proyectos, setProyectos] = useState([]);
@@ -118,6 +119,13 @@ export default function ProyectosPage() {
           <strong>Error:</strong> {error}
         </div>
       )}
+
+      {/* Widget de Balance - Ayuda a evaluar presupuesto al postular */}
+      <div className="row mb-4">
+        <div className="col-lg-6 mx-auto">
+          <BalanceWidget />
+        </div>
+      </div>
 
       {/* Filtro y Acciones */}
       <div className="card shadow-sm border-0 mb-5 vecino-card">
