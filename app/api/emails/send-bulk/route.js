@@ -158,12 +158,38 @@ export async function POST(request) {
           email: process.env.SENDGRID_FROM_EMAIL,
           name: 'VecindApp - Junta de Vecinos'
         },
+        replyTo: process.env.SENDGRID_FROM_EMAIL, // Para que puedan responder
         subject: plantilla.asunto,
         text: plantilla.texto,
         html: plantilla.html,
+        // Headers anti-spam
+        headers: {
+          'X-Entity-Ref-ID': `vecindapp-${tipo}-${Date.now()}`,
+          'List-Unsubscribe': `<${baseURL}/perfil>`, // Link para darse de baja
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+        },
+        // Categorías para analytics de SendGrid
+        categories: [tipo, 'notificacion-vecinal'],
         customArgs: {
           usuario_id: vecino.id,
-          indice_envio: index
+          indice_envio: index,
+          tipo_notificacion: tipo
+        },
+        // Tracking (desactiva si quieres menos señales de spam)
+        trackingSettings: {
+          clickTracking: {
+            enable: false, // Desactivar tracking de clicks reduce score de spam
+            enableText: false
+          },
+          openTracking: {
+            enable: false // Desactivar tracking de aperturas reduce score de spam
+          },
+          subscriptionTracking: {
+            enable: true,
+            text: 'Si no deseas recibir estos correos, puedes actualizar tus preferencias en tu perfil.',
+            html: '<p>Si no deseas recibir estos correos, puedes <a href="' + baseURL + '/perfil">actualizar tus preferencias</a>.</p>',
+            substitutionTag: '<%unsubscribe%>'
+          }
         }
       };
     });
