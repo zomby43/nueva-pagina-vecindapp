@@ -15,11 +15,13 @@ export async function middleware(request) {
   const { supabaseResponse, user, userProfile } = await updateSession(request);
 
   // Rutas públicas que no requieren autenticación
-  const publicRoutes = ['/', '/login', '/register'];
+  const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
   const isPublicRoute = publicRoutes.includes(path);
 
   // Rutas de autenticación
-  const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
+  const authRoutes = ['/login', '/register', '/forgot-password'];
+  const isAuthRoute = authRoutes.some(route => path.startsWith(route));
+  const isPasswordResetRoute = path.startsWith('/reset-password');
 
   // ==========================================
   // 1. VERIFICAR SESIÓN EXPIRADA (SECRETARÍA)
@@ -61,7 +63,7 @@ export async function middleware(request) {
   // ==========================================
   // 2. REDIRECCIÓN SI USUARIO LOGUEADO ACCEDE A AUTH PAGES
   // ==========================================
-  if (user && userProfile && isAuthRoute) {
+  if (user && userProfile && isAuthRoute && !isPasswordResetRoute) {
     // Si está pendiente de aprobación, permitir acceso a pendiente-aprobacion
     if (userProfile.estado === 'pendiente_aprobacion') {
       const response = NextResponse.redirect(new URL('/pendiente-aprobacion', request.url));

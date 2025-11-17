@@ -95,6 +95,11 @@ export default function LoginPage() {
                 <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
               </button>
             </div>
+            <div className="text-end mt-2">
+              <Link href="/forgot-password" className="text-decoration-none" style={{ fontSize: '0.9rem', color: '#2c5f7d' }}>
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
           </div>
 
           <button type="submit" className="btn btn-primary w-100 mb-3" disabled={loading}>
