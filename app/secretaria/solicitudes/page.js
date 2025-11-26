@@ -288,11 +288,11 @@ export default function SecretariaSolicitudesPage() {
             <p className="text-muted">Administrar solicitudes de certificados de vecinos</p>
           </div>
           <button
-            className="btn btn-outline-primary"
+            className="btn btn-primary"
             onClick={fetchSolicitudes}
             disabled={loading}
           >
-            🔄 Actualizar
+            <i className="bi bi-arrow-clockwise me-2"></i>Actualizar
           </button>
         </div>
       </div>
@@ -391,7 +391,9 @@ export default function SecretariaSolicitudesPage() {
           <div className="card-body">
             {solicitudesFiltradas.length === 0 ? (
               <div className="empty-state text-center py-5">
-                <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>📋</div>
+                <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>
+                  <i className="bi bi-clipboard-x text-muted"></i>
+                </div>
                 <h5>No hay solicitudes</h5>
                 <p className="text-muted">
                   {filtroEstado === 'todos'
@@ -401,16 +403,16 @@ export default function SecretariaSolicitudesPage() {
               </div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
+                <table className="table table-hover align-middle">
+                  <thead className="table-light">
                     <tr>
-                      <th>ID</th>
-                      <th>Vecino</th>
-                      <th>Tipo</th>
-                      <th>Motivo</th>
-                      <th>Fecha Solicitud</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
+                      <th className="fw-bold">ID</th>
+                      <th className="fw-bold">Vecino</th>
+                      <th className="fw-bold">Tipo</th>
+                      <th className="fw-bold">Motivo</th>
+                      <th className="fw-bold">Fecha Solicitud</th>
+                      <th className="fw-bold">Estado</th>
+                      <th className="fw-bold">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -429,26 +431,28 @@ export default function SecretariaSolicitudesPage() {
                         }
                       >
                         <td>
-                          <code>#{solicitud.id.substring(0, 8)}</code>
+                          <code className="bg-light px-2 py-1 rounded text-dark fw-bold">
+                            #{solicitud.id.substring(0, 8)}
+                          </code>
                         </td>
                         <td>
                           <div>
-                            <div className="fw-medium">
+                            <div className="fw-bold text-dark">
                               {solicitud.usuario ? `${solicitud.usuario.nombres} ${solicitud.usuario.apellidos}` : 'Sin nombre'}
                             </div>
-                            <small className="text-muted">
+                            <small className="text-secondary">
                               {solicitud.usuario?.rut || 'Sin RUT'}
                             </small>
                           </div>
                         </td>
                         <td>
-                          <strong>{getTipoTexto(solicitud.tipo)}</strong>
+                          <span className="fw-bold text-dark">{getTipoTexto(solicitud.tipo)}</span>
                         </td>
                         <td>
                           <div>
-                            <div className="fw-medium">{solicitud.motivo}</div>
+                            <div className="fw-medium text-dark">{solicitud.motivo}</div>
                             {solicitud.observaciones && (
-                              <small className="text-muted">
+                              <small className="text-secondary">
                                 {solicitud.observaciones.length > 30
                                   ? `${solicitud.observaciones.substring(0, 30)}...`
                                   : solicitud.observaciones}
@@ -457,7 +461,9 @@ export default function SecretariaSolicitudesPage() {
                           </div>
                         </td>
                         <td>
-                          <small>{formatearFecha(solicitud.fecha_solicitud)}</small>
+                          <span className="text-dark" style={{ fontSize: '0.9rem' }}>
+                            {formatearFecha(solicitud.fecha_solicitud)}
+                          </span>
                         </td>
                         <td>
                           <span className={`badge ${getEstadoBadge(solicitud.estado)}`}>
@@ -469,63 +475,94 @@ export default function SecretariaSolicitudesPage() {
                             {solicitud.estado === 'pendiente' && (
                               <>
                                 <button
-                                  className="btn btn-outline-info"
+                                  className="btn btn-info text-white"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'en_proceso')}
                                   disabled={procesandoId === solicitud.id}
+                                  title="Marcar como en proceso"
                                 >
-                                  {procesandoId === solicitud.id ? '⏳' : '📝'} Procesar
+                                  {procesandoId === solicitud.id ? (
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                  ) : (
+                                    <i className="bi bi-pencil-square me-1"></i>
+                                  )}
+                                  Procesar
                                 </button>
                                 <button
-                                  className="btn btn-outline-success"
+                                  className="btn btn-success text-white"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'completado')}
                                   disabled={procesandoId === solicitud.id}
+                                  title="Aprobar solicitud"
                                 >
-                                  {procesandoId === solicitud.id ? '⏳' : '✅'} Aprobar
+                                  {procesandoId === solicitud.id ? (
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                  ) : (
+                                    <i className="bi bi-check-circle me-1"></i>
+                                  )}
+                                  Aprobar
                                 </button>
                                 <button
-                                  className="btn btn-outline-danger"
+                                  className="btn btn-danger text-white"
                                   onClick={() => {
                                     if (confirm('¿Estás segura de rechazar esta solicitud?')) {
                                       cambiarEstadoSolicitud(solicitud.id, 'rechazado');
                                     }
                                   }}
                                   disabled={procesandoId === solicitud.id}
+                                  title="Rechazar solicitud"
                                 >
-                                  {procesandoId === solicitud.id ? '⏳' : '❌'} Rechazar
+                                  {procesandoId === solicitud.id ? (
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                  ) : (
+                                    <i className="bi bi-x-circle me-1"></i>
+                                  )}
+                                  Rechazar
                                 </button>
                               </>
                             )}
                             {solicitud.estado === 'en_proceso' && (
                               <>
                                 <button
-                                  className="btn btn-outline-success"
+                                  className="btn btn-success text-white"
                                   onClick={() => cambiarEstadoSolicitud(solicitud.id, 'completado')}
                                   disabled={procesandoId === solicitud.id}
+                                  title="Completar solicitud"
                                 >
-                                  {procesandoId === solicitud.id ? '⏳' : '✅'} Completar
+                                  {procesandoId === solicitud.id ? (
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                  ) : (
+                                    <i className="bi bi-check-circle me-1"></i>
+                                  )}
+                                  Completar
                                 </button>
                                 <button
-                                  className="btn btn-outline-danger"
+                                  className="btn btn-danger text-white"
                                   onClick={() => {
                                     if (confirm('¿Estás segura de rechazar esta solicitud?')) {
                                       cambiarEstadoSolicitud(solicitud.id, 'rechazado');
                                     }
                                   }}
                                   disabled={procesandoId === solicitud.id}
+                                  title="Rechazar solicitud"
                                 >
-                                  {procesandoId === solicitud.id ? '⏳' : '❌'} Rechazar
+                                  {procesandoId === solicitud.id ? (
+                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                  ) : (
+                                    <i className="bi bi-x-circle me-1"></i>
+                                  )}
+                                  Rechazar
                                 </button>
                               </>
                             )}
                             {(solicitud.estado === 'completado' || solicitud.estado === 'rechazado') && (
                               <button
-                                className="btn btn-outline-primary"
+                                className="btn btn-primary text-white"
                                 onClick={() => {
                                   setSolicitudSeleccionada(solicitud);
                                   setMostrarModal(true);
                                 }}
+                                title="Ver detalles completos"
                               >
-                                👁️ Ver Detalles
+                                <i className="bi bi-eye me-1"></i>Ver Detalles
                               </button>
                             )}
                           </div>
@@ -542,25 +579,33 @@ export default function SecretariaSolicitudesPage() {
         {/* Información adicional */}
         <div className="row mt-4">
           <div className="col-md-6">
-            <div className="info-card">
-              <h6>📋 Estados de Solicitudes</h6>
-              <ul className="list-unstyled">
-                <li><span className="badge bg-secondary me-2">Pendiente</span>Solicitud recién creada</li>
-                <li><span className="badge bg-warning text-dark me-2">En Proceso</span>Siendo revisada</li>
-                <li><span className="badge bg-success me-2">Completado</span>Certificado listo</li>
-                <li><span className="badge bg-danger me-2">Rechazado</span>Solicitud rechazada</li>
-              </ul>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <h6 className="card-title mb-3">
+                  <i className="bi bi-info-circle me-2 text-primary"></i>Estados de Solicitudes
+                </h6>
+                <ul className="list-unstyled mb-0">
+                  <li className="mb-2"><span className="badge bg-secondary me-2">Pendiente</span>Solicitud recién creada</li>
+                  <li className="mb-2"><span className="badge bg-warning text-dark me-2">En Proceso</span>Siendo revisada</li>
+                  <li className="mb-2"><span className="badge bg-success me-2">Completado</span>Certificado listo</li>
+                  <li className="mb-0"><span className="badge bg-danger me-2">Rechazado</span>Solicitud rechazada</li>
+                </ul>
+              </div>
             </div>
           </div>
           <div className="col-md-6">
-            <div className="info-card">
-              <h6>⚡ Acciones Rápidas</h6>
-              <ul className="list-unstyled">
-                <li>• <strong>Procesar:</strong> Cambiar a "En Proceso"</li>
-                <li>• <strong>Aprobar:</strong> Marcar como "Completado"</li>
-                <li>• <strong>Rechazar:</strong> Marcar como "Rechazado"</li>
-                <li>• <strong>Ver Detalles:</strong> Información completa</li>
-              </ul>
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <h6 className="card-title mb-3">
+                  <i className="bi bi-lightning-charge me-2 text-primary"></i>Acciones Rápidas
+                </h6>
+                <ul className="list-unstyled mb-0">
+                  <li className="mb-2"><i className="bi bi-pencil-square text-info me-2"></i><strong>Procesar:</strong> Cambiar a "En Proceso"</li>
+                  <li className="mb-2"><i className="bi bi-check-circle text-success me-2"></i><strong>Aprobar:</strong> Marcar como "Completado"</li>
+                  <li className="mb-2"><i className="bi bi-x-circle text-danger me-2"></i><strong>Rechazar:</strong> Marcar como "Rechazado"</li>
+                  <li className="mb-0"><i className="bi bi-eye text-primary me-2"></i><strong>Ver Detalles:</strong> Información completa</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -591,7 +636,9 @@ export default function SecretariaSolicitudesPage() {
 
                 {/* Información del Vecino */}
                 <div className="mb-4">
-                  <h6 className="mb-3">👤 Información del Vecino</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-person-fill me-2 text-primary"></i>Información del Vecino
+                  </h6>
                   <div className="row">
                     <div className="col-md-6">
                       <p className="mb-2">
@@ -627,7 +674,9 @@ export default function SecretariaSolicitudesPage() {
 
                 {/* Detalles de la Solicitud */}
                 <div className="mb-4">
-                  <h6 className="mb-3">📋 Detalles de la Solicitud</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-clipboard-check me-2 text-primary"></i>Detalles de la Solicitud
+                  </h6>
                   <p className="mb-2">
                     <strong>Tipo de Certificado:</strong><br />
                     <span className="text-muted">{getTipoTexto(solicitudSeleccionada.tipo)}</span>
@@ -647,7 +696,9 @@ export default function SecretariaSolicitudesPage() {
 
                 {/* Fechas */}
                 <div className="mb-4">
-                  <h6 className="mb-3">📅 Fechas</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-calendar3 me-2 text-primary"></i>Fechas
+                  </h6>
                   <div className="row">
                     <div className="col-md-6">
                       <p className="mb-2">
@@ -669,7 +720,9 @@ export default function SecretariaSolicitudesPage() {
 
                 {/* Información adicional */}
                 <div className="mb-3">
-                  <h6 className="mb-3">ℹ️ Información Adicional</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-info-circle me-2 text-primary"></i>Información Adicional
+                  </h6>
                   <p className="mb-2">
                     <strong>ID de Solicitud:</strong><br />
                     <code>{solicitudSeleccionada.id}</code>
@@ -695,11 +748,11 @@ export default function SecretariaSolicitudesPage() {
                       }
                     }}
                   >
-                    📄 Descargar Certificado
+                    <i className="bi bi-file-earmark-pdf me-2"></i>Descargar Certificado
                   </button>
                 )}
                 <button type="button" className="btn btn-secondary" onClick={() => { setMostrarModal(false); clearQuery(); }}>
-                  Cerrar
+                  <i className="bi bi-x-lg me-2"></i>Cerrar
                 </button>
               </div>
             </div>

@@ -81,16 +81,18 @@ export default function BalanceWidget() {
         </div>
 
         <div className="text-center py-3">
-          <h2 className="display-4 fw-bold text-success mb-0">
+          <h2 className="display-4 fw-bold mb-0" style={{ color: '#00a86b' }}>
             {formatCurrency(balance)}
           </h2>
         </div>
 
         <div className="mt-3 pt-3 border-top">
-          <small className="text-muted d-flex align-items-center justify-content-center">
-            <i className="bi bi-info-circle me-2"></i>
-            Este balance te ayuda a evaluar el presupuesto al proponer proyectos
-          </small>
+          <div className="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 p-3 rounded">
+            <i className="bi bi-info-circle me-2 text-primary fs-5"></i>
+            <span className="text-dark fw-medium" style={{ fontSize: '0.95rem' }}>
+              Este balance te ayuda a evaluar el presupuesto al proponer proyectos
+            </span>
+          </div>
         </div>
       </div>
     </div>

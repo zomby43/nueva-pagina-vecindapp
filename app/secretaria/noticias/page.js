@@ -251,14 +251,14 @@ export default function SecretariaNoticiasPage() {
           </div>
           <div className="d-flex gap-2">
             <button
-              className="btn btn-outline-primary"
+              className="btn btn-primary"
               onClick={fetchNoticias}
               disabled={loading}
             >
-              🔄 Actualizar
+              <i className="bi bi-arrow-clockwise me-2"></i>Actualizar
             </button>
             <Link href="/secretaria/noticias/nueva" className="btn btn-primary">
-              ➕ Nueva Noticia
+              <i className="bi bi-plus-circle me-2"></i>Nueva Noticia
             </Link>
           </div>
         </div>
@@ -369,11 +369,11 @@ export default function SecretariaNoticiasPage() {
           <div className="card-body">
             {noticiasFiltradas.length === 0 ? (
               <div className="empty-state text-center py-5">
-                <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>📰</div>
+                <i className="bi bi-newspaper d-block text-muted mb-3" style={{ fontSize: '3rem' }}></i>
                 <h5>No hay noticias</h5>
                 <p className="text-muted">Crea tu primera noticia para comunicarte con los vecinos</p>
                 <Link href="/secretaria/noticias/nueva" className="btn btn-primary">
-                  ➕ Nueva Noticia
+                  <i className="bi bi-plus-circle me-2"></i>Nueva Noticia
                 </Link>
               </div>
             ) : (
@@ -404,7 +404,7 @@ export default function SecretariaNoticiasPage() {
                             </div>
                           ) : (
                             <div style={{ width: '60px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                              <span style={{ fontSize: '1.2rem', color: '#999' }}>📰</span>
+                              <i className="bi bi-newspaper" style={{ fontSize: '1.2rem', color: '#999' }}></i>
                             </div>
                           )}
                         </td>
@@ -435,45 +435,49 @@ export default function SecretariaNoticiasPage() {
                         </td>
                         <td>
                           <button
-                            className={`btn btn-sm ${noticia.destacado ? 'btn-warning' : 'btn-outline-secondary'}`}
+                            className={`btn btn-sm ${noticia.destacado ? 'btn-warning text-white' : 'btn-secondary text-white'}`}
                             onClick={() => toggleDestacado(noticia.id, noticia.destacado)}
                             title={noticia.destacado ? 'Quitar destacado' : 'Marcar como destacado'}
                           >
-                            {noticia.destacado ? '⭐' : '☆'}
+                            <i className={`bi ${noticia.destacado ? 'bi-star-fill' : 'bi-star'}`}></i>
                           </button>
                         </td>
                         <td>
                           <div className="btn-group btn-group-sm">
                             <Link
                               href={`/secretaria/noticias/editar/${noticia.id}`}
-                              className="btn btn-outline-primary"
+                              className="btn btn-primary text-white"
+                              title="Editar noticia"
                             >
-                              ✏️ Editar
+                              <i className="bi bi-pencil-fill me-1"></i>Editar
                             </Link>
                             {noticia.estado === 'borrador' && (
                               <button
-                                className="btn btn-outline-success"
+                                className="btn btn-success text-white"
                                 onClick={() => cambiarEstadoNoticia(noticia.id, 'publicado')}
+                                title="Publicar noticia"
                               >
-                                📢 Publicar
+                                <i className="bi bi-megaphone me-1"></i>Publicar
                               </button>
                             )}
                             {noticia.estado === 'publicado' && (
                               <button
-                                className="btn btn-outline-warning"
+                                className="btn btn-warning text-white"
                                 onClick={() => cambiarEstadoNoticia(noticia.id, 'archivado')}
+                                title="Archivar noticia"
                               >
-                                📦 Archivar
+                                <i className="bi bi-archive me-1"></i>Archivar
                               </button>
                             )}
                             <button
-                              className="btn btn-outline-danger"
+                              className="btn btn-danger text-white"
                               onClick={() => {
                                 setNoticiaSeleccionada(noticia);
                                 setMostrarModalEliminar(true);
                               }}
+                              title="Eliminar noticia"
                             >
-                              🗑️ Eliminar
+                              <i className="bi bi-trash-fill me-1"></i>Eliminar
                             </button>
                           </div>
                         </td>

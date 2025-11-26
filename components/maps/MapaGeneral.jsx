@@ -11,6 +11,9 @@ const MarkerClusterGroup = dynamic(
   { ssr: false }
 );
 
+// Variable global para L (Leaflet)
+let L;
+
 /**
  * Mapa general que muestra todos los vecinos del barrio
  * Permite ver la distribución geográfica de los vecinos
@@ -19,6 +22,23 @@ const MarkerClusterGroup = dynamic(
 export default function MapaGeneral({ vecinos, onVerDetalles }) {
   const [center, setCenter] = useState([-33.4489, -70.6693]); // Santiago por defecto
   const [zoom, setZoom] = useState(13);
+  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
+
+  // Cargar Leaflet en el cliente
+  useEffect(() => {
+    const loadLeaflet = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const leaflet = await import('leaflet');
+          L = leaflet.default || leaflet;
+          setIsLeafletLoaded(true);
+        } catch (error) {
+          console.error('Error loading Leaflet:', error);
+        }
+      }
+    };
+    loadLeaflet();
+  }, []);
 
   // Calcular el centro del mapa basándose en los vecinos con coordenadas
   useEffect(() => {
@@ -100,7 +120,7 @@ export default function MapaGeneral({ vecinos, onVerDetalles }) {
       </div>
 
       {/* Mapa interactivo */}
-      {vecinosConCoordenadas.length > 0 ? (
+      {vecinosConCoordenadas.length > 0 && isLeafletLoaded ? (
         <MapContainer
           key={mapKey}
           center={center}
@@ -114,6 +134,8 @@ export default function MapaGeneral({ vecinos, onVerDetalles }) {
             showCoverageOnHover={false}
             zoomToBoundsOnClick={true}
             iconCreateFunction={(cluster) => {
+              if (!L) return null;
+
               const count = cluster.getChildCount();
               let size = 'small';
               let colorClass = 'cluster-small';
@@ -142,7 +164,7 @@ export default function MapaGeneral({ vecinos, onVerDetalles }) {
             ))}
           </MarkerClusterGroup>
         </MapContainer>
-      ) : (
+      ) : vecinosConCoordenadas.length === 0 ? (
         <div className="empty-map" style={{
           width: '100%',
           height: '400px',
@@ -162,6 +184,24 @@ export default function MapaGeneral({ vecinos, onVerDetalles }) {
               Los vecinos necesitan tener coordenadas geográficas para aparecer en el mapa.
               Las coordenadas se obtienen automáticamente de sus direcciones.
             </p>
+          </div>
+        </div>
+      ) : (
+        <div className="map-loading" style={{
+          width: '100%',
+          height: '600px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f4f8f9',
+          borderRadius: '12px',
+          border: '2px solid #bfd3d9'
+        }}>
+          <div className="text-center">
+            <div className="spinner-border text-primary mb-2" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+            <p className="text-muted">Cargando mapa...</p>
           </div>
         </div>
       )}

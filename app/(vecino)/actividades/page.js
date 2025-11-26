@@ -162,7 +162,7 @@ export default function ActividadesPage() {
           <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
               <div className="vecino-text-lg fw-bold text-primary" style={{ fontSize: '2.5rem' }}>{actividadesFiltradas.length}</div>
-              <span className="text-muted vecino-text-sm">Total Actividades</span>
+              <span className="text-dark fw-semibold vecino-text-sm">Total Actividades</span>
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function ActividadesPage() {
           <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
               <div className="vecino-text-lg fw-bold" style={{ color: '#0dcaf0', fontSize: '2.5rem' }}>{actividadesPublicadas.length}</div>
-              <span className="text-muted vecino-text-sm">Publicadas</span>
+              <span className="text-dark fw-semibold vecino-text-sm">Publicadas</span>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function ActividadesPage() {
           <div className="card border-0 shadow-sm text-center vecino-card">
             <div className="card-body py-4">
               <div className="vecino-text-lg fw-bold text-success" style={{ fontSize: '2.5rem' }}>{actividadesEnCurso.length}</div>
-              <span className="text-muted vecino-text-sm">En Curso</span>
+              <span className="text-dark fw-semibold vecino-text-sm">En Curso</span>
             </div>
           </div>
         </div>

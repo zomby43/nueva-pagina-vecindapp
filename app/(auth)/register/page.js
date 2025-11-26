@@ -160,6 +160,7 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             nombres: formData.nombres,
             apellidos: formData.apellidos,

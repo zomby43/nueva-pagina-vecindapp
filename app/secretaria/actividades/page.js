@@ -98,27 +98,27 @@ export default function SecretariaActividadesPage() {
 
   const getEstadoBadge = (estado) => {
     const badges = {
-      borrador: { bg: '#6c757d', text: 'white', label: '📝 Borrador' },
-      publicada: { bg: '#0dcaf0', text: 'white', label: '📢 Publicada' },
-      en_curso: { bg: '#198754', text: 'white', label: '🔄 En Curso' },
-      finalizada: { bg: '#6c757d', text: 'white', label: '✅ Finalizada' },
-      cancelada: { bg: '#dc3545', text: 'white', label: '❌ Cancelada' }
+      borrador: { bg: '#6c757d', text: 'white', label: 'Borrador', icon: 'bi-file-earmark' },
+      publicada: { bg: '#0dcaf0', text: 'white', label: 'Publicada', icon: 'bi-megaphone' },
+      en_curso: { bg: '#198754', text: 'white', label: 'En Curso', icon: 'bi-arrow-repeat' },
+      finalizada: { bg: '#6c757d', text: 'white', label: 'Finalizada', icon: 'bi-check-circle' },
+      cancelada: { bg: '#dc3545', text: 'white', label: 'Cancelada', icon: 'bi-x-circle' }
     };
-    return badges[estado] || { bg: '#6c757d', text: 'white', label: estado };
+    return badges[estado] || { bg: '#6c757d', text: 'white', label: estado, icon: 'bi-circle' };
   };
 
-  const getCategoriaTexto = (categoria) => {
-    const textos = {
-      deportiva: '⚽ Deportiva',
-      cultural: '🎨 Cultural',
-      educativa: '📚 Educativa',
-      social: '🤝 Social',
-      ambiental: '🌱 Ambiental',
-      salud: '❤️ Salud',
-      recreativa: '🎉 Recreativa',
-      otro: '📌 Otro'
+  const getCategoriaInfo = (categoria) => {
+    const info = {
+      deportiva: { label: 'Deportiva', icon: 'bi-trophy' },
+      cultural: { label: 'Cultural', icon: 'bi-palette' },
+      educativa: { label: 'Educativa', icon: 'bi-book' },
+      social: { label: 'Social', icon: 'bi-people' },
+      ambiental: { label: 'Ambiental', icon: 'bi-tree' },
+      salud: { label: 'Salud', icon: 'bi-heart-pulse' },
+      recreativa: { label: 'Recreativa', icon: 'bi-balloon' },
+      otro: { label: 'Otro', icon: 'bi-bookmark' }
     };
-    return textos[categoria] || categoria;
+    return info[categoria] || { label: categoria, icon: 'bi-circle' };
   };
 
   const actividadesFiltradas = actividades.filter(actividad => {
@@ -150,7 +150,7 @@ export default function SecretariaActividadesPage() {
           <p className="text-muted">Administra las actividades vecinales</p>
         </div>
         <Link href="/secretaria/actividades/nueva" className="btn btn-primary btn-lg">
-          ➕ Nueva Actividad
+          <i className="bi bi-plus-circle me-2"></i>Nueva Actividad
         </Link>
       </div>
 
@@ -165,7 +165,9 @@ export default function SecretariaActividadesPage() {
         <div className="card-body p-4">
           <div className="row g-3">
             <div className="col-md-6">
-              <label className="form-label fw-semibold">🔍 Buscar:</label>
+              <label className="form-label fw-semibold">
+                <i className="bi bi-search me-2"></i>Buscar:
+              </label>
               <input
                 type="text"
                 className="form-control form-control-lg"
@@ -175,18 +177,20 @@ export default function SecretariaActividadesPage() {
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label fw-semibold">Estado:</label>
+              <label className="form-label fw-semibold">
+                <i className="bi bi-funnel me-2"></i>Estado:
+              </label>
               <select
                 className="form-select form-select-lg"
                 value={filtroEstado}
                 onChange={(e) => setFiltroEstado(e.target.value)}
               >
                 <option value="todas">Todos los estados</option>
-                <option value="borrador">📝 Borrador</option>
-                <option value="publicada">📢 Publicada</option>
-                <option value="en_curso">🔄 En Curso</option>
-                <option value="finalizada">✅ Finalizada</option>
-                <option value="cancelada">❌ Cancelada</option>
+                <option value="borrador">Borrador</option>
+                <option value="publicada">Publicada</option>
+                <option value="en_curso">En Curso</option>
+                <option value="finalizada">Finalizada</option>
+                <option value="cancelada">Cancelada</option>
               </select>
             </div>
           </div>
@@ -197,7 +201,7 @@ export default function SecretariaActividadesPage() {
       {actividadesFiltradas.length === 0 ? (
         <div className="card border-0 shadow-sm text-center py-5">
           <div className="card-body">
-            <div className="fs-1 mb-3">📭</div>
+            <i className="bi bi-inbox fs-1 mb-3 d-block text-muted"></i>
             <h3>No hay actividades</h3>
             <p className="text-muted mb-4">
               {busqueda || filtroEstado !== 'todas'
@@ -205,7 +209,7 @@ export default function SecretariaActividadesPage() {
                 : 'Aún no se han creado actividades'}
             </p>
             <Link href="/secretaria/actividades/nueva" className="btn btn-primary">
-              ➕ Crear Primera Actividad
+              <i className="bi bi-plus-circle me-2"></i>Crear Primera Actividad
             </Link>
           </div>
         </div>
@@ -214,15 +218,15 @@ export default function SecretariaActividadesPage() {
           <div className="card-body p-0">
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
-                <thead className="bg-light">
+                <thead className="table-light">
                   <tr>
-                    <th className="px-4 py-3">Título</th>
-                    <th className="px-4 py-3">Categoría</th>
-                    <th className="px-4 py-3 text-center">Cupos</th>
-                    <th className="px-4 py-3 text-center">Inscripciones</th>
-                    <th className="px-4 py-3">Fecha Inicio</th>
-                    <th className="px-4 py-3 text-center">Estado</th>
-                    <th className="px-4 py-3 text-center">Acciones</th>
+                    <th className="px-3 py-3 fw-bold">Título</th>
+                    <th className="px-3 py-3 fw-bold text-center">Categoría</th>
+                    <th className="px-3 py-3 fw-bold text-center" style={{ minWidth: '90px' }}>Cupos</th>
+                    <th className="px-3 py-3 fw-bold text-center" style={{ minWidth: '110px' }}>Inscripciones</th>
+                    <th className="px-3 py-3 fw-bold" style={{ minWidth: '130px' }}>Fecha Inicio</th>
+                    <th className="px-3 py-3 fw-bold text-center" style={{ minWidth: '110px' }}>Estado</th>
+                    <th className="px-3 py-3 fw-bold text-center" style={{ minWidth: '160px' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,75 +236,89 @@ export default function SecretariaActividadesPage() {
                     const inscripcionesAprobadas = contarInscripciones(actividad.inscripciones, 'aprobada');
                     const totalInscripciones = actividad.inscripciones?.length || 0;
 
+                    const categoriaInfo = getCategoriaInfo(actividad.categoria);
+
                     return (
                       <tr key={actividad.id}>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <div>
-                            <div className="fw-semibold">{actividad.titulo}</div>
+                            <div className="fw-semibold text-dark">{actividad.titulo}</div>
                             <small className="text-muted">
-                              Por {actividad.organizador?.nombres} {actividad.organizador?.apellidos}
+                              <i className="bi bi-person-badge me-1"></i>
+                              {actividad.organizador?.nombres} {actividad.organizador?.apellidos}
                             </small>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <small>{getCategoriaTexto(actividad.categoria)}</small>
+                        <td className="px-3 py-3 text-center">
+                          <span
+                            className="d-inline-flex align-items-center"
+                            title={categoriaInfo.label}
+                          >
+                            <i className={`${categoriaInfo.icon} text-primary`} style={{ fontSize: '1.25rem' }}></i>
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
                           <div>
-                            <strong>{actividad.cupo_disponible}</strong> / {actividad.cupo_maximo}
+                            <strong className="text-dark">{actividad.cupo_disponible}</strong>
+                            <span className="text-muted"> / {actividad.cupo_maximo}</span>
                           </div>
-                          <small className="text-muted">disponibles</small>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
                           <div className="d-flex flex-column align-items-center">
-                            <strong>{totalInscripciones}</strong>
+                            <strong className="text-dark">{totalInscripciones}</strong>
                             {inscripcionesPendientes > 0 && (
-                              <span className="badge bg-warning text-dark mt-1">
-                                {inscripcionesPendientes} pendientes
+                              <span className="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }}>
+                                {inscripcionesPendientes} pend.
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <small>{formatearFecha(actividad.fecha_inicio)}</small>
+                        <td className="px-3 py-3">
+                          <small className="text-dark">{formatearFecha(actividad.fecha_inicio)}</small>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-3 py-3 text-center">
                           <span
-                            className="badge"
+                            className="badge d-inline-flex align-items-center"
                             style={{
                               backgroundColor: estadoBadge.bg,
-                              color: estadoBadge.text
+                              color: estadoBadge.text,
+                              fontSize: '0.8rem',
+                              padding: '0.35rem 0.65rem'
                             }}
                           >
+                            <i className={`${estadoBadge.icon} me-1`}></i>
                             {estadoBadge.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="d-flex gap-2 justify-content-center">
+                        <td className="px-3 py-3 text-center">
+                          <div className="btn-group" role="group">
                             <Link
                               href={`/secretaria/actividades/inscripciones/${actividad.id}`}
-                              className="btn btn-sm btn-primary"
+                              className="btn btn-sm btn-primary text-white"
                               title="Ver inscripciones"
+                              style={{ padding: '0.25rem 0.5rem' }}
                             >
-                              👥
+                              <i className="bi bi-people-fill"></i>
                             </Link>
                             <Link
                               href={`/secretaria/actividades/editar/${actividad.id}`}
-                              className="btn btn-sm btn-warning"
-                              title="Editar"
+                              className="btn btn-sm btn-warning text-white"
+                              title="Editar actividad"
+                              style={{ padding: '0.25rem 0.5rem' }}
                             >
-                              ✏️
+                              <i className="bi bi-pencil-fill"></i>
                             </Link>
 
                             {/* Dropdown de cambiar estado */}
-                            <div className="dropdown">
+                            <div className="btn-group" role="group">
                               <button
-                                className="btn btn-sm btn-info dropdown-toggle"
+                                className="btn btn-sm btn-info text-white dropdown-toggle"
                                 type="button"
                                 data-bs-toggle="dropdown"
                                 title="Cambiar estado"
+                                style={{ padding: '0.25rem 0.5rem' }}
                               >
-                                🔄
+                                <i className="bi bi-arrow-repeat"></i>
                               </button>
                               <ul className="dropdown-menu">
                                 {actividad.estado !== 'borrador' && (
@@ -313,7 +331,7 @@ export default function SecretariaActividadesPage() {
                                         handleCambiarEstado(actividad.id, 'borrador');
                                       }}
                                     >
-                                      📝 Borrador
+                                      <i className="bi bi-file-earmark me-2"></i>Borrador
                                     </a>
                                   </li>
                                 )}
@@ -327,7 +345,7 @@ export default function SecretariaActividadesPage() {
                                         handleCambiarEstado(actividad.id, 'publicada');
                                       }}
                                     >
-                                      📢 Publicar
+                                      <i className="bi bi-megaphone me-2"></i>Publicar
                                     </a>
                                   </li>
                                 )}
@@ -341,7 +359,7 @@ export default function SecretariaActividadesPage() {
                                         handleCambiarEstado(actividad.id, 'en_curso');
                                       }}
                                     >
-                                      🔄 En Curso
+                                      <i className="bi bi-arrow-repeat me-2"></i>En Curso
                                     </a>
                                   </li>
                                 )}
@@ -355,7 +373,7 @@ export default function SecretariaActividadesPage() {
                                         handleCambiarEstado(actividad.id, 'finalizada');
                                       }}
                                     >
-                                      ✅ Finalizar
+                                      <i className="bi bi-check-circle me-2"></i>Finalizar
                                     </a>
                                   </li>
                                 )}
@@ -371,7 +389,7 @@ export default function SecretariaActividadesPage() {
                                         }
                                       }}
                                     >
-                                      ❌ Cancelar
+                                      <i className="bi bi-x-circle me-2"></i>Cancelar
                                     </a>
                                   </li>
                                 )}
@@ -380,10 +398,11 @@ export default function SecretariaActividadesPage() {
 
                             <button
                               onClick={() => handleEliminar(actividad.id)}
-                              className="btn btn-sm btn-danger"
-                              title="Eliminar"
+                              className="btn btn-sm btn-danger text-white"
+                              title="Eliminar actividad"
+                              style={{ padding: '0.25rem 0.5rem' }}
                             >
-                              🗑️
+                              <i className="bi bi-trash-fill"></i>
                             </button>
                           </div>
                         </td>

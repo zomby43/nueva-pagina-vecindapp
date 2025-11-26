@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -13,14 +13,32 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn } = useAuth();
+
+  // Detectar mensajes de verificación de email
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    const errorParam = searchParams.get('error');
+    const message = searchParams.get('message');
+
+    if (verified === 'true') {
+      setSuccessMessage('¡Email verificado correctamente! Ya puedes iniciar sesión.');
+    } else if (errorParam === 'verification_failed') {
+      setError(`Error al verificar email: ${message || 'Intenta nuevamente'}`);
+    } else if (errorParam === 'unexpected') {
+      setError('Ocurrió un error inesperado. Por favor, intenta nuevamente.');
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setError('');
+    setSuccessMessage('');
   };
 
   const handleSubmit = async (e) => {
@@ -53,6 +71,12 @@ export default function LoginPage() {
           {error && (
             <div className="alert alert-danger" role="alert">
               {error}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="alert alert-success" role="alert">
+              {successMessage}
             </div>
           )}
 

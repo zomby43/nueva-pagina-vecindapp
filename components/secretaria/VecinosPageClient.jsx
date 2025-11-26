@@ -275,8 +275,8 @@ export default function SecretariaVecinosPage() {
             <h1><i className="bi bi-people me-2"></i>Gestión de Vecinos</h1>
             <p className="text-muted">Administrar vecinos registrados en la plataforma</p>
           </div>
-          <button className="btn btn-outline-primary" onClick={fetchVecinos} disabled={loading}>
-            🔄 Actualizar
+          <button className="btn btn-primary" onClick={fetchVecinos} disabled={loading}>
+            <i className="bi bi-arrow-clockwise me-2"></i>Actualizar
           </button>
         </div>
       </div>
@@ -387,50 +387,65 @@ export default function SecretariaVecinosPage() {
             <div className="card-body">
               {vecinosFiltrados.length === 0 ? (
                 <div className="empty-state text-center py-5">
-                  <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>👥</div>
+                  <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>
+                    <i className="bi bi-people text-muted"></i>
+                  </div>
                   <h5>No hay vecinos</h5>
                   <p className="text-muted">{busqueda || filtroEstado !== 'todos' || filtroRol !== 'todos' ? 'No se encontraron vecinos con los filtros aplicados' : 'No se han encontrado vecinos registrados'}</p>
                 </div>
               ) : (
                 <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
+                  <table className="table table-hover align-middle">
+                    <thead className="table-light">
                       <tr>
-                        <th>Nombre Completo</th>
-                        <th>RUT</th>
-                        <th>Email</th>
-                        <th>Dirección</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th>Registro</th>
-                        <th>Acciones</th>
+                        <th className="fw-bold">Nombre Completo</th>
+                        <th className="fw-bold">RUT</th>
+                        <th className="fw-bold">Email</th>
+                        <th className="fw-bold">Dirección</th>
+                        <th className="fw-bold">Rol</th>
+                        <th className="fw-bold">Estado</th>
+                        <th className="fw-bold">Registro</th>
+                        <th className="fw-bold">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {vecinosFiltrados.map((vecino) => (
                         <tr key={vecino.id}>
-                          <td><div className="fw-medium">{vecino.nombres} {vecino.apellidos}</div></td>
-                          <td><code>{vecino.rut}</code></td>
-                          <td><small>{vecino.email}</small></td>
-                          <td><small>{vecino.direccion}</small></td>
+                          <td><div className="fw-bold text-dark">{vecino.nombres} {vecino.apellidos}</div></td>
+                          <td><code className="bg-light px-2 py-1 rounded text-dark fw-bold">{vecino.rut}</code></td>
+                          <td><span className="text-dark" style={{ fontSize: '0.9rem' }}>{vecino.email}</span></td>
+                          <td><span className="text-dark" style={{ fontSize: '0.9rem' }}>{vecino.direccion}</span></td>
                           <td><span className={`badge ${getRolBadge(vecino.rol)}`}>{getRolTexto(vecino.rol)}</span></td>
                           <td><span className={`badge ${getEstadoBadge(vecino.estado)}`}>{getEstadoTexto(vecino.estado)}</span></td>
-                          <td><small>{formatearFecha(vecino.created_at)}</small></td>
+                          <td><span className="text-dark" style={{ fontSize: '0.9rem' }}>{formatearFecha(vecino.created_at)}</span></td>
                           <td>
                             <div className="btn-group btn-group-sm">
                               <button
-                                className="btn btn-outline-primary"
+                                className="btn btn-primary text-white"
                                 onClick={() => { setVecinoSeleccionado(vecino); setMostrarModal(true); }}
+                                title="Ver detalles del vecino"
                               >
-                                👁️ Ver
+                                <i className="bi bi-eye me-1"></i>Ver
                               </button>
 
                               {/* ⛔️ No hay botón de comprobante aquí (solo en el modal) */}
 
                               {vecino.estado === 'pendiente_aprobacion' && (
                                 <>
-                                  <button className="btn btn-outline-success" onClick={() => aprobarVecino(vecino.id)}>✅ Aprobar</button>
-                                  <button className="btn btn-outline-danger" onClick={() => rechazarVecino(vecino.id)}>❌ Rechazar</button>
+                                  <button
+                                    className="btn btn-success text-white"
+                                    onClick={() => aprobarVecino(vecino.id)}
+                                    title="Aprobar vecino"
+                                  >
+                                    <i className="bi bi-check-circle me-1"></i>Aprobar
+                                  </button>
+                                  <button
+                                    className="btn btn-danger text-white"
+                                    onClick={() => rechazarVecino(vecino.id)}
+                                    title="Rechazar vecino"
+                                  >
+                                    <i className="bi bi-x-circle me-1"></i>Rechazar
+                                  </button>
                                 </>
                               )}
                             </div>
@@ -480,7 +495,9 @@ export default function SecretariaVecinosPage() {
 
                 {/* Info personal */}
                 <div className="mb-4">
-                  <h6 className="mb-3">👤 Información Personal</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-person-fill me-2 text-primary"></i>Información Personal
+                  </h6>
                   <div className="row">
                     <div className="col-md-6">
                       <p className="mb-2"><strong>Nombres:</strong><br /><span className="text-muted">{vecinoSeleccionado.nombres}</span></p>
@@ -498,7 +515,9 @@ export default function SecretariaVecinosPage() {
 
                 {/* Fechas */}
                 <div className="mb-4">
-                  <h6 className="mb-3">📅 Fechas</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-calendar3 me-2 text-primary"></i>Fechas
+                  </h6>
                   <div className="row">
                     <div className="col-md-6"><p className="mb-2"><strong>Fecha de Registro:</strong><br /><span className="text-muted">{formatearFecha(vecinoSeleccionado.created_at)}</span></p></div>
                     <div className="col-md-6"><p className="mb-2"><strong>Última Actualización:</strong><br /><span className="text-muted">{formatearFecha(vecinoSeleccionado.updated_at)}</span></p></div>
@@ -509,21 +528,23 @@ export default function SecretariaVecinosPage() {
                 {/* Comprobante: ahora dos botones (ver / descargar) */}
                 {vecinoSeleccionado.comprobante_url && (
                   <div className="mb-3">
-                    <h6 className="mb-3">📄 Comprobante de Residencia</h6>
+                    <h6 className="mb-3">
+                      <i className="bi bi-file-earmark-text me-2 text-primary"></i>Comprobante de Residencia
+                    </h6>
                     <div className="d-flex gap-2">
                       <button
                         type="button"
-                        className="btn btn-outline-primary btn-sm"
+                        className="btn btn-primary btn-sm"
                         onClick={() => verComprobante(vecinoSeleccionado.comprobante_url)}
                       >
-                        👁️ Ver
+                        <i className="bi bi-eye me-1"></i>Ver
                       </button>
                       <button
                         type="button"
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-secondary btn-sm"
                         onClick={() => descargarComprobante(vecinoSeleccionado.comprobante_url)}
                       >
-                        ⬇️ Descargar
+                        <i className="bi bi-download me-1"></i>Descargar
                       </button>
                     </div>
                   </div>
@@ -531,7 +552,9 @@ export default function SecretariaVecinosPage() {
 
                 {/* ID + mapa */}
                 <div className="mb-4">
-                  <h6 className="mb-3">ℹ️ Información del Sistema</h6>
+                  <h6 className="mb-3">
+                    <i className="bi bi-info-circle me-2 text-primary"></i>Información del Sistema
+                  </h6>
                   <p className="mb-2"><strong>ID de Usuario:</strong><br /><code>{vecinoSeleccionado.id}</code></p>
                   <hr />
                 </div>
@@ -543,11 +566,17 @@ export default function SecretariaVecinosPage() {
               <div className="modal-footer">
                 {vecinoSeleccionado.estado === 'pendiente_aprobacion' && (
                   <>
-                    <button className="btn btn-success" onClick={() => { aprobarVecino(vecinoSeleccionado.id); setMostrarModal(false); }}>✅ Aprobar Vecino</button>
-                    <button className="btn btn-danger" onClick={() => { rechazarVecino(vecinoSeleccionado.id); setMostrarModal(false); }}>❌ Rechazar Vecino</button>
+                    <button className="btn btn-success" onClick={() => { aprobarVecino(vecinoSeleccionado.id); setMostrarModal(false); }}>
+                      <i className="bi bi-check-circle me-2"></i>Aprobar Vecino
+                    </button>
+                    <button className="btn btn-danger" onClick={() => { rechazarVecino(vecinoSeleccionado.id); setMostrarModal(false); }}>
+                      <i className="bi bi-x-circle me-2"></i>Rechazar Vecino
+                    </button>
                   </>
                 )}
-                <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>Cerrar</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setMostrarModal(false)}>
+                  <i className="bi bi-x-lg me-2"></i>Cerrar
+                </button>
               </div>
             </div>
           </div>

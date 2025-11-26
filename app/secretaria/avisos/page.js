@@ -191,7 +191,7 @@ export default function AvisosSecretariaPage() {
           <p className="text-muted">Administra los avisos y notificaciones de la junta de vecinos</p>
         </div>
         <Link href="/secretaria/avisos/nuevo" className="btn btn-primary">
-          ➕ Nuevo Aviso
+          <i className="bi bi-plus-circle me-2"></i>Nuevo Aviso
         </Link>
       </div>
 
@@ -276,7 +276,7 @@ export default function AvisosSecretariaPage() {
       {avisosFiltrados.length === 0 ? (
         <div className="card">
           <div className="card-body text-center py-5">
-            <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>📢</div>
+            <i className="bi bi-megaphone d-block text-muted mb-3" style={{ fontSize: '3rem' }}></i>
             <h5>No hay avisos</h5>
             <p className="text-muted">
               {filtroEstado === 'todos' && filtroPrioridad === 'todos'
@@ -314,10 +314,14 @@ export default function AvisosSecretariaPage() {
                           {aviso.estado.charAt(0).toUpperCase() + aviso.estado.slice(1)}
                         </span>
                         {aviso.destacado && (
-                          <span className="badge bg-warning text-dark">⭐ Destacado</span>
+                          <span className="badge bg-warning text-dark d-inline-flex align-items-center">
+                            <i className="bi bi-star-fill me-1"></i>Destacado
+                          </span>
                         )}
                         {aviso.imagen_url && (
-                          <span className="badge bg-info">🖼️ Con imagen</span>
+                          <span className="badge bg-info text-white d-inline-flex align-items-center">
+                            <i className="bi bi-image me-1"></i>Con imagen
+                          </span>
                         )}
                       </div>
                       <h5 className="card-title mb-2">{aviso.titulo}</h5>
@@ -332,43 +336,57 @@ export default function AvisosSecretariaPage() {
                   <div className="d-flex gap-2 flex-wrap">
                     <Link
                       href={`/secretaria/avisos/editar/${aviso.id}`}
-                      className="btn btn-sm btn-outline-primary"
+                      className="btn btn-sm btn-primary text-white"
+                      title="Editar aviso"
                     >
-                      ✏️ Editar
+                      <i className="bi bi-pencil-fill me-1"></i>Editar
                     </Link>
                     <button
                       onClick={() => toggleDestacado(aviso.id, aviso.destacado)}
-                      className="btn btn-sm btn-outline-warning"
+                      className="btn btn-sm btn-warning text-white"
+                      title={aviso.destacado ? "Quitar destacado" : "Destacar aviso"}
                     >
-                      {aviso.destacado ? '⭐ Quitar destacado' : '⭐ Destacar'}
+                      {aviso.destacado ? (
+                        <>
+                          <i className="bi bi-star me-1"></i>Quitar destacado
+                        </>
+                      ) : (
+                        <>
+                          <i className="bi bi-star-fill me-1"></i>Destacar
+                        </>
+                      )}
                     </button>
                     {aviso.estado === 'activo' && (
                       <button
                         onClick={() => cambiarEstado(aviso.id, 'inactivo')}
-                        className="btn btn-sm btn-outline-secondary"
+                        className="btn btn-sm btn-secondary text-white"
+                        title="Desactivar aviso"
                       >
-                        🔴 Desactivar
+                        <i className="bi bi-dash-circle me-1"></i>Desactivar
                       </button>
                     )}
                     {aviso.estado === 'inactivo' && (
                       <button
                         onClick={() => cambiarEstado(aviso.id, 'activo')}
-                        className="btn btn-sm btn-outline-success"
+                        className="btn btn-sm btn-success text-white"
+                        title="Activar aviso"
                       >
-                        🟢 Activar
+                        <i className="bi bi-check-circle me-1"></i>Activar
                       </button>
                     )}
                     <button
                       onClick={() => cambiarEstado(aviso.id, 'archivado')}
-                      className="btn btn-sm btn-outline-dark"
+                      className="btn btn-sm btn-dark text-white"
+                      title="Archivar aviso"
                     >
-                      📁 Archivar
+                      <i className="bi bi-archive me-1"></i>Archivar
                     </button>
                     <button
                       onClick={() => eliminarAviso(aviso.id)}
-                      className="btn btn-sm btn-outline-danger"
+                      className="btn btn-sm btn-danger text-white"
+                      title="Eliminar aviso"
                     >
-                      🗑️ Eliminar
+                      <i className="bi bi-trash-fill me-1"></i>Eliminar
                     </button>
                   </div>
                 </div>

@@ -171,11 +171,20 @@ export default function AdministracionEspaciosPage() {
 
   const getEstadoTexto = (estado) => {
     const textos = {
-      activo: '✅ Activo',
-      inactivo: '⚫ Inactivo',
-      mantenimiento: '🔧 En Mantenimiento'
+      activo: 'Activo',
+      inactivo: 'Inactivo',
+      mantenimiento: 'En Mantenimiento'
     };
     return textos[estado] || estado;
+  };
+
+  const getEstadoIcono = (estado) => {
+    const iconos = {
+      activo: 'bi-check-circle',
+      inactivo: 'bi-dash-circle',
+      mantenimiento: 'bi-wrench'
+    };
+    return iconos[estado] || 'bi-circle';
   };
 
   if (loading) {
@@ -200,7 +209,15 @@ export default function AdministracionEspaciosPage() {
           className="btn btn-primary btn-lg"
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
         >
-          {mostrarFormulario ? '📋 Ver Lista de Espacios' : '➕ Nuevo Espacio'}
+          {mostrarFormulario ? (
+            <>
+              <i className="bi bi-list-ul me-2"></i>Ver Lista de Espacios
+            </>
+          ) : (
+            <>
+              <i className="bi bi-plus-circle me-2"></i>Nuevo Espacio
+            </>
+          )}
         </button>
       </div>
 
@@ -215,7 +232,15 @@ export default function AdministracionEspaciosPage() {
         <div className="card shadow-sm border-0">
           <div className="card-body p-4">
             <h5 className="card-title mb-4">
-              {espacioEditando ? '✏️ Editar Espacio' : '➕ Nuevo Espacio'}
+              {espacioEditando ? (
+                <>
+                  <i className="bi bi-pencil-square me-2"></i>Editar Espacio
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-plus-circle me-2"></i>Nuevo Espacio
+                </>
+              )}
             </h5>
 
             <form onSubmit={handleSubmit}>
@@ -339,14 +364,22 @@ export default function AdministracionEspaciosPage() {
 
               <div className="d-flex gap-2 mt-4">
                 <button type="submit" className="btn btn-primary btn-lg">
-                  {espacioEditando ? '💾 Actualizar Espacio' : '➕ Crear Espacio'}
+                  {espacioEditando ? (
+                    <>
+                      <i className="bi bi-floppy me-2"></i>Actualizar Espacio
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-plus-circle me-2"></i>Crear Espacio
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary btn-lg"
+                  className="btn btn-secondary btn-lg"
                   onClick={resetFormulario}
                 >
-                  Cancelar
+                  <i className="bi bi-x-lg me-2"></i>Cancelar
                 </button>
               </div>
             </form>
@@ -365,14 +398,14 @@ export default function AdministracionEspaciosPage() {
           {espacios.length === 0 ? (
             <div className="card shadow-sm border-0">
               <div className="card-body text-center py-5">
-                <div className="empty-icon mb-3" style={{ fontSize: '3rem' }}>🏟️</div>
+                <i className="bi bi-building d-block text-muted mb-3" style={{ fontSize: '3rem' }}></i>
                 <h5>No hay espacios registrados</h5>
                 <p className="text-muted mb-4">Crea el primer espacio disponible para reserva</p>
                 <button
                   className="btn btn-primary"
                   onClick={() => setMostrarFormulario(true)}
                 >
-                  ➕ Crear Primer Espacio
+                  <i className="bi bi-plus-circle me-2"></i>Crear Primer Espacio
                 </button>
               </div>
             </div>
@@ -383,8 +416,9 @@ export default function AdministracionEspaciosPage() {
                   <div className="card shadow-sm border-0 h-100">
                     <div className="card-body p-4">
                       <div className="d-flex justify-content-between align-items-start mb-3">
-                        <h5 className="card-title fw-bold mb-0">{espacio.nombre}</h5>
-                        <span className={`badge ${getEstadoBadge(espacio.estado)} px-2 py-1`}>
+                        <h5 className="card-title fw-bold mb-0 text-dark">{espacio.nombre}</h5>
+                        <span className={`badge ${getEstadoBadge(espacio.estado)} d-inline-flex align-items-center px-2 py-1`}>
+                          <i className={`${getEstadoIcono(espacio.estado)} me-1`}></i>
                           {getEstadoTexto(espacio.estado)}
                         </span>
                       </div>
@@ -397,22 +431,25 @@ export default function AdministracionEspaciosPage() {
 
                       <div className="mb-3">
                         {espacio.capacidad && (
-                          <div className="mb-1">
-                            <small className="text-muted">👥 Capacidad: </small>
-                            <strong>{espacio.capacidad} personas</strong>
+                          <div className="mb-2 d-flex align-items-center">
+                            <i className="bi bi-people text-primary me-2"></i>
+                            <span className="text-dark">
+                              <strong>{espacio.capacidad}</strong> personas
+                            </span>
                           </div>
                         )}
                         {espacio.ubicacion && (
-                          <div className="mb-1">
-                            <small className="text-muted">📍 </small>
-                            <small>{espacio.ubicacion}</small>
+                          <div className="mb-2 d-flex align-items-center">
+                            <i className="bi bi-geo-alt text-primary me-2"></i>
+                            <small className="text-dark">{espacio.ubicacion}</small>
                           </div>
                         )}
                         {espacio.permite_reserva_automatica && (
-                          <div className="mb-1">
-                            <small className="badge bg-info text-dark">
-                              ⚡ Aprobación automática
-                            </small>
+                          <div className="mb-2">
+                            <span className="badge bg-info text-white d-inline-flex align-items-center">
+                              <i className="bi bi-lightning-charge me-1"></i>
+                              Aprobación automática
+                            </span>
                           </div>
                         )}
                       </div>
@@ -426,31 +463,35 @@ export default function AdministracionEspaciosPage() {
 
                       <div className="d-flex gap-2 mt-auto">
                         <button
-                          className="btn btn-outline-primary btn-sm flex-fill"
+                          className="btn btn-primary text-white btn-sm flex-fill"
                           onClick={() => abrirFormularioEditar(espacio)}
+                          title="Editar espacio"
                         >
-                          ✏️ Editar
+                          <i className="bi bi-pencil-fill me-1"></i>Editar
                         </button>
                         {espacio.estado === 'activo' ? (
                           <button
-                            className="btn btn-outline-warning btn-sm"
+                            className="btn btn-warning text-white btn-sm"
                             onClick={() => cambiarEstado(espacio.id, 'mantenimiento')}
+                            title="Cambiar a mantenimiento"
                           >
-                            🔧 Mantenimiento
+                            <i className="bi bi-wrench me-1"></i>Mantenimiento
                           </button>
                         ) : espacio.estado === 'mantenimiento' ? (
                           <button
-                            className="btn btn-outline-success btn-sm"
+                            className="btn btn-success text-white btn-sm"
                             onClick={() => cambiarEstado(espacio.id, 'activo')}
+                            title="Activar espacio"
                           >
-                            ✅ Activar
+                            <i className="bi bi-check-circle me-1"></i>Activar
                           </button>
                         ) : (
                           <button
-                            className="btn btn-outline-success btn-sm"
+                            className="btn btn-success text-white btn-sm"
                             onClick={() => cambiarEstado(espacio.id, 'activo')}
+                            title="Activar espacio"
                           >
-                            ✅ Activar
+                            <i className="bi bi-check-circle me-1"></i>Activar
                           </button>
                         )}
                       </div>

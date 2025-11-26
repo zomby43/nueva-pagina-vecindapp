@@ -256,7 +256,7 @@ export default function EmitirCertificadoResidenciaPage() {
     >
       <div className="header" style={{ marginBottom: "2rem", paddingBottom: "1rem", borderBottom: `2px solid ${palette.light}` }}>
         <h1 style={{ color: palette.primaryDark, fontSize: "2rem", fontWeight: 700, margin: 0 }}>
-          📄 Emitir Certificado de Residencia
+          <i className="bi bi-file-earmark-text me-2"></i>Emitir Certificado de Residencia
         </h1>
         <p style={{ color: palette.primary, marginTop: 8 }}>
           Completa los datos del vecino y genera el PDF con un clic.
@@ -339,13 +339,13 @@ export default function EmitirCertificadoResidenciaPage() {
             onClick={emitirYGenerarPDF}
             style={{ background: palette.primary, color: "white", border: "none", borderRadius: 12, padding: "0.75rem 1rem", fontWeight: 700, cursor: "pointer" }}
           >
-            Emitir y generar PDF
+            <i className="bi bi-file-earmark-arrow-down me-2"></i>Emitir y generar PDF
           </button>
           <a
             href="/secretaria"
-            style={{ background: palette.light, color: palette.primaryDark, textDecoration: "none", borderRadius: 12, padding: "0.75rem 1rem", fontWeight: 700 }}
+            style={{ background: palette.light, color: palette.primaryDark, textDecoration: "none", borderRadius: 12, padding: "0.75rem 1rem", fontWeight: 700, display: "inline-flex", alignItems: "center" }}
           >
-            ← Volver al Panel
+            <i className="bi bi-arrow-left me-2"></i>Volver al Panel
           </a>
         </div>
       </div>
@@ -354,8 +354,10 @@ export default function EmitirCertificadoResidenciaPage() {
         className="help"
         style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}
       >
-        <div className="card" style={{ ...cardStyle, borderLeft: `4px solid ${palette.primary}` }}>
-          <h3 style={{ color: palette.primaryDark, marginTop: 0 }}>✅ Recomendaciones</h3>
+        <div className="card" style={{ ...cardStyle, borderLeft: `4px solid ${palette.success}` }}>
+          <h3 style={{ color: palette.primaryDark, marginTop: 0 }}>
+            <i className="bi bi-check-circle me-2" style={{ color: palette.success }}></i>Recomendaciones
+          </h3>
           <ul style={{ margin: 0, paddingLeft: "1rem", color: palette.primaryDark }}>
             <li>Verifica el RUT y la dirección antes de emitir.</li>
             <li>El Nº de certificado se asigna automáticamente por el sistema.</li>

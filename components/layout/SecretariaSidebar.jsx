@@ -246,9 +246,6 @@ export default function SecretariaSidebar({ isOpen = true, onClose }) {
 
       <div className="nav-divider"></div>
 
-      <a href="/" className="nav-link nav-link-secondary" onClick={handleLinkClick}>
-        <i className="bi bi-map me-2"></i>Ver Mapa Público
-      </a>
       <button
         type="button"
         onClick={handleSignOut}
